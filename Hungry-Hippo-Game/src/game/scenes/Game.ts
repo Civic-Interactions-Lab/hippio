@@ -9,6 +9,12 @@ export class Game extends Scene
 
     private fruitSpawnTimer: Phaser.Time.TimerEvent; // store timer reference
 
+    private playerScores: Record<string, number> = {
+        player1: 0
+    }
+
+    private scoreText: Phaser.GameObjects.Text;
+
     constructor ()
     {
         super('Game');
@@ -66,15 +72,24 @@ export class Game extends Scene
         });
 
         
-        const hippo = this.add.sprite(350, 425, 'character', 0);
+        const hippo = this.physics.add.sprite(350, 425, 'character', 0);
         hippo.play('walking');
+        hippo.setCollideWorldBounds(true);
+        hippo.setImmovable(true);
 
         
         EventBus.emit('current-scene-ready', this);
      // Initialize physics for "fruit" group
      this.fruits = this.physics.add.group();
+        
+     this.physics.add.overlap(hippo, this.fruits, this.handleFruitCollision, undefined, this);
+     
+     this.scoreText = this.add.text(16, 16, 'Score: 0', {
+        fontSize: '32px',
+        color: '#ffffff'
+     });
 
-
+     this.startSpawningFruit();
     }
 
     
@@ -126,4 +141,19 @@ export class Game extends Scene
             }
         });
     }
+
+
+    private handleFruitCollision = (
+        hippo: any,
+        fruit: any
+    ) => {
+        fruit.destroy();
+        this.playerScores['player1'] += 1;
+
+        this.scoreText.setText(`Score: ${this.playerScores['player1']}`);
+
+        EventBus.emit('scoreUpdate', {
+            scores: { ...this.playerScores }
+        });
+    };
 }

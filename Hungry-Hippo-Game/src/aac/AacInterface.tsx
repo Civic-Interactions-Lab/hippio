@@ -6,7 +6,7 @@ import { AacFood, AAC_DATA } from "../Foods";
  */
 interface AacInterfaceProps {
   /**
-   * Callback function to handle food selection.
+   * Callback function to handle food selection
    * @param food - The selected food item.
    * @returns {void}
    */

@@ -37,4 +37,16 @@ export class Scoreboard
             this.updateScoreText();
         }
     }
+
+    // Method to increment the player's score
+    public incrementScore(playerId: string, amount: number = 1)
+    {
+        if(!(playerId in this.playerScores))
+        {
+            this.playerScores[playerId] = 0;
+        }
+        this.playerScores[playerId] += amount;
+        this.updateScoreText();
+        EventBus.emit('scoreUpdate', {scores: {...this.playerScores}})
+    } 
 }

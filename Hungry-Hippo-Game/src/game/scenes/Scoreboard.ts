@@ -28,7 +28,7 @@ export class Scoreboard
         this.updateScoreText();
     }
 
-    // Initialize the score for a player
+    // Method to initialize the score for a player
     public addPlayer(playerId: string)
     {
         if(!(playerId in this.playerScores))

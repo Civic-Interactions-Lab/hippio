@@ -125,12 +125,7 @@ export class Game extends Scene
             console.log(`[EAT] ${foodGO.texture.key} eaten by hippo`);
             foodGO.destroy();
 
-            this.playerScores["host"] += 1
-            this.updateScoreText();
-
-            EventBus.emit('scoreUpdate', {
-                scores: { ...this.playerScores }
-            });
+            this.scoreboard.incrementScore("host");
         }
     }
 
@@ -151,20 +146,11 @@ export class Game extends Scene
     
         this.foods = this.physics.add.group();
 
-        this.playerScores["host"] = 0;
-    
-        this.physics.add.overlap(this.hippo, this.foods, this.handleFoodCollision, undefined, this);
+        // Initialize scoreboard and add host player
+        this.scoreboard = new Scoreboard(this);
+        this.scoreboard.addPlayer('host');
 
-        this.scoreText = this.add.text(32, 32, '', {
-            fontSize: '24px',
-            color: '#000',
-            fontFamily: 'Arial',
-            align: 'left',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            padding: { x: 10, y: 10 }
-        });
-
-        this.updateScoreText();
+        this.physics.add.overlap(this.hippo, this.foods, this.handleFoodCollision, undefined);
     }
     
 
@@ -253,10 +239,7 @@ export class Game extends Scene
 
     addPlayer(playerId: string, x: number, y: number)
     {
-        if(!(playerId in this.playerScores))
-        {
-            this.playerScores[playerId] = 0;
-        }
+        this.scoreboard.addPlayer(playerId);
         if(!(playerId in this.players))
         {
             const playerSprite = this.physics.add.sprite(x, y, 'character', 0);
@@ -293,12 +276,6 @@ export class Game extends Scene
         fruit: Phaser.GameObjects.GameObject
     ) => {
         fruit.destroy();
-        this.playerScores[playerId] += 1;
-
-        this.updateScoreText();
-
-        EventBus.emit('scoreUpdate', {
-            scores: {...this.playerScores}
-        });
+        this.scoreboard.incrementScore(playerId);
     };
 }

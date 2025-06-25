@@ -27,4 +27,14 @@ export class Scoreboard
 
         this.updateScoreText();
     }
+
+    // Initialize the score for a player
+    public addPlayer(playerId: string)
+    {
+        if(!(playerId in this.playerScores))
+        {
+            this.playerScores[playerId] = 0;
+            this.updateScoreText();
+        }
+    }
 }

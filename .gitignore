@@ -1,5 +1,6 @@
 # Generated files
 .docusaurus
+../documentation/static/coverage/
 
 # Misc
 .DS_Store

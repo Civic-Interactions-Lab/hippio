@@ -38,6 +38,7 @@ export class Hippo extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         // Enable physics for the sprite
         scene.physics.add.existing(this);
+        this.scene =scene;
 
         // Configure physics properties
         this.setCollideWorldBounds(true);

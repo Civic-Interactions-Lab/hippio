@@ -12,6 +12,7 @@ import { EventBus } from '../EventBus';
 import { AAC_DATA } from '../../Foods';
 import { WalkStrategy } from '../moveStrategy/WalkStrategy';
 import { Hippo } from '../Hippo';
+import { Scoreboard } from './Scoreboard';
 
 /**
  * The Game class defines a Phaser scene that initializes the hippo player,
@@ -45,20 +46,22 @@ export class Game extends Scene
     */
     private foodSpawnTimer: Phaser.Time.TimerEvent; // store timer reference
 
-
-    private playerScores: Record<string, number> = {};
-
-    private scoreText: Phaser.GameObjects.Text;
-
+    /**
+     * Constructor for tracking each player.
+     */
     private players: Record<string, Phaser.Physics.Arcade.Sprite> = {};
 
 
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
     /**
+     * Constructor for creating the scoreboard.
+     */
+    private scoreboard: Scoreboard;
+
+    /**
      * Constructor for the Game scene. Sets the scene key.
     */
-
     constructor ()
     {
         super('Game');
@@ -298,12 +301,4 @@ export class Game extends Scene
             scores: {...this.playerScores}
         });
     };
-
-    private updateScoreText() 
-    {
-        const lines = Object.entries(this.playerScores)
-            .map(([player, score]) => `${player}: ${score}`)
-            .join('\n');
-        this.scoreText.setText(lines);
-    }
 }

@@ -58,4 +58,11 @@ export class Scoreboard
             .join('\n');
         this.scoreText.setText(lines);
     }
+
+    // Method to set score on screen
+    public setScore(playerId: string, newScore: number)
+    {
+        this.playerScores[playerId] = newScore;
+        this.updateScoreText();
+    }
 }

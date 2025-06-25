@@ -151,6 +151,22 @@ export class Game extends Scene
         this.scoreboard.addPlayer('host');
 
         this.physics.add.overlap(this.hippo, this.foods, this.handleFoodCollision, undefined);
+        
+        // Create WebSocket connection for receiving score updates
+        const socket = new WebSocket('ws://localhost:8080');
+
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+
+            if(data.type === 'scoreUpdate')
+            {
+                const scores = data.scores;
+                for(const [playerId, score] of Object.entries(scores))
+                {
+                    this.scoreboard.setScore(playerId, score as number);
+                }
+            }
+        })
     }
     
 

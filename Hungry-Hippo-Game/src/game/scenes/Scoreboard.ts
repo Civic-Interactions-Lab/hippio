@@ -49,4 +49,13 @@ export class Scoreboard
         this.updateScoreText();
         EventBus.emit('scoreUpdate', {scores: {...this.playerScores}})
     } 
+
+    // Method to update the on-screen text for score
+    private updateScoreText()
+    {
+        const lines = Object.entries(this.playerScores)
+            .map(([player, score]) => `${player}: ${score}`)
+            .join('\n');
+        this.scoreText.setText(lines);
+    }
 }

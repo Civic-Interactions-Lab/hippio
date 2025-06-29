@@ -59,6 +59,9 @@ export class Game extends Scene
 
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
+    private scoreboardContainer: Phaser.GameObjects.Container;
+    private scoreboardTexts: Phaser.GameObjects.Text[] = [];
+
     /**
      * Constructor for creating the scoreboard.
      */
@@ -171,7 +174,24 @@ export class Game extends Scene
                     this.scoreboard.setScore(playerId, score as number);
                 }
             }
+<<<<<<< Updated upstream
         })
+=======
+
+            if (fruitGO) {
+                this.handleFruitCollision("host", fruitGO);
+            }
+        });
+
+        const padding = 20;
+        const scoreboardX = this.scale.width - padding;
+        const scoreboardY = padding;
+
+        this.scoreboardContainer = this.add.container(scoreboardX, scoreboardY);
+        this.scoreboardContainer.setScrollFactor(0);
+
+        this.updateScoreboard();
+>>>>>>> Stashed changes
     }
     
 
@@ -317,6 +337,55 @@ export class Game extends Scene
         fruit: Phaser.GameObjects.GameObject
     ) => {
         fruit.destroy();
+<<<<<<< Updated upstream
         this.scoreboard.incrementScore(playerId);
     };
+=======
+        if ('texture' in fruit && fruit instanceof Phaser.GameObjects.Sprite) {
+            const foodId = fruit.texture.key;
+            const isCorrect = foodId === this.currentTargetFoodId;
+
+            if (isCorrect) {
+                this.playerScores[playerId] += 1;
+                console.log(`[POINT] ${playerId} ate correct food: ${foodId}`);
+            } else {
+                this.playerScores[playerId] = Math.max(0, this.playerScores[playerId] - 1); // prevent negative
+                console.log(`[PENALTY] ${playerId} ate wrong food: ${foodId}`);
+            }
+
+            this.updateScoreboard();
+
+            EventBus.emit('scoreUpdate', {
+                scores: {...this.playerScores}
+            });
+        }
+    };
+
+    private updateScoreboard() 
+    {
+        this.scoreboardTexts.forEach(text => text.destroy());
+        this.scoreboardTexts = [];
+
+        const lineHeight = 28;
+        let offsetY = 0;
+
+        for(const[playerId, score] of Object.entries(this.playerScores))
+        {
+            const scoreText = this.add.text(0, offsetY, `${playerId}: ${score}`, {
+                fontSize: '20px',
+                color: '#ffffff',
+                fontFamily: 'Arial',
+                stroke: '#000000',
+                strokeThickness: 3,
+                align: 'right',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                padding: {x: 10, y: 5}
+            });
+            scoreText.setOrigin(1, 0);
+            this.scoreboardContainer.add(scoreText);
+            this.scoreboardTexts.push(scoreText);
+            offsetY += lineHeight;
+        }
+    }
+>>>>>>> Stashed changes
 }

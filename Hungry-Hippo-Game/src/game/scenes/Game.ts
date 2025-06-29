@@ -51,6 +51,11 @@ export class Game extends Scene
      */
     private players: Record<string, Phaser.Physics.Arcade.Sprite> = {};
 
+    /**
+     * Variable to keep track of player's live score.
+     */
+    private playerScoreLabels: Record<string, Phaser.GameObjects.Text> = {};
+
 
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
@@ -251,6 +256,14 @@ export class Game extends Scene
         if (this.hippo && this.cursors) {
             this.hippo.update(this.cursors);
         }
+        for(const playerId in this.players) {
+            const player = this.players[playerId];
+            const label = this.playerScoreLabels[playerId];
+            if(player && label) {
+                label.setPosition(player.x, player.y - 70);
+                label.setText(String(this.scoreboard.getScore(playerId)));
+            }
+        }
     }
 
     addPlayer(playerId: string, x: number, y: number)
@@ -284,6 +297,18 @@ export class Game extends Scene
                     this.handleFruitCollision(playerId, fruitGO);
                 }
             }, undefined, this)
+
+            const scoreLabel = this.add.text(x, y - 50, '0', {
+                    fontSize: '20px',
+                    color: '#ffffff',
+                    fontFamily: 'Arial',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    padding: { x: 6, y: 3},
+                    align: 'center'
+                }
+            );
+            scoreLabel.setOrigin(0.5);
+            this.playerScoreLabels[playerId] = scoreLabel;
         }
     }
 

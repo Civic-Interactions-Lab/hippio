@@ -65,4 +65,10 @@ export class Scoreboard
         this.playerScores[playerId] = newScore;
         this.updateScoreText();
     }
+
+    // Method to get scores when accessing from other classes
+    public getScore(playerId: string): number 
+    {
+        return this.playerScores[playerId] ?? 0;
+    }
 }

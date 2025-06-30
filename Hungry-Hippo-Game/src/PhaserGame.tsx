@@ -123,4 +123,10 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
         <div id="game-container"></div>
     );
 
+    useEffect(() => {
+        if(lastMessage?.type === 'scoreUpdate')
+        {
+            EventBus.emit('external-score-update', lastMessage.scores);
+        }
+    }, [lastMessage]);
 });

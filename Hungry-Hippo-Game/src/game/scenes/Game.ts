@@ -56,21 +56,16 @@ export class Game extends Scene {
 
         this.physics.add.overlap(this.hippo, this.foods, this.handleFoodCollision, undefined);
 
-        const socket = new WebSocket('ws://localhost:8080');
-        socket.addEventListener('message', (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'scoreUpdate') {
-                const scores = data.scores;
-                for (const [playerId, score] of Object.entries(scores)) {
-                    this.scoreboard.setScore(playerId, score as number);
-                }
-            }
-        });
-
         const padding = 20;
         this.scoreboardContainer = this.add.container(this.scale.width - padding, padding);
         this.scoreboardContainer.setScrollFactor(0);
         this.updateScoreboard();
+
+        EventBus.on('external-score-update', (scores: Record<string, number>) => {
+            for(const [playerId, score] of Object.entries(scores)) {
+                this.scoreboard.setScore(playerId, score);
+            }
+        });
     }
 
     private handleFoodCollision = (

@@ -14,6 +14,7 @@ import { WalkStrategy } from '../moveStrategy/WalkStrategy';
 import { Hippo } from '../Hippo';
 import { Scoreboard } from './Scoreboard';
 
+
 /**
  * The Game class defines a Phaser scene that initializes the hippo player,
  * handles spawning of food items, and manages collision detection.
@@ -59,6 +60,7 @@ export class Game extends Scene
 
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
+<<<<<<< Updated upstream
     private scoreboardContainer: Phaser.GameObjects.Container;
     private scoreboardTexts: Phaser.GameObjects.Text[] = [];
 
@@ -66,6 +68,9 @@ export class Game extends Scene
      * Constructor for creating the scoreboard.
      */
     private scoreboard: Scoreboard;
+=======
+    private sendMessageToServer?: (message: object) => void;
+>>>>>>> Stashed changes
 
     /**
      * Constructor for the Game scene. Sets the scene key.
@@ -358,6 +363,16 @@ export class Game extends Scene
             EventBus.emit('scoreUpdate', {
                 scores: {...this.playerScores}
             });
+
+            // Send score upddate to server via WebSocket
+            if(this.sendMessageToServer)
+            {
+                this.sendMessageToServer({
+                    type: 'scoreUpdate',
+                    playerId,
+                    scores: {...this.playerScores}
+                });
+            }
         }
     };
 
@@ -387,5 +402,14 @@ export class Game extends Scene
             offsetY += lineHeight;
         }
     }
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes
 }
+=======
+
+    public setSendMessage(sendFn: (message: object) => void)
+    {
+        this.sendMessageToServer = sendFn;
+    }
+}
+>>>>>>> Stashed changes

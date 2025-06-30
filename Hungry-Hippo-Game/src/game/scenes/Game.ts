@@ -74,8 +74,8 @@ export class Game extends Scene {
     }
 
     private handleFoodCollision = (
-        hippoObj: Phaser.GameObjects.GameObject,
-        foodObj: Phaser.GameObjects.GameObject
+        hippoObj: Phaser.GameObjects.GameObject | Phaser.Physics.Arcade.Body | Phaser.Physics.Arcade.StaticBody | Phaser.Tilemaps.Tile,
+        foodObj: Phaser.GameObjects.GameObject | Phaser.Physics.Arcade.Body | Phaser.Physics.Arcade.StaticBody | Phaser.Tilemaps.Tile
     ) => {
         const food = foodObj as Phaser.GameObjects.Sprite;
         if (food && food.texture) {

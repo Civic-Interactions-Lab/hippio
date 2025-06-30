@@ -12,7 +12,7 @@ Frontend testing is done via Vitest and React Testing Library.
 | Kostandin Jorgji | Vitest & React Testing Library | Vite integration, fast TypeScript support, RTL mirrors how users interact with the app | userEvent & render | AacInterface.tsx, Foods.ts
 | Omais Khan | Vitest | Works out-of-the-box with Vite + TypeScript | vi.fn(), isolated test logic | Game.ts |
 | Jasmine Liu | Vitest | Straightforward setup to run tests | Easily generate coverage reports with a command  | LandingPage.tsx & ButtonClick.tsx |
-| Student |
+| Mohammed K | Vitest | Excellent for react and Javascript application | Fast execution, Built in Mocking, Isolated test Logic | Hippo.ts
 | Student |
 
 # Frontend
@@ -190,6 +190,44 @@ Frontend testing is done via Vitest and React Testing Library.
   - The button has the `styles.button` class applied
 
 ---
+
+# Hippo Class (game Character)
+
+- **Test Case 1: Initialization State**
+  -Initialization with Scene and Physics: 
+    - Input: scene, x, y, texture, moveStrategy
+    - Procedure:
+      - 1. Create a mock Phaser.scene and a mock MoveStrategy
+      - 2. Instantiate a Hippo object
+      - 3. Call isMouthOpen()
+    - Expected Output: true
+
+- **Test Case 2: Toggle Mouth State**
+  - Objective: Verify that toggleMouth() flips the mouth state and updates the frame 
+  - Input: N/A
+  - Procedure:
+    - 1. Call toggleMouth() once 
+    - 2. Check isMouthOpen() -> should be false
+    - 3. Call toggleMouth() again
+    - 4. Check isMouthOpen() -> should be true
+  - Expected Output: Mouth state alternates with each call 
+
+- **Test Case 3: Movement Delegation**
+  - Objective: Confirm update() delegates to the assigned move strategy
+  -Input: Phaser.Types.Input.Keyboard.Cursorkeys object (mocked)
+  -Procedure:
+    - 1. Spy on the update() method of the mock strategy 
+    - 2. Call hippo.update(mockCursorKeys)
+  - Expected Output: moveStrategy.update() is called with hippo and mockCursorKeys
+
+- **Test Case 4: Change Strategy at Runtime**
+  - Objective: Ensure setStrategy() properly replaces the movement strategy
+  - Input: New MoveStrategy instance
+  - Procedure: 
+    - 1. Create a second mock MoveStrategy 
+    - 2. Set the new Strategy using setStrategy()
+    - 3. Call update() with a mock cursor input 
+  -Expected Output: The new strategy's update() method is called and not the old one
 
 # Backend
 

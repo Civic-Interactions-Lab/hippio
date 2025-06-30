@@ -20,27 +20,124 @@
 
 ## Keywords
 Section #701
-Section #, as well as any words that quickly give your peers insights into the application like programming language, development platform, type of application, etc.
+JavaScript · TypeScript · React · Phaser · Web Game · Accessibility · AAC · Multiplayer · Physics-based · Educational Technology
 
 ## Project Abstract
 
-This project proposes the development of a web-based application that digitally recreates the classic Hungry Hungry Hippos game. The application will be publicly accessible, allowing users to interact with the game through a web browser. A key feature of this version is its compatibility with Augmentative and Alternative Communication (AAC) devices, ensuring accessibility for users with speech or motor impairments. Players will control their hippos using input from an AAC device, promoting gameplay that is inclusive of all people. The project emphasizes accessible design, real-time interactivity, and an engaging, competitive experience.
+This project proposes the development of a **web-based multiplayer game** inspired by the classic *Hungry Hungry Hippos*, reimagined for accessibility and digital interactivity. The game is accessible via modern web browsers and integrates **Augmentative and Alternative Communication (AAC)** interfaces, ensuring that individuals with speech or motor impairments can participate meaningfully.
+
+Players are divided into two roles:
+
+- **AAC Game Conductor** – selects fruits, launches traps, and directs the flow of the game using an AAC-compatible interface.
+- **Hippo Players** – up to four players control cartoon hippos stationed at screen edges, sliding along their borders to "catch" fruits using movement keys or touch input.
+
+Fruits and traps bounce around the arena with physics-based behavior, creating an exciting and dynamic environment. The goal is to collect as many correct fruits as possible while avoiding traps. This game emphasizes **inclusivity, real-time decision-making**, and **competitive play** in a fun, accessible format.
 
 ## High Level Requirement
 
-Describe the requirements – i.e., what the product does and how it does it from a user point of view – at a high level.
+### Functional Requirements (User-Facing)
 
-## Conceptual Design
+#### AAC Game Conductor
+- Selects target fruits (e.g., “Apples only”).
+- Launches fruits and traps from the screen center.
+- Assigns initial launch direction for traps.
+- Resets and starts new rounds.
+- Views real-time score updates.
+- Receives visual and auditory feedback on all actions.
 
-Describe the initial design concept: Hardware/software architecture, programming language, operating system, etc.
+#### Hippo Players (Up to 4)
+- Each hippo is assigned to a unique screen edge (top, bottom, left, right).
+- Players can slide left/right or up/down along their edge.
+- Catch fruits with default open mouths.
+- Can close mouths to avoid incorrect fruits or traps.
+- Deflects fruits/traps with physics if not "eaten."
+- Game ends after time or round limit.
 
+
+## 🧠 Conceptual Design
+
+### Architecture
+
+- **Frontend**: React (for UI), Phaser (for game logic/physics), TypeScript.
+- **Game Engine**: Phaser 3 – responsible for rendering, physics, collisions.
+- **Accessibility Layer**: AAC input mapped to game control events.
+- **Responsive Design**: Tailwind CSS + flex/grid for adaptive layout.
+- **Deployment**: Vercel or GitHub Pages for quick public access.
+
+### Technologies
+| Layer        | Stack                             |
+|--------------|-----------------------------------|
+| UI Framework | React + TypeScript + Tailwind CSS |
+| Game Engine  | Phaser 3                          |
+| Input Layer  | AAC Interface, Keyboard, Touch    |
+| Platform     | Web (Cross-platform, no install)  |
+
+### Operating Systems
+- All modern OSes supported (Windows, macOS, iOS, Android, Linux) through browser compatibility.
+
+---
 ## Background
 
-The background will contain a more detailed description of the product and a comparison to existing similar projects/products. A literature search should be conducted and the results listed. Proper citation of sources is required. If there are similar open-source products, you should state whether existing source will be used and to what extent. If there are similar closed-source/proprietary products, you should state how the proposed product will be similar and different.
+Many existing web games are designed primarily for able-bodied users, leaving out players who rely on AAC devices. This project was inspired by the desire to **merge play, inclusivity, and technology**, ensuring children and individuals with communication challenges can participate in social, fast-paced gameplay.
+
+The original *Hungry Hungry Hippos* was a turn-based, tactile game, but modernizing it with bouncing physics, interactive traps, and digital control unlocks a new level of engagement. Integrating accessible design principles and playful interaction can foster **joyful shared experiences**, especially in educational or therapeutic settings.
+
+---
+## 🛠️ How to Run Locally
+
+bash
+# Clone the repo
+git clone the repo
+cd Hungry-hippo-game
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
 
 ## Required Resources
 
-Discuss what you need to develop this project. This includes background information you will need to acquire, hardware resources, and software resources. If these are not part of the standard Computer Science Department lab resources, these must be identified early and discussed with the instructor.
+To successfully develop this project, the following technical competencies and background knowledge are required:
+
+- **Web Development**
+  - React.js for building the game interface and AAC control panel.
+  - TypeScript or JavaScript for front-end logic and component structure.
+- **Game Development**
+  - Understanding of **Phaser 3** for 2D game mechanics, physics, and object interaction (e.g., bouncing, collision detection).
+- **AAC Design Principles**
+  - Basic knowledge of **Augmentative and Alternative Communication (AAC)** systems and best practices for accessibility.
+- **UI/UX for Accessibility**
+  - High-contrast design
+  - Visual and auditory feedback cues
+  - Screen-reader and touch input considerations
+- **Real-Time Communication (optional)**
+  - WebSocket or similar methods for multiplayer or remote setups (advanced/optional).
+ 
+### 💻 Software Resources
+
+| Resource            | Purpose                                        | Notes                      |
+|---------------------|------------------------------------------------|----------------------------|
+| **Node.js**         | Environment to run and build the web app       | Required                   |
+| **npm/yarn**        | Package manager for dependencies               | Required                   |
+| **React**           | UI library                                     | Required                   |
+| **Phaser 3**        | 2D game engine                                 | Required                   |
+| **Tailwind CSS**    | Styling and layout                             | Optional, but helpful      |
+| **TypeScript**      | Static typing for safer code                   | Strongly recommended       |
+| **Git/GitHub**      | Version control and collaboration              | Required                   |
+| **Clerk/Firebase**  | User authentication (if applicable)            | Optional                   |
+| **Vite**            | Fast development server and bundler            | Recommended over CRA       |
+| **Visual Studio Code** | Code editor                                 | Recommended                |
+
+### 🖥 Hardware Resources
+
+| Device                    | Use                                             | Required? |
+|---------------------------|--------------------------------------------------|-----------|
+| **Desktop or Laptop**     | Development and playtesting                      | ✅        |
+| **Tablet or Touchscreen** | AAC user interface simulation                    | ✅        |
+| **Multiple Devices (2–5)**| Simultaneous testing (1 AAC + 4 Hippo players)   | ✅        |
+
+
 
 ## Collaborators
 

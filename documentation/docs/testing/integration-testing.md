@@ -41,3 +41,38 @@ Assertion:
 * Each tap adds the chosen food to the queue display.
 * When the queue is full, a new tap bumps the queue's first index
 * The food in the queue shows on every Hippo client
+
+## Use Case 5  
+Description:  
+A Hippo player slides their hippo along the edge of the arena and attempts to eat the correct fruit launched by the AAC user.
+
+Assertion: 
+* Fruits are launched from the center and bounce outward.  
+* Hippos are restricted to their assigned edge (top, bottom, left, or right).  
+* Players can slide their hippo along their edge using input controls.  
+* When a hippo collides with the correct fruit (from the visible AAC queue), the player earns 1 point.  
+* If the hippo eats a wrong fruit, no points are awarded (or a penalty may occur).  
+* Real-time score updates are reflected on all player and AAC user screens.
+
+## Use Case 6  
+Description:  
+The game session ends automatically when the timer reaches zero, and a final score screen is displayed.
+
+Assertion: 
+* A default timer is set when the game begins.  
+* The timer begins once the host taps “Start Game.”  
+* The game state transitions to “ended” when time runs out.   
+* A final score screen is displayed to all participants 
+* Options for “Play Again” and “End Game” are shown to the host.
+
+## Use Case 7  
+Description:  
+Players or the AAC user opt to either replay the game or exit to the home screen.
+
+Assertion:
+* Choosing “Play Again” resets the game:  
+  - Scores are cleared.  
+  - Fruit queue is emptied.  
+  - Players return to the role selection or session lobby.  
+* Choosing “End Game” navigates all clients to the home/landing screen.  
+* The backend session data is cleaned up or marked as inactive.

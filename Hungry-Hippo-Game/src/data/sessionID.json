@@ -1,11 +1,27 @@
 {
-  "sessions": [
-    "ABCDE",
-    "O20YB",
-    "TVPMS",
-    "XWH7M",
-    "AX4N1",
-    "9LG63",
-    "URP6U"
-  ]
+  "sessions": {
+    "ABCDE": [
+      {
+        "userId": "User630",
+        "role": "Hippo Player"
+      },
+      {
+        "userId": "User642",
+        "role": "Hippo Player"
+      },
+      {
+        "userId": "User808",
+        "role": "AAC User"
+      }
+    ],
+    "95K7O": [
+      {
+        "userId": "User183",
+        "role": "Hippo Player"
+      }
+    ],
+    "36A7N": [],
+    "6OCZO": [],
+    "2NRXJ": []
+  }
 }

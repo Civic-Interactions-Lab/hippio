@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './RoleSelect.module.css';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ButtonClick from '../../components/ButtonClick/ButtonClick';
 
 /**
@@ -50,23 +50,43 @@ import ButtonClick from '../../components/ButtonClick/ButtonClick';
  */
 function RoleSelect() {
   const navigate = useNavigate();
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const location = useLocation();
+
   const [role, setRole] = useState<string>(''); 
   const [error, setError] = useState<boolean>(false);
-  const { sessionId } = useParams();
+  const [username] = useState(location.state?.userId || ''); 
 
-  /**
-   * Handles navigation to the game page if a role is selected.
-   * Otherwise, sets error state to display UI validation feedback.
-   */
+
+/**
+ * Handles the logic for starting the game after a role is selected.
+ *
+ * <p>This function validates that a role has been selected. It then sends a POST request
+ * to the server to update the user's role for the current session. Upon a successful
+ * update, the user is navigated to the appropriate game page based on their role.
+ *
+ * <p>If no role is selected, an error state is triggered and the function exits early.
+ * If the server fails to update the role, an alert is shown to the user.
+ *
+ * @async
+ * @function handleStart
+ * @returns {Promise<void>} Resolves after role is updated and user is navigated to next page.
+ */
   const handleStart = () => {
     if (!role) {
-        setError(true);
-        return;
+      setError(true);
+      return;
     }
     setError(false);
-    console.log('Selected role:', role);
-    navigate(`/gamepage/${sessionId}`);
-    // TODO: Add logic to persist role selection to backend or shared state
+
+    // Navigate to the next page (the game page for now)
+    // and pass ALL player info in the state for the next page to use.
+    navigate(`/gamepage/${sessionId}/${username}`, {
+      state: {
+        userId: username,
+        role: role
+      }
+    });
   };
 
   /**
@@ -80,18 +100,22 @@ function RoleSelect() {
     if (error) setError(false);
   };
 
+  const handleCancel = () => {
+    navigate('/');
+  };
+
   return (
     <div className={styles.containerImg}>
       <div className={styles.roleContainer}>
         <button
           className={styles.closeButton}
-          onClick={() => navigate('/')}
+          onClick={handleCancel}
           aria-label="Close"
         >
           ✖
         </button>
 
-        <h2 className={styles.sessionText2}>Username: _____</h2>
+        <h2 className={styles.sessionText2}>You are: {username || '_____'} </h2>
 
         <div className={styles.roleSelectGroup}>
           <select

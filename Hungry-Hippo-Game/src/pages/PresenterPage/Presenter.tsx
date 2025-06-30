@@ -1,6 +1,5 @@
 import styles from './Presenter.module.css';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 /**
  * Presenter - React component that displays the session ID to the host after creating a new game.
@@ -40,8 +39,8 @@ import { useParams } from 'react-router-dom';
  */
 function Presenter() {
   const navigate = useNavigate();
-  const { sessionId } = useParams();
-
+  const { sessionId } = useParams<{ sessionId: string }>();
+  
   /**
    * Handler for clicking the close button.
    * Navigates the user back to the landing page.
@@ -66,7 +65,7 @@ function Presenter() {
           onClick={handleCancel}
           aria-label="Cancel New Game"
         >
-          ×
+          ✖
         </button>
 
         <h1 className={styles.sessionText2}>Game Code: {sessionId}</h1>

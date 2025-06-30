@@ -1,5 +1,5 @@
 // WalkStrategy.ts – free 360° walking
-import { MoveStrategy } from "./moveStrategy";
+import { MoveStrategy } from "./MoveStrategy";
 
 
 export class WalkStrategy implements MoveStrategy {

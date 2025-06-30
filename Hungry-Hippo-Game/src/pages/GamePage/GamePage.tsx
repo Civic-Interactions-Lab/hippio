@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { IRefPhaserGame, PhaserGame } from '../../PhaserGame';
 import AacInterface from '../../aac/AacInterface';
 import { AacFood } from '../../Foods';
-
+import { useWebSocket } from '../../contexts/WebSocketContext';
 
 /**
  * 
@@ -41,6 +42,8 @@ import { AacFood } from '../../Foods';
 
  */
 const GamePage: React.FC = () => {
+    const { sessionId, userId } = useParams<{ sessionId: string, userId: string }>();
+    const location = useLocation();
     //  References to the PhaserGame component (game and scene are exposed)
     /**
      * * @description A React ref pointing to the PhaserGame component instance. 
@@ -48,52 +51,35 @@ const GamePage: React.FC = () => {
      */
     const phaserRef = useRef<IRefPhaserGame | null>(null);
 
-    /**
-     * 
-     * @field foodStack
-     * @type {AacFood[]}
-     * @description  Stack of selected foods. The top of the stack is the most recent selection
-     */
+    const [currentFood, setCurrentFood] = useState<AacFood | null>(null);
+    const { lastMessage, sendMessage, clearLastMessage } = useWebSocket();
 
-    const [foodStack, setFoodStack] = React.useState<AacFood[]>([]);
-
-    /**
-     * @function handleSelectedFood
-     * @description Handles food selection from the AAC interface:
-     * - Adds the selected food to the top of the stack.
-     * - Calls the Phaser scene to spawn the selected food and animate it.
-     * 
-     * @param {AacFood} selectedFood - The food object selected from the AAC interface.
-     * 
-     * @pre selectedFood must be a valid AacFood object.
-     * @post foodStack is updated; Phaser scene will visually spawn the food if available.
-     */
-
-    const handleSelectedFood = (selectedFood: AacFood) => {
-        setFoodStack(previousStack => [selectedFood, ...previousStack]);
-
-        // Spawn the selected food in the Phaser scene and make it fall
-
-        try{
-        if (phaserRef.current) {
-            const scene = phaserRef.current.scene as any;
-            if (scene && typeof scene.addFoodManually === 'function') {
-                scene.addFoodManually(selectedFood.id);
-            }
-            
+    // Entering the game lobby
+    useEffect(() => {
+        const role = location.state?.role;
+        if (sessionId && userId && role) {
+            sendMessage({
+                type: 'PLAYER_JOIN',
+                payload: { sessionId, userId, role }
+            })
         }
-    } catch (error){ console.error ("Error adding food to Phaser scene: ", error)}
+    }, [sessionId, userId, location.state?.role, sendMessage]);
 
-    };
-
-     /**
-     * @field currentFood
-     * @type {AacFood | null}
-     * @description The food currently at the top of the stack, representing the next food to eat.
-     */
-
-    // Get the current selected food (top of stack)
-    const currentFood = foodStack.length > 0 ? foodStack[0] : null;
+    // Listens for broadcasts from the server about food selection
+    useEffect(() => {
+        if (lastMessage?.type === 'FOOD_SELECTED_BROADCAST') {
+            const { food } = lastMessage.payload;
+            setCurrentFood(food);
+            const scene = phaserRef.current?.scene as any;
+            if (scene && typeof scene.addFoodManually === 'function') {
+                scene.addFoodManually(food.id, lastMessage.payload.angle);
+            }
+            if (scene && typeof scene.setTargetFood === 'function') {
+                scene.setTargetFood(food.id);
+            }
+            if (clearLastMessage) clearLastMessage();
+        }
+    }, [lastMessage, clearLastMessage]);
 
      /**
      * @returns {JSX.Element}
@@ -102,7 +88,7 @@ const GamePage: React.FC = () => {
 
     return (
         <div id="app">
-            <AacInterface onFoodSelected={handleSelectedFood}/>
+            {sessionId ? <AacInterface sessionId={sessionId} /> : null}
             <div className="game-container">
                 <PhaserGame ref={phaserRef} />
                 

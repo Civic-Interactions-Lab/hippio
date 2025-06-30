@@ -1,16 +1,12 @@
 import React from "react";
 import { AacFood, AAC_DATA } from "../Foods";
+import { useWebSocket } from "../contexts/WebSocketContext";
 
 /**
  * Defines the props for the AacInterface component.
  */
 interface AacInterfaceProps {
-  /**
-   * Callback function to handle food selection.
-   * @param food - The selected food item.
-   * @returns {void}
-   */
-  onFoodSelected: (food: AacFood) => void;
+  sessionId: string;
 }
 
 /**
@@ -18,19 +14,12 @@ interface AacInterfaceProps {
  * @param {AacInterfaceProps} props - The properties for the component.
  * @returns {JSX.Element} The rendered component.
  */
-const AacInterface: React.FC<AacInterfaceProps> = ({ onFoodSelected }) => {
-  /**
-   * Tracks the most recently selected food item
-   */
+const AacInterface: React.FC<AacInterfaceProps> = ({ sessionId }) => {
   const [selectedFood, setSelectedFood] = React.useState<AacFood | null>(null);
-  /**
-   * Tracks the currently selected food category
-   */
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
-  /**
-   * Tracks whether audio is currently playing
-   */
   const [isAudioPlaying, setIsAudioPlaying] = React.useState(false);
+  
+  const { sendMessage } = useWebSocket();
 
   /**
    * Handles the click event for a food item.
@@ -41,18 +30,19 @@ const AacInterface: React.FC<AacInterfaceProps> = ({ onFoodSelected }) => {
    */
   const handleFoodClick = (food: AacFood) => {
     setSelectedFood(food);
-    onFoodSelected(food);
 
+    if (sessionId) {
+      sendMessage({
+        type: "AAC_FOOD_SELECTED",
+        payload: {
+          sessionId, food
+        }
+      });
+    }
     if (food.audioPath) {
       const audio = new Audio(food.audioPath);
       setIsAudioPlaying(true);
-
-      audio.onended = () => {
-        setIsAudioPlaying(false);
-      };
-      /**
-       * @exception This function handles errors that may occur while playing the audio.
-       */
+      audio.onended = () => setIsAudioPlaying(false);
       audio.onerror = () => {
         console.error(`Error playing audio for ${food.name}`);
         setIsAudioPlaying(false);

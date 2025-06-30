@@ -1,0 +1,38 @@
+name: Run Vitest for Hungry Hippo Game
+
+on:
+  push:
+    branches:
+      - main 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Hungry-Hippo-Game
+
+    steps:
+      
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+     
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'  
+
+      - name: Install dependencies
+        run: npm install  
+
+      - name: Run Vitest tests
+        run: npx vitest run ./src/game/Hippo.test.ts
+  
+
+    
+
+    

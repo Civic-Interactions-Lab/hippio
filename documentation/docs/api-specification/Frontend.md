@@ -385,8 +385,6 @@ Renders the button with styles and binds the click event.
 
  * **Parameters:** `selectedFood` — `AacFood` — - The food object selected from the AAC interface.
 
-     <p>
-
 ## `return ( <div id="app"> <AacInterface onFoodSelected=`
 
  * **Returns:** `JSX.Element` — 

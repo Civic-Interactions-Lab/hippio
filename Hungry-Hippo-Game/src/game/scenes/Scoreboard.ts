@@ -71,4 +71,9 @@ export class Scoreboard
     {
         return this.playerScores[playerId] ?? 0;
     }
+
+    // Method to get scores for all players (a full copy)
+    public getAllScores(): Record<string, number> {
+        return { ...this.playerScores };
+    }
 }

@@ -1,3 +1,12 @@
+/**
+ * Game.ts
+ * 
+ * This Phaser scene controls the core gameplay. It handles food spawning, physics, 
+ * hippo player interactions, and collision handling.
+ * 
+ * The scene listens for external configuration (food types) and responds by spawning 
+ * sprites that interact with the hippo character.
+*/
 import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
 import { AAC_DATA } from '../../Foods';
@@ -5,28 +14,69 @@ import { WalkStrategy } from '../moveStrategy/WalkStrategy';
 import { Hippo } from '../Hippo';
 import { Scoreboard } from './Scoreboard';
 
+/**
+ * The Game class defines a Phaser scene that initializes the hippo player,
+ * handles spawning of food items, and manages collision detection.
+*/
+
 export class Game extends Scene {
+    /**
+     * The hippo sprite used for collisions and animations.
+    */
     private hippo: Phaser.Physics.Arcade.Sprite;
+
+     /**
+     * Group of active food items currently in the game.
+    */
     private foods: Phaser.Physics.Arcade.Group;
+
+    /**
+     * Array of allowed food keys that can be spawned.
+    */
     private foodKeys: string[] = [];
+
+    /**
+     * Fixed horizontal positions for randomly spawning food.
+    */
     private lanePositions = [256, 512, 768];
-    private foodSpawnTimer: Phaser.Time.TimerEvent;
+
+    /**
+     * Constructor for the Game scene. Sets the scene key.
+    */
+    private foodSpawnTimer: Phaser.Time.TimerEvent;  // store timer reference
+
     private players: Record<string, Phaser.Physics.Arcade.Sprite> = {};
+
     private playerScoreLabels: Record<string, Phaser.GameObjects.Text> = {};
+
     private playerScores: Record<string, number> = {};
+
     private currentTargetFoodId: string | null = null;
+
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+
     private scoreboardContainer: Phaser.GameObjects.Container;
+
     private scoreboardTexts: Phaser.GameObjects.Text[] = [];
+    
     private scoreboard: Scoreboard;
+
     private sendMessageToServer?: (message: object) => void;
 
-    constructor() {
+    /**
+     * Constructor for the Game scene. Sets the scene key. 
+    */
+
+    constructor() 
+    {
         super('Game');
     }
 
-    preload() {
+    preload() 
+    {
         this.load.image('background', '/assets/Underwater.png');
+
+        // Dynamically load food images from AAC data
         AAC_DATA.categories.forEach(category => {
             category.foods.forEach(food => {
                 if (food.imagePath) {
@@ -41,11 +91,18 @@ export class Game extends Scene {
         });
     }
 
+    /**
+     * Initializes game objects, such as the hippo, background, and food group.
+     * Also sets up the physics collider between hippo and food.
+    */
     create() {
         this.add.image(512, 384, 'background');
+
         this.hippo = new Hippo(this, 350, 425, 'character', new WalkStrategy());
         this.hippo.setScale(0.3);
+
         this.cursors = this.input!.keyboard!.createCursorKeys();
+        
         EventBus.emit('current-scene-ready', this);
 
         this.foods = this.physics.add.group();

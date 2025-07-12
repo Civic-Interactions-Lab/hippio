@@ -7,6 +7,10 @@ const { Pool } = require('pg');
 const server = http.createServer();
 const wss = new WebSocket.Server({ noServer: true });
 
+const sessionTimers = {};
+const TIMER_DURATION = 60;
+const TIMER_INTERVAL = 1000;
+
 // Reject connections from unauthorized origins
 const allowedOrigins = [
   'http://localhost:3000',
@@ -270,13 +274,62 @@ wss.on('connection', (ws) => {
         });
       }
 
-            // Notify all players in the session to remove the fruit
-      if (data.type === 'FRUIT_EATEN') {
-        const { sessionId, foodId, x, y } = data.payload;
-        broadcast(sessionId, {
-          type: 'FRUIT_EATEN_BROADCAST',
-          payload: { foodId, x, y }
+      // Start the timer
+      if (data.type === 'START_TIMER') {
+        const { sessionId } = data.payload;
+        if (!sessionId)
+        {
+          console.log('[WSS] START_TIMER received but no sessionId provided');
+          return;
+        }
+
+        if (sessionTimers[sessionId])
+        {
+          // Timer is already running for this session
+          console.log(`[WSS] Timer already running for session ${sessionId}`);
+          return;
+        }
+
+        console.log(`[WSS] Starting timer for session ${sessionId}`);
+
+        // Initialize countdown for this session
+        sessionTimers[sessionId] = {
+        countdown: TIMER_DURATION,
+        intervalId: setInterval(() => {
+        sessionTimers[sessionId].countdown--;
+
+        // Broadcast timer update only to clients in this session
+        if (sessions[sessionId]) {
+          sessions[sessionId].forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+              type: 'TIMER_UPDATE',
+              secondsLeft: sessionTimers[sessionId].countdown
+            }));
+          }
         });
+      }
+
+      // When timer reaches zero, stop interval and notify game over
+      if (sessionTimers[sessionId].countdown <= 0) {
+        clearInterval(sessionTimers[sessionId].intervalId);
+        delete sessionTimers[sessionId];
+
+        console.log(`[WSS] Timer finished for session ${sessionId}`);
+
+        if (sessions[sessionId]) {
+          sessions[sessionId].forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'GAME_OVER'
+              }));
+            }
+          });
+        }
+      }
+    }, TIMER_INTERVAL)
+  };
+  return;
       }
 
       // Broadcast updated scores to all clients
@@ -325,6 +378,12 @@ wss.on('connection', (ws) => {
     // Remove the session from the sessions object if it is empty
     if (sessions[sessionId].size === 0) {
       delete sessions[sessionId];
+
+      if(sessionTimers[sessionId]) {
+        clearInterval(sessionTimers[sessionId].intervalId);
+        delete sessionTimers[sessionId];
+        console.log(`[WSS] Cleared timer for empty session ${sessionId}`);
+      }
     }
 
     // Remove the client from the database

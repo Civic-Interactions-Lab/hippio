@@ -6,7 +6,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/phaser/types", "./node_modules/@types"],
-    "types": ["phaser", "vitest/globals", "node"],
+    "types": ["phaser", "node"],
 
 
     /* Bundler mode */
@@ -24,6 +24,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

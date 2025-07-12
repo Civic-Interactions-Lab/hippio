@@ -44,6 +44,10 @@ export class Game extends Scene {
    * @private
    */
   private localPlayerId!: string;
+  /**
+   * Variable to track time left
+   */
+  private timerText!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Game');
@@ -151,6 +155,12 @@ export class Game extends Scene {
       }
     });
 
+    this.timerText = this.add.text(32, 80, 'Time: 60', {
+    fontSize: '28px',
+    color: '#ffffff',
+    backgroundColor: '#000000',
+    padding: { x: 8, y: 4 }
+   }).setScrollFactor(0);
 
     EventBus.emit('current-scene-ready', this);
     
@@ -166,9 +176,17 @@ export class Game extends Scene {
     //   padding: { x: 10, y: 10 }
     // });
     // this.updateScoreText();
-
-   
       
+    EventBus.on('external-message', (data: any) => {
+      if(data.type === 'timerUpdate')
+      {
+        this.updateTimerUI(data.secondsLeft);
+      }
+      else if(data.type == 'gameOver')
+      {
+        this.handleGameOver();
+      }
+    })
   }
 
   update() {
@@ -320,5 +338,48 @@ export class Game extends Scene {
       }
       return true;
     });
+  }
+
+  /**
+   * 
+   * @param secondsLeft the number of seconds left in this session
+   * If a text for the timer exists, updates the text to the number of seconds left.
+   */
+  private updateTimerUI(secondsLeft: number)
+  {
+    if(this.timerText)
+    {
+      this.timerText.setText(`Time: ${secondsLeft}`);
+    }
+  }
+
+  /**
+   * This method handles the game when the timer hits 0.
+   */
+  private handleGameOver()
+  {
+    this.add.rectangle(512, 384, 1024, 768, 0x000000, 0.7).setDepth(10);
+    this.add.text(512, 384, 'Game Over', {
+      fontSize: '64px',
+      color: '#ffffff'
+    }).setOrigin(0.5).setDepth(11);
+
+    this.physics.pause();
+
+    if(this.foodSpawnTimer)
+    {
+      this.foodSpawnTimer.remove(false);
+    }
+  }
+
+  /**
+   * This method requests system for a start timer.
+   */
+  public requestStartTimer()
+  {
+    if(this.sendMessage)
+    {
+      this.sendMessage({ type: 'startTimer' });
+    }
   }
 }

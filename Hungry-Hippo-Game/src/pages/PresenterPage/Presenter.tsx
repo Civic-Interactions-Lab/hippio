@@ -88,7 +88,8 @@ function Presenter() {
       type: 'START_GAME',
       payload: { sessionId, mode },
     });
-    navigate(`/presenter-game/${sessionId}`);
+    // uncomment when finished later
+    // navigate(`/presenter-game/${sessionId}`);
   };
 
   const handleCopy = () => {

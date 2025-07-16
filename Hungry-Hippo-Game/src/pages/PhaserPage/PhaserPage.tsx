@@ -137,7 +137,7 @@ const PhaserPage: React.FC = () => {
               if (scene && typeof scene.addFoodManually === 'function') {
                 scene.addFoodManually(foodId, angle);
               }
-            }, setIndex * 400); // delay: 0ms, 400ms, 800ms
+            }, setIndex * 1000); // delay: 0ms, 1000ms, 2000ms
           });
         }
 

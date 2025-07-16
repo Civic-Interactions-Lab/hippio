@@ -17,6 +17,14 @@ export class Hippo extends Phaser.Physics.Arcade.Sprite {
      */
     private mouthOpen = true;
 
+    private targetX: number = 0;
+    private targetY: number = 0;
+
+    public setTargetPosition(x: number, y: number) {
+    this.targetX = x;
+    this.targetY = y;
+    }
+
     /**
      * Creates an instance of Hippo.
      * @param scene The Phaser Scene this Hippo belongs to.
@@ -52,8 +60,16 @@ export class Hippo extends Phaser.Physics.Arcade.Sprite {
      * This method is typically called by the Phaser Scene's update loop.
      * @param cursors An object containing the current state of cursor keys (up, down, left, right).
      */
-    public update(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
-        this.moveStrategy.update(this, cursors);
+    public update(cursors?: Phaser.Types.Input.Keyboard.CursorKeys) {
+        if (cursors) {
+            // local player – respond to keyboard input
+            this.moveStrategy.update(this, cursors);
+        } else {
+            // remote player – interpolate to target position
+            const lerp = 0.2;
+            this.x += (this.targetX - this.x) * lerp;
+            this.y += (this.targetY - this.y) * lerp;
+        }
     }
 
     /**

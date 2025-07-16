@@ -20,11 +20,11 @@ export const MODE_CONFIG: Record<GameMode, ModeSettings> = {
     allowPenalty: false,
   },
   Medium: {
-    fruitSpeed: 150,
+    fruitSpeed: 125,
     allowPenalty: true,
   },
   Hard: {
-    fruitSpeed: 200,
+    fruitSpeed: 150,
     allowPenalty: true,
   },
 };

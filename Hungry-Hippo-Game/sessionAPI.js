@@ -7,10 +7,6 @@ const { Pool } = require('pg');
 const server = http.createServer();
 const wss = new WebSocket.Server({ noServer: true });
 
-const sessionTimers = {};
-const TIMER_DURATION = 60;
-const TIMER_INTERVAL = 1000;
-
 // Reject connections from unauthorized origins
 const allowedOrigins = [
   'http://localhost:3000',
@@ -38,6 +34,8 @@ server.on('upgrade', (request, socket, head) => {
 
 const sessions = {};
 const sessionFilePath = path.resolve(__dirname, './src/data/sessionID.json');
+
+const scoresBySession = {};
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 let pool;
@@ -205,6 +203,11 @@ wss.on('connection', (ws) => {
         sessions[sessionId].add(ws);
         console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
 
+        if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
+        if (role === 'Hippo Player' && !scoresBySession[sessionId][userId]) {
+          scoresBySession[sessionId][userId] = 0;
+        }
+
         if (IS_PROD) {
           // If in production, insert the player into the database
           try {
@@ -239,6 +242,11 @@ wss.on('connection', (ws) => {
         });
         console.log(`[WSS] Broadcasting USERS_LIST_UPDATE to ${sessionId}:`, usersInSession);
 
+        // Broadcast initial leaderboard with everyone at score 0
+        broadcast(sessionId, {
+          type: 'SCORE_UPDATE_BROADCAST',
+          payload: { scores: scoresBySession[sessionId] }
+        });
 
       }
 
@@ -277,6 +285,9 @@ wss.on('connection', (ws) => {
           const shuffled = decoys.sort(() => 0.5 - Math.random()).slice(0, 2);
           const fruitsToSend = [food, ...shuffled];
 
+          // Creates a new randomized copy of the set for each hippo
+          const randomizedFruits = [...fruitsToSend].sort(() => 0.5 - Math.random());
+
           // Gets all active Hippo Players
           const hippoClients = [...sessions[sessionId]].filter(
             client =>
@@ -290,7 +301,9 @@ wss.on('connection', (ws) => {
             const edge = client.edge || 'bottom'; // fallback
             const angleRange = getAngleRangeForEdge(edge);
 
-            fruitsToSend.forEach((f) => {
+            const randomizedFruits = [food, ...shuffled].sort(() => 0.5 - Math.random());
+
+            randomizedFruits.forEach((f) => {
               const randomAngle = Math.random() * (angleRange.max - angleRange.min) + angleRange.min;
               launches.push({
                 foodId: f.id,
@@ -333,72 +346,22 @@ wss.on('connection', (ws) => {
         });
       }
 
-      // Start the timer
-      if (data.type === 'START_TIMER') {
-        const { sessionId } = data.payload;
-        if (!sessionId)
-        {
-          console.log('[WSS] START_TIMER received but no sessionId provided');
-          return;
+      // Broadcast updated scores
+      if (data.type === 'FRUIT_EATEN_BY_PLAYER') {
+        const { sessionId, userId, isCorrect, allowPenalty } = data.payload;
+
+        if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
+        const prev = scoresBySession[sessionId][userId] || 0;
+
+        if (isCorrect) {
+          scoresBySession[sessionId][userId] = prev + 1;
+        } else if (allowPenalty) {
+          scoresBySession[sessionId][userId] = Math.max(0, prev - 1);
         }
 
-        if (sessionTimers[sessionId])
-        {
-          // Timer is already running for this session
-          console.log(`[WSS] Timer already running for session ${sessionId}`);
-          return;
-        }
-
-        console.log(`[WSS] Starting timer for session ${sessionId}`);
-
-        // Initialize countdown for this session
-        sessionTimers[sessionId] = {
-        countdown: TIMER_DURATION,
-        intervalId: setInterval(() => {
-        sessionTimers[sessionId].countdown--;
-
-        // Broadcast timer update only to clients in this session
-        if (sessions[sessionId]) {
-          sessions[sessionId].forEach(client => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-              type: 'TIMER_UPDATE',
-              secondsLeft: sessionTimers[sessionId].countdown
-            }));
-          }
-        });
-      }
-
-      // When timer reaches zero, stop interval and notify game over
-      if (sessionTimers[sessionId].countdown <= 0) {
-        clearInterval(sessionTimers[sessionId].intervalId);
-        delete sessionTimers[sessionId];
-
-        console.log(`[WSS] Timer finished for session ${sessionId}`);
-
-        if (sessions[sessionId]) {
-          sessions[sessionId].forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({
-                type: 'GAME_OVER'
-              }));
-            }
-          });
-        }
-      }
-    }, TIMER_INTERVAL)
-  };
-  return;
-      }
-
-      // Broadcast updated scores to all clients
-      if (data.type === 'SCORE_UPDATE') {
-        const { sessionId, scores } = data.payload;
-        console.log('[WSS] Received SCORE_UPDATE for session:', sessionId);
-        console.log('[WSS] Scores to broadcast:', scores);
         broadcast(sessionId, {
           type: 'SCORE_UPDATE_BROADCAST',
-          payload: { scores }
+          payload: { scores: scoresBySession[sessionId] }
         });
       }
 
@@ -439,12 +402,6 @@ wss.on('connection', (ws) => {
     // Remove the session from the sessions object if it is empty
     if (sessions[sessionId].size === 0) {
       delete sessions[sessionId];
-
-      if(sessionTimers[sessionId]) {
-        clearInterval(sessionTimers[sessionId].intervalId);
-        delete sessionTimers[sessionId];
-        console.log(`[WSS] Cleared timer for empty session ${sessionId}`);
-      }
     }
 
     // Remove the client from the database

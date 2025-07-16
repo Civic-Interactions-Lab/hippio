@@ -54,10 +54,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       
       //update playermovement on socket
-      if (data.type === 'PLAYER_MOVE') {
-        movementStore.notifyMove(data.payload); // 
-        return;
+     if (data.type === 'PLAYER_MOVE_BROADCAST') {
+       movementStore.notifyMove(data.payload);
+       return;
       }
+
       //
 
       if (data.type === 'USERS_LIST_UPDATE') {
@@ -68,10 +69,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (data.type === 'START_GAME_BROADCAST') {
         console.log('[WS_CONTEXT] Game started!');
         setGameStarted(true);
+        setLastMessage(data);
         return;
       }
 
       if (data.type === 'SCORE_UPDATE_BROADCAST') {
+        console.log('[WS_CONTEXT] Received SCORE_UPDATE_BROADCAST:', data.payload.scores);
         EventBus.emit('scoreUpdate', data.payload);
         return;
       }

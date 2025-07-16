@@ -89,7 +89,6 @@ The original *Hungry Hungry Hippos* was a turn-based, tactile game, but moderniz
 ```bash
 git clone https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos
 cd project-acc-hungry-hippos/Hungry-hippo-game
-cd Hungry-hippo-game
 ```
 
 ### 2. Install dependencies

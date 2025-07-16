@@ -13,6 +13,7 @@ import { AAC_DATA } from '../../Foods';
 import { Hippo } from '../Hippo';
 import { Edge, EdgeSlideStrategy } from '../EdgeSlideStrategy';
 import { movementStore } from './MovementStore';
+import { ModeSettings } from '../../config/gameModes';
 /**
  * Represents the main Game scene in Phaser.
  * This scene manages game elements like players (Hippos), food items,
@@ -34,6 +35,7 @@ export class Game extends Scene {
   private edgeAssignments: Record<string, string> = {};
   private availableEdges = [ 'bottom','top','right', 'left' ];
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+  
   /**
    * Function to send messages to other clients (e.g., via a WebSocket).
    * @private
@@ -49,6 +51,19 @@ export class Game extends Scene {
    */
   private timerText!: Phaser.GameObjects.Text;
 
+
+  private lastSentX: number | null = null;
+  private lastSentY: number | null = null;
+  private lastMoveSentAt: number = 0;
+
+  /**
+   * Settings for the game mode, which can be adjusted based on the game difficulty.
+   * @private
+   */
+  private modeSettings: ModeSettings = { fruitSpeed: 500, allowPenalty: true }; // fallback default easy
+
+
+
   constructor() {
     super('Game');
   }
@@ -61,13 +76,25 @@ export class Game extends Scene {
     localPlayerId: string; 
     sessionId: string;
     connectedUsers?: { userId: string; role: string }[]; 
+    modeSettings?: ModeSettings;
   }) {
     this.sendMessage = data.sendMessage;
     this.localPlayerId = data.localPlayerId;
     this.sessionId = data.sessionId;
+
+    this.lastMoveSentAt = 0;
+    this.lastSentX = null;
+    this.lastSentY = null;
+
+
+    if (data.modeSettings) {
+        this.modeSettings = data.modeSettings;
+        console.log('[Game] Mode settings applied in init:', this.modeSettings);
+    }
+
   
     if (data.connectedUsers) {
-      data.connectedUsers
+      data.connectedUsers 
         .filter(u => u.role === 'Hippo Player')
         .forEach(u => this.addPlayer(u.userId));
     }
@@ -139,7 +166,10 @@ export class Game extends Scene {
   }
 
   create() {
-    this.add.image(512, 384, 'background');
+    const bg = this.add.image(512, 512, 'background');
+    bg.setOrigin(0.5, 0.5);
+    bg.setDisplaySize(this.scale.width, this.scale.height);
+    
     this.foods = this.physics.add.group();
     this.cursors = this.input!.keyboard!.createCursorKeys();
 
@@ -178,46 +208,79 @@ export class Game extends Scene {
     // this.updateScoreText();
       
     EventBus.on('external-message', (data: any) => {
-      if(data.type === 'timerUpdate')
+      if(data.type === 'TIMER_UPDATE')
       {
         this.updateTimerUI(data.secondsLeft);
+        if(data.secondsLeft === 60)
+        {
+          console.log('[Game.ts] Timer started, starting to spawn food.');
+          this.startSpawningFood();
+        }
       }
       else if(data.type == 'gameOver')
       {
         this.handleGameOver();
       }
+    });
+
+    EventBus.on('start-game', () => {
+      console.log('[Game.ts] start-game event received, requesting timer start.')
+      this.requestStartTimer();
     })
   }
 
-  update() {
-    if (this.hippo && this.cursors) {
-      this.hippo.update(this.cursors);
-      this.sendMessage?.({
-        type: 'PLAYER_MOVE',
-        payload: {
-          userId: this.localPlayerId,
-          x: this.hippo.x,
-          y: this.hippo.y
-        }
-      });
+ update() {
+  if (this.hippo && this.cursors) {
+    this.hippo.update(this.cursors);
 
+    // Check if position changed
+    const newX = this.hippo.x;
+      const newY = this.hippo.y;
+
+      if (this.lastSentX !== newX || this.lastSentY !== newY) {
+        const now = Date.now();
+        if (!this.lastMoveSentAt || now - this.lastMoveSentAt > 100) {
+          this.lastSentX = newX;
+          this.lastSentY = newY;
+          this.lastMoveSentAt = now;
+
+          this.sendMessage?.({
+            type: 'PLAYER_MOVE',
+            payload: {
+              sessionId: this.sessionId,
+              userId: this.localPlayerId,
+              x: newX,
+              y: newY
+          }
+        });
+      }
     }
   }
+}
+
 
   private handleFruitCollision(playerId: string, fruit: Phaser.GameObjects.GameObject) {
     fruit.destroy();
     if ('texture' in fruit && fruit instanceof Phaser.GameObjects.Sprite) {
       const foodId = fruit.texture.key;
       const isCorrect = foodId === this.currentTargetFoodId;
+    //   if (isCorrect) {
+    //     this.playerScores[playerId] += 1;
+    //   } else {
+    //     this.playerScores[playerId] = Math.max(0, this.playerScores[playerId] - 1);
+    //   }
       if (isCorrect) {
         this.playerScores[playerId] += 1;
-      } else {
+      } else if (this.modeSettings.allowPenalty) {
         this.playerScores[playerId] = Math.max(0, this.playerScores[playerId] - 1);
-      }
+     }
       // this.updateScoreText();
       EventBus.emit('scoreUpdate', { scores: { ...this.playerScores } });
 
       if (this.sendMessage && this.localPlayerId) {
+        console.log('[Game.ts] Sending SCORE_UPDATE with scores:', this.playerScores);
+        console.log('[Game.ts] Session ID being sent:', this.sessionId);
+
         this.sendMessage({
           type: 'SCORE_UPDATE',
           payload: {
@@ -242,6 +305,16 @@ export class Game extends Scene {
     this.foodKeys = keys;
   }
 
+  /**
+ * Applies the specified mode settings to the game.
+ *
+ * @param {ModeSettings} settings - An object containing game mode configuration values.
+ */
+  public applyModeSettings(settings: ModeSettings) {
+    console.log('[Game] Applying mode settings:', settings);
+    this.modeSettings = settings;
+  }
+
   public startSpawningFood() {
 
     if (!this.foodSpawnTimer) {
@@ -253,7 +326,7 @@ export class Game extends Scene {
       });
     }
   }
-
+  
   spawnFood() {
     console.log("[Game Scene] spawnFood() triggered by timer.");
 
@@ -269,60 +342,24 @@ export class Game extends Scene {
     food.setCollideWorldBounds(true);
   }
 
-  public addFoodManually(selectedFoodId: string) {
+  public addFoodManually(foodId: string, angle: number) {
     const centerX = this.scale.width / 2;
     const centerY = this.scale.height / 2;
-    const speed = 100;
+    const speed = this.modeSettings.fruitSpeed;
 
-    const allFoodIds = this.foodKeys.filter(id => id !== selectedFoodId);
-    const decoyIds = Phaser.Utils.Array.Shuffle(allFoodIds).slice(0, 2); // exactly 2 decoys
-    const foodToSpawn = [selectedFoodId, ...decoyIds]; // 1 real + 2 decoys
+    const food = this.foods.create(centerX, centerY, foodId) as Phaser.Physics.Arcade.Image;
+    food.setScale(0.15);
+    food.setBounce(0);
+    food.setCollideWorldBounds(false);
+    food.setDamping(false);
+    food.setDrag(0);
 
-    const activeEdges = new Set(Object.values(this.edgeAssignments));
+    const velocityX = Math.cos(angle) * speed;
+    const velocityY = Math.sin(angle) * speed;
 
-      activeEdges.forEach((edge) => {
-        foodToSpawn.forEach(foodId => {
-          const food = this.foods.create(centerX, centerY, foodId) as Phaser.Physics.Arcade.Image;
-          food.setScale(0.15);
-          food.setBounce(0);
-          food.setCollideWorldBounds(false);
-          food.setDamping(false);
-          food.setDrag(0);
+    food.setVelocity(velocityX, velocityY);
 
-          let targetX = centerX;
-          let targetY = centerY;
-
-          switch (edge) {
-            case 'top':
-              targetX = Phaser.Math.Between(64, this.scale.width - 64);
-              targetY = 0;
-              break;
-            case 'bottom':
-              targetX = Phaser.Math.Between(64, this.scale.width - 64);
-              targetY = this.scale.height;
-              break;
-            case 'left':
-              targetX = 0;
-              targetY = Phaser.Math.Between(64, this.scale.height - 64);
-              break;
-            case 'right':
-              targetX = this.scale.width;
-              targetY = Phaser.Math.Between(64, this.scale.height - 64);
-              break;
-          }
-
-          const dx = targetX - centerX;
-          const dy = targetY - centerY;
-          const magnitude = Math.sqrt(dx * dx + dy * dy);
-          const velocityX = (dx / magnitude) * speed;
-          const velocityY = (dy / magnitude) * speed;
-
-          food.setVelocity(velocityX, velocityY);
-
-          console.log(`[SPAWN] ${foodId} → ${edge} at (${targetX.toFixed(0)}, ${targetY.toFixed(0)})`);
-        })
-      })
-    this.setTargetFood(selectedFoodId);
+    console.log(`[SYNC LAUNCH] ${foodId} @ angle ${angle.toFixed(2)}`);
   }
 
   public setTargetFood(foodId: string) {
@@ -379,7 +416,7 @@ export class Game extends Scene {
   {
     if(this.sendMessage)
     {
-      this.sendMessage({ type: 'startTimer' });
+      this.sendMessage({ type: 'START_TIMER', payload: { sessionId: this.sessionId} });
     }
   }
 }

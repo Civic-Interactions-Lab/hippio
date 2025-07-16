@@ -26,6 +26,7 @@ function Presenter() {
   const navigate = useNavigate();
   const { sessionId } = useParams<{ sessionId: string }>();
   const [copied, setCopied] = useState(false);
+  const [mode, setMode] = useState<'Easy' | 'Medium' | 'Hard'>('Easy');
 
   if (!sessionId || sessionId.length < 5) {
     console.error('Invalid sessionId:', sessionId);
@@ -33,6 +34,28 @@ function Presenter() {
   }  
   const presenterId = 'presenter'; 
   const { sendMessage, connectedUsers, isConnected } = useWebSocket();
+
+  /**
+   * List of available game modes in the order they should cycle through.
+   * 
+   * Used for navigating between modes via the `cycleMode` function.
+   */
+  const modes: Array<'Easy' | 'Medium' | 'Hard'> = ['Easy', 'Medium', 'Hard'];
+
+  /**
+   * Cycles through the available game modes either to the left (previous) or right (next).
+   * 
+   * @param direction - The direction to cycle: `'left'` for previous, `'right'` for next.
+   */
+  const cycleMode = (direction: 'left' | 'right') => {
+    const currentIndex = modes.indexOf(mode);
+    const newIndex =
+      direction === 'left'
+        ? (currentIndex + modes.length - 1) % modes.length
+        : (currentIndex + 1) % modes.length;
+    setMode(modes[newIndex]);
+  };
+
   // Join session as "Presenter" to receive updates
   useEffect(() => {
     if (sessionId && isConnected) {
@@ -63,7 +86,7 @@ function Presenter() {
     }
     sendMessage({
       type: 'START_GAME',
-      payload: { sessionId },
+      payload: { sessionId, mode },
     });
     navigate(`/presenter-game/${sessionId}`);
   };
@@ -168,6 +191,40 @@ function Presenter() {
               </div>
             </div>
 
+            {/* Game Mode Selection */}
+            <div className={styles.modeSelectorWrapper}>
+              <button
+                className={styles.arrowButton}
+                onClick={() => cycleMode('left')}
+                aria-label="Previous mode"
+              >
+                ◀
+              </button>
+
+              <div
+                className={styles.modeDisplay}
+                style={{
+                  backgroundColor:
+                    mode === 'Easy'
+                      ? '#4CAF50'   // green
+                      : mode === 'Medium'
+                      ? '#FB8C00'   // yellow
+                      : '#F44336',  // red
+                }}
+              >
+                {mode}
+              </div>
+
+              <button
+                className={styles.arrowButton}
+                onClick={() => cycleMode('right')}
+                aria-label="Next mode"
+              >
+                ▶
+              </button>
+            </div>
+
+            {/* Start Game Button */}
             <div className={styles.startButtonWrapper}>
               <button
                 className={styles.startButton}

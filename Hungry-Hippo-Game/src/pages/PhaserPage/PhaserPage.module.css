@@ -1,0 +1,89 @@
+.pageWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow-y: hidden;
+  overflow-x: auto;
+  background-image: url('/assets/mainBackground.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  padding: 1rem;
+  gap: 2rem;
+}
+
+.canvasWrapper {
+  width: 100%;
+  max-width: 90vmin;
+  aspect-ratio: 1 / 1;
+  border: 2px solid white;
+  overflow: hidden;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.currentFood, .leaderboardBox {
+  padding: 1rem;
+  border: 2px solid white;
+  border-radius: 0.75rem;
+  background-color: #1e293b;
+  color: white;
+  text-align: center;
+  width: clamp(160px, 18vw, 220px);
+  font-size: clamp(0.8rem, 2vw, 1rem); 
+}
+
+.foodImage {
+  width: clamp(48px, 10vw, 80px);
+  height: clamp(48px, 10vw, 80px);
+  object-fit: contain;
+}
+
+@media (max-width: 512px) {
+  .pageWrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+    gap: 1rem;
+  }
+
+  .canvasWrapper {
+    width: 100%;
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .currentFood,
+  .leaderboardBox {
+    width: clamp(120px, 40vw, 160px);
+    font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+    padding: 0.6rem;
+  }
+
+  .leaderboardBox ul {
+  padding-left: 0;
+  font-size: 0.75rem;
+  }
+
+  .leaderboardBox li {
+    margin: 0.25rem 0;
+  }
+
+  .foodImage {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -8,9 +8,11 @@ export default function GameTimer()
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
     useEffect(() => {
+        console.log('[GameTimer] lastMessage:', lastMessage);
+
         if(lastMessage?.type === 'TIMER_UPDATE')
         {
-            setTimeLeft(lastMessage.secondsLeft);
+            setTimeLeft(lastMessage.payload.secondsLeft);
         }
         else if(lastMessage?.type === 'GAME_OVER')
         {

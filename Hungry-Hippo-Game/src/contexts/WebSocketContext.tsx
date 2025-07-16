@@ -44,7 +44,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.log(`[WS_CONTEXT] Timer update: ${data.secondsLeft} seconds left`);
         EventBus.emit('TIMER_UPDATE', data.secondsLeft);
 
-        setLastMessage(data);
+        setLastMessage({
+          type: 'TIMER_UPDATE',
+          payload: { secondsLeft: data.secondsLeft },
+        });
 
         return;
       }

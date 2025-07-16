@@ -10,7 +10,7 @@ export default function GameTimer()
     useEffect(() => {
         if(lastMessage?.type === 'TIMER_UPDATE')
         {
-            setTimeLeft(lastMessage.payload.timeLeft);
+            setTimeLeft(lastMessage.secondsLeft);
         }
         else if(lastMessage?.type === 'GAME_OVER')
         {
@@ -20,7 +20,9 @@ export default function GameTimer()
 
     return (
         <div>
-            {timeLeft !== null ? <h2>Time Left: {timeLeft}s</h2> : <h2>Waiting for timer...</h2>}
+            {timeLeft === null && <h2>Waiting for timer...</h2>}
+            {timeLeft !== null && timeLeft > 0 && <h2>Time Left: {timeLeft}s</h2>}
+            {timeLeft === 0 && <h2> TimeOver</h2>}
         </div>
     );
 }

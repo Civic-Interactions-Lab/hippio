@@ -42,7 +42,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (data.type === 'TIMER_UPDATE') {
         console.log(`[WS_CONTEXT] Timer update: ${data.secondsLeft} seconds left`);
-        EventBus.emit('timerUpdate', data.secondsLeft);
+        EventBus.emit('TIMER_UPDATE', data.secondsLeft);
+
+        setLastMessage(data);
+
         return;
       }
 
@@ -70,6 +73,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.log('[WS_CONTEXT] Game started!');
         setGameStarted(true);
         setLastMessage(data);
+
+        EventBus.emit('start-game');
         return;
       }
 

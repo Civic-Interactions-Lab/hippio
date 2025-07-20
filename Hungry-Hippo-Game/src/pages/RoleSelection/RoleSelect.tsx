@@ -120,7 +120,7 @@ function RoleSelect() {
 
   // Reset role if AAC User is selected and the role is full
   useEffect(() => {
-    if (role === 'AAC User' && isAacRoleFull) {
+    if (!waiting && role === 'AAC User' && isAacRoleFull) {
         setRole('');
     }
   }, [connectedUsers, role, isAacRoleFull]);

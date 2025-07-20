@@ -19,6 +19,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [connectedUsers, setConnectedUsers] = useState<{ userId: string; role: string }[]>([]);
   const ws = useRef<WebSocket | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     const WSS_URL = import.meta.env.VITE_WSS_URL || 'ws://localhost:4000';
@@ -81,6 +82,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
 
+      if (data.type === 'SESSION_VALIDATED') {
+        setSessionId(data.payload.gameCode);
+      }
+
+      if(data.type === 'SESSION_CREATED') {
+        setSessionId(data.payload.sessionId);
+      }
+
       if (data.type === 'SCORE_UPDATE_BROADCAST') {
         console.log('[WS_CONTEXT] Received SCORE_UPDATE_BROADCAST:', data.payload.scores);
         EventBus.emit('scoreUpdate', data.payload);
@@ -112,8 +121,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Method to start timer
   const startTimer = useCallback(() => {
-    sendMessage({ type: 'startTimer' });
-  }, [sendMessage]);
+    if (!sessionId) {
+      console.error('No sessionId set; cannot start timer.');
+      return;
+    }
+    sendMessage({ type: 'START_TIMER', payload: { sessionId } });
+  }, [sendMessage, sessionId]);
 
   const value = {
     isConnected,
@@ -123,6 +136,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     clearLastMessage,
     connectedUsers,
     gameStarted,
+    sessionId,
   };
 
   return (

@@ -261,6 +261,25 @@ wss.on('connection', (ws) => {
           payload: { sessionId, mode }, 
         });
       }
+      if (data.type === 'START_TIMER') {
+        const { sessionId } = data.payload;
+        console.log(`[WSS] Starting timer for session ${sessionId}`);
+
+        let secondsLeft = 60;
+        const interval = setInterval(() => {
+          if(secondsLeft <= 0) {
+            console.log(`[WSS] Timer ended for session ${sessionId}`);
+            broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft: 0 });
+            broadcast(sessionId, { type: 'GAME_OVER' });
+            clearInterval(interval);
+          }
+          else
+          {
+            broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft });
+            secondsLeft--;
+          }
+        }, 1000);
+      }
 
       if (data.type === 'SET_EDGE') {
         const { sessionId, userId, edge } = data.payload;

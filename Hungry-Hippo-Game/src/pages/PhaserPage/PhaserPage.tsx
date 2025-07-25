@@ -32,6 +32,13 @@ const PhaserPage: React.FC = () => {
   // ---- WEBSOCKET ----
   const {connectedUsers, lastMessage, sendMessage, clearLastMessage } = useWebSocket();
 
+  // Build color map from connected users
+  const colors: Record<string, string> = Object.fromEntries(
+    connectedUsers
+      .filter(user => typeof user.color === 'string') // remove undefined/null
+      .map(user => [user.userId, user.color as string]) // safe to cast now
+  );
+
   // --- JOIN on MOUNT ---
   useEffect(() => {
     const role = location.state?.role;
@@ -235,7 +242,7 @@ return (
         )}
       </div>
       <div className={styles.leaderboardBox}>
-        <Leaderboard scores={scores} />
+      <Leaderboard scores={scores} colors={colors} userId={userId ?? ''} />
       </div>
     </div>
   </div>

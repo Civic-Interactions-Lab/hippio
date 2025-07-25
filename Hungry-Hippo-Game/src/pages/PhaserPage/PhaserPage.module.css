@@ -37,6 +37,23 @@
   text-align: center;
   width: clamp(160px, 18vw, 220px);
   font-size: clamp(0.8rem, 2vw, 1rem); 
+    display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  margin: 0 auto 1.2rem auto;
+  padding: 0.7em 1.5em;
+  width: clamp(160px, 18vw, 280px);
+  border-radius: 20px;
+  background: linear-gradient(90deg, #fffae3 0%, #b3e4ff 100%);
+  box-shadow: 0 4px 24px 0 rgba(0, 30, 100, 0.12), 0 2px 8px rgba(190, 230, 255, 0.09);
+  border: 2.5px solid #f8f8f7;
+  font-family: 'Baloo 2', 'Comic Sans MS', 'Arial Rounded MT Bold', Arial, sans-serif;
+  font-size: 1.3rem;
+  color: #163153;
+  user-select: none;
+  transition: box-shadow 0.2s;
 }
 
 .foodImage {

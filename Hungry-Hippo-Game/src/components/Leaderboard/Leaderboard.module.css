@@ -1,0 +1,33 @@
+
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.2em 0;
+}
+
+.hippoImage {
+  width: 35px;
+  height: 35px;
+}
+
+.colorName {
+  font-weight: bold;
+}
+
+.youLabel {
+  font-size: 1.3rem;
+}
+
+.colon {
+  margin-right: 0.25rem;
+}

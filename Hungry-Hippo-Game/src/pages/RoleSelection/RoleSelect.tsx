@@ -52,6 +52,7 @@ import { HIPPO_COLORS } from '../../config/hippoColors';
 
 function RoleSelect() {
   const navigate = useNavigate();
+  const saved = JSON.parse(localStorage.getItem('sessionInfo') || '{}');
   const { sessionId } = useParams<{ sessionId: string }>();
   const location = useLocation();
 
@@ -60,11 +61,12 @@ function RoleSelect() {
     return `User${String(num).padStart(3, '0')}`;
   };
 
-  const [role, setRole] = useState<string>(''); 
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [username] = useState(location.state?.userId || generateUsername());
-  const [waiting, setWaiting] = useState(false);
-  const { connectedUsers, gameStarted, sendMessage, isConnected } = useWebSocket();
+  const [role, setRole] = useState<string>(location.state?.role || saved.role || '');
+  const [selectedColor, setSelectedColor] = useState<string | null>(location.state?.color || saved.color || null);
+  const [username] = useState(location.state?.userId || saved.userId || generateUsername());
+  const [waiting, setWaiting] = useState<boolean>(location.state?.waiting || saved.waiting || false);
+  const { connectedUsers, gameStarted, sendMessage } = useWebSocket();
+  
 
   // State to track colors already taken by connected users
   const [takenColors, setTakenColors] = useState<string[]>([]);
@@ -76,6 +78,20 @@ function RoleSelect() {
   const aacUsersCount = connectedUsers.filter(user => user.role === 'AAC User').length;
   const isHippoRoleFull = hippoPlayersCount >= HIPPO_PLAYER_LIMIT;
   const isAacRoleFull = aacUsersCount >= AAC_USER_LIMIT;
+  useEffect(() => {
+    if (location.state?.waiting) {
+      setWaiting(true);
+    }
+  }, [location.state?.waiting]);
+
+  useEffect(() => {
+    // Find this client in the updated connectedUsers list
+    const currentUser = connectedUsers.find(user => user.userId === username);
+    if (currentUser) {
+      if (currentUser.role !== role) setRole(currentUser.role);
+      if (currentUser.color && currentUser.color !== selectedColor) setSelectedColor(currentUser.color);
+    }
+  }, [connectedUsers, username, role, selectedColor]);
 
   // Navigate to the next page depending on the selected role.
   // and pass ALL player info in the state for the next page to use.
@@ -103,17 +119,16 @@ function RoleSelect() {
   }, [gameStarted, waiting, role, selectedColor, sessionId, username, navigate]);
 
   useEffect(() => {
-    if (sessionId && username && isConnected) {
-      sendMessage({
-        type: 'PLAYER_JOIN',
-        payload: {
-          sessionId,
-          userId: username,
-          role: 'pending', // Initial role is pending until user selects
-        },
-      });
+    if (sessionId && username && !saved.userId) {
+      localStorage.setItem('sessionInfo', JSON.stringify({
+        sessionId,
+        userId: username,
+        role,
+        color: selectedColor,
+        waiting,
+      }));
     }
-  }, [sessionId, username, isConnected, sendMessage]);
+  }, [sessionId, username]);
 
   // Listen for updates on which colors are taken by other players
   useEffect(() => {
@@ -122,14 +137,57 @@ function RoleSelect() {
       .map(user => user.color)
       .filter((color): color is string => typeof color === 'string');
     setTakenColors(colors);
-  }, [connectedUsers]);
+
+    // Deselect color if it is now taken by someone else
+    if (
+      role === 'Hippo Player' &&
+      selectedColor &&
+      colors.includes(selectedColor) &&
+      !connectedUsers.some(
+        user => user.userId === username && user.color === selectedColor
+      )
+    ) {
+      console.log(`[RoleSelect] Selected color ${selectedColor} is now taken. Clearing selection.`);
+      setSelectedColor(null);
+    }
+  }, [connectedUsers, role, selectedColor, username]);
+
 
   // Reset role if AAC User is selected and the role is full
   useEffect(() => {
-    if (!waiting && role === 'AAC User' && isAacRoleFull) {
-        setRole('');
+    if (
+      !waiting &&
+      role === 'AAC User' &&
+      !connectedUsers.some(user => user.userId === username && user.role === 'AAC User') &&
+      isAacRoleFull
+    ) {
+      console.log('[RoleSelect] Clearing AAC role due to conflict');
+      setRole('');
     }
-  }, [connectedUsers, role, isAacRoleFull]);
+  }, [connectedUsers, role, waiting, username, isAacRoleFull]);
+
+  // Log connected users for debugging
+  useEffect(() => {
+    console.log('[RoleSelect] Connected users:', connectedUsers);
+  }, [connectedUsers]);
+
+  useEffect(() => {
+    const handleUnload = () => {
+      if (sessionId && username) {
+        navigator.sendBeacon(
+          '/leave', 
+          JSON.stringify({
+            type: 'LEAVE_SESSION',
+            payload: { sessionId, userId: username },
+          })
+        );
+      }
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, [sessionId, username]);
+
   /**
    * Handles the logic for starting the game after a role is selected.
    *
@@ -148,6 +206,16 @@ function RoleSelect() {
     if (!role && !selectedColor) {
         return;
     }
+    console.log(`[RoleSelect] Sending PLAYER_JOIN for user ${username} in session ${sessionId} with role ${role} and color ${selectedColor}`);
+
+    // Save current info before proceeding
+    localStorage.setItem('sessionInfo', JSON.stringify({
+      sessionId,
+      userId: username,
+      role,
+      color: selectedColor,
+      waiting: true, // user is now waiting for game start
+    }));
 
     sendMessage({
         type: 'PLAYER_JOIN',
@@ -164,7 +232,7 @@ function RoleSelect() {
 
   // Handle role selection
   const handleRoleSelect = (selectedRole: string) => {
-    // If switching from Hippo Player to AAC User, release the color
+    // If leaving Hippo Player role, clear color
     if (role === 'Hippo Player' && selectedColor) {
       sendMessage({
         type: 'SELECT_COLOR',
@@ -176,6 +244,17 @@ function RoleSelect() {
   };
 
   const handleCancel = () => {
+    if (sessionId && username) {
+      sendMessage({
+        type: 'LEAVE_SESSION',
+        payload: {
+          sessionId,
+          userId: username,
+        },
+      });
+    }
+
+    localStorage.removeItem('sessionInfo');
     navigate('/');
   };
 

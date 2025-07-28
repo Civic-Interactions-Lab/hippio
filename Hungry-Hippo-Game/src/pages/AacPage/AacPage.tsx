@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import AacInterface from '../../aac/AacInterface';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 import { EventBus } from '../../game/EventBus';
@@ -27,7 +27,12 @@ const AacPage: React.FC = () => {
   /**
    * Extracts the sessionId, userId, role from the URL parameters.
    */
-  const { sessionId, userId, role } = useParams<RouteParams>();
+const { sessionId, userId } = useParams<RouteParams>();
+const location = useLocation();
+const saved = JSON.parse(localStorage.getItem('sessionInfo') || '{}');
+const role = location.state?.role ?? saved.role;
+const color = location.state?.color ?? saved.color;
+
 
   /**
    * Use the useNavigate hook from react-router-dom to navigate programmatically.
@@ -43,6 +48,15 @@ const AacPage: React.FC = () => {
    * State to hold scores for the game.
    */
   const [scores, setScores] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (sessionId && userId && role) {
+      localStorage.setItem(
+        'sessionInfo',
+        JSON.stringify({ sessionId, userId, role, color, waiting: true })
+      );
+    }
+  }, [sessionId, userId, role, color]);
 
   /**
    * Effect hook to listen for score updates from the EventBus.
@@ -72,7 +86,7 @@ const AacPage: React.FC = () => {
           .map(user => [user.userId, user.color])
       );
 
-      navigate(`/victory/${sessionId}`, { state: { scores, colors } });
+      navigate(`/victory/${sessionId}`, { state: { scores, colors, sessionId, userId } });
     }
   }, [lastMessage, sessionId, navigate, scores, connectedUsers]);
 

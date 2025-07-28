@@ -269,7 +269,10 @@ wss.on('connection', (ws) => {
           const randomFood = allFoods[Math.floor(Math.random() * allFoods.length)];
           fruitQueues[sessionId].push(randomFood.id);
 
-          const hippoClients = [...sessions[sessionId]].filter(c => c.role === 'Hippo Player');
+          const hippoClients = [...sessions[sessionId]].filter(c =>
+            c.readyState === WebSocket.OPEN && c.role === 'Hippo Player'
+          );
+
           const launches = [];
 
           hippoClients.forEach(client => {
@@ -298,31 +301,36 @@ wss.on('connection', (ws) => {
           payload: { sessionId, mode }, 
         });
       }
-      if (data.type === 'START_TIMER') {
-        const { sessionId } = data.payload;
-        console.log(`[WSS] Starting timer for session ${sessionId}`);
+const timerIntervals = {};
 
-        let secondsLeft = 180;
-        console.log('[WSS] SECONDSLEFT INIT:', secondsLeft); 
-        const interval = setInterval(() => {
-          if(secondsLeft <= 0) {
-            console.log(`[WSS] Timer ended for session ${sessionId}`);
-            broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft: 0 });
-            broadcast(sessionId, { type: 'GAME_OVER' });
+if (data.type === 'START_TIMER') {
+  const { sessionId } = data.payload;
+  if (timerIntervals[sessionId]) {
+    console.log(`[WSS] Timer already running for session ${sessionId}, ignoring START_TIMER.`);
+    return;
+  }
+  console.log(`[WSS] Starting timer for session ${sessionId}`);
 
-            clearInterval(fruitIntervals[sessionId]);
-            delete fruitIntervals[sessionId];
-            delete fruitQueues[sessionId];
+  let secondsLeft = 20;
+  timerIntervals[sessionId] = setInterval(() => {
+    if (secondsLeft <= 0) {
+      console.log(`[WSS] Timer ended for session ${sessionId}`);
+      broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft: 0 });
+      broadcast(sessionId, { type: 'GAME_OVER' });
 
-            clearInterval(interval);
-          }
-          else
-          {
-            broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft });
-            secondsLeft--;
-          }
-        }, 1000);
-      }
+      clearInterval(fruitIntervals[sessionId]);
+      delete fruitIntervals[sessionId];
+      delete fruitQueues[sessionId];
+
+      clearInterval(timerIntervals[sessionId]);
+      delete timerIntervals[sessionId];
+    } else {
+      broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft });
+      secondsLeft--;
+    }
+  }, 1000);
+}
+
 
       if (data.type === 'SET_EDGE') {
         const { sessionId, userId, edge } = data.payload;
@@ -419,7 +427,133 @@ wss.on('connection', (ws) => {
             type: 'COLOR_UPDATE',
             payload: { takenColors }
           });
+
+          const usersList = Array.from(sessions[sessionId]).map(client => ({
+            userId: client.userId,
+            role: client.role,
+            color: client.color,
+          }));
+
+          broadcast(sessionId, {
+            type: 'USERS_LIST_UPDATE',
+            payload: { users: usersList },
+          });
+
         }
+      }
+
+      if (data.type === 'RESET_GAME') {
+        const { sessionId } = data.payload;
+        console.log('[WSS] RESET_GAME received for session', sessionId);
+
+        // Reset scores to 0 for Hippo Players
+        if (scoresBySession[sessionId]) {
+          console.log('[WSS] Scores before reset:', scoresBySession[sessionId]);
+          for (const client of sessions[sessionId]) {
+            if (client.role === 'Hippo Player') {
+              console.log(`[WSS] Resetting score for ${client.userId}`);
+              scoresBySession[sessionId][client.userId] = 0;
+            }
+          }
+          console.log('[WSS] Scores after reset:', scoresBySession[sessionId]);
+        } else {
+          console.log('[WSS] No scores found for session', sessionId);
+        }
+
+        // Clear game timer
+        if (timerIntervals[sessionId]) {
+          clearInterval(timerIntervals[sessionId]);
+          delete timerIntervals[sessionId];
+          console.log(`[WSS] Cleared timer for session ${sessionId}`);
+        }
+
+        // Send updated scores to all clients
+        broadcast(sessionId, {
+          type: 'SCORE_UPDATE_BROADCAST',
+          payload: { scores: scoresBySession[sessionId] }
+        });
+
+        // Notify clients to reset game UI
+        broadcast(sessionId, {
+          type: 'RESET_GAME_BROADCAST',
+          payload: {},
+        });
+      }
+
+if (data.type === 'LEAVE_SESSION') {
+  const { sessionId, userId } = data.payload;
+  console.log(`[WSS] LEAVE_SESSION received from ${userId} in ${sessionId}`);
+
+  if (sessions[sessionId] && sessions[sessionId] instanceof Set) {
+    // Convert Set to Array
+    const clientsArray = Array.from(sessions[sessionId]);
+    // Filter out the leaving user
+    const filteredClients = clientsArray.filter(ws => ws.userId !== userId);
+    // Convert back to Set
+    sessions[sessionId] = new Set(filteredClients);
+  } else {
+    console.warn(`[WSS] sessions[${sessionId}] is not a Set`, sessions[sessionId]);
+  }
+
+  // Remove the user from scoresBySession
+  if (scoresBySession[sessionId]) {
+    delete scoresBySession[sessionId][userId];
+  }
+
+  // Broadcast updated users list, for example you may want to do:
+  const usersList = Array.from(sessions[sessionId] || []).map(ws => ({
+    userId: ws.userId,
+    role: ws.role,
+    color: ws.color,
+  }));
+
+  broadcast(sessionId, {
+    type: 'USERS_LIST_UPDATE',
+    payload: { users: usersList },
+  });
+}
+
+      // When a user re-joins a session, update their role and color
+      if (data.type === 'REJOIN_SESSION') {
+        const { sessionId, userId, role, color } = data.payload;
+
+        if (sessions[sessionId]) {
+          for (const client of sessions[sessionId]) {
+            if (client.userId === userId) {
+              client.role = role;
+              client.color = color;
+              break;
+            }
+          }
+
+          // Broadcast updated users
+          broadcast(sessionId, {
+            type: 'USERS_LIST_UPDATE',
+            payload: {
+              users: Array.from(sessions[sessionId]).map(client => ({
+                userId: client.userId,
+                role: client.role,
+                color: client.color,
+              })),
+            },
+          });
+        }
+      }
+
+      if (data.type === 'END_SESSION') {
+        const { sessionId } = data.payload;
+        console.log(`[WSS] END_SESSION received for session ${sessionId}`);
+
+        // Delete all session data: scores, connected users, etc.
+        delete sessions[sessionId];
+        delete scoresBySession[sessionId];
+
+        // Broadcast to all clients that session ended
+        broadcast(sessionId, {
+          type: 'SESSION_ENDED',
+          payload: { sessionId }
+        });
+
       }
 
     } catch (error) {
@@ -489,6 +623,23 @@ wss.on('connection', (ws) => {
       } catch (err) {
         console.error('Error removing player from database:', err);
       }
+    }
+    
+    if (!sessions[sessionId] || sessions[sessionId].size === 0) {
+      // Clean up intervals and session data
+      if (timerIntervals[sessionId]) {
+        clearInterval(timerIntervals[sessionId]);
+        delete timerIntervals[sessionId];
+      }
+      if (fruitIntervals[sessionId]) {
+        clearInterval(fruitIntervals[sessionId]);
+        delete fruitIntervals[sessionId];
+      }
+      if (fruitQueues[sessionId]) {
+        delete fruitQueues[sessionId];
+      }
+      delete sessions[sessionId];
+      console.log(`[WSS] Cleaned up session ${sessionId} after last client disconnected.`);
     }
   });
 });

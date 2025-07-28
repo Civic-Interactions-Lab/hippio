@@ -26,9 +26,12 @@ const PhaserPage: React.FC = () => {
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const navigate = useNavigate(); 
   const [secondsLeft, setSecondsLeft] = useState<number>(60);
+  const saved = JSON.parse(localStorage.getItem('sessionInfo') || '{}');
+  const role = location.state?.role ?? saved.role;
+  const color = location.state?.color ?? saved.color;
 
   // Defensive: what if no state? Fallback to false.
-  const isSpectator = location.state?.role === 'Spectator';
+  const isSpectator = role === 'Spectator';
 
   // ---- WEBSOCKET ----
   const {connectedUsers, lastMessage, sendMessage, clearLastMessage } = useWebSocket();
@@ -42,7 +45,6 @@ const PhaserPage: React.FC = () => {
 
   // --- JOIN on MOUNT ---
   useEffect(() => {
-    const role = location.state?.role;
     const alreadyJoined = connectedUsers.some(
       (u) => u.userId === userId && u.role === role
     );
@@ -57,11 +59,25 @@ const PhaserPage: React.FC = () => {
       } else {
         sendMessage({
           type: 'PLAYER_JOIN',
-          payload: { sessionId, userId, role }
+          payload: { sessionId, userId, role, color }
         });
       }
     }
   }, [sessionId, userId, location.state?.role, sendMessage, connectedUsers]);
+
+  useEffect(() => {
+  if (sessionId && userId && role) {
+    localStorage.setItem('sessionInfo', JSON.stringify({
+      sessionId,
+      userId,
+      role,
+      color, 
+      waiting: true,
+    }));
+  }
+}, [sessionId, userId, role, color]);
+
+
   // --- REMOTE PLAYER MOVEMENT SYNC ---
   useEffect(() => {
     if (lastMessage?.type === 'PLAYER_MOVE_BROADCAST') {
@@ -107,24 +123,29 @@ const PhaserPage: React.FC = () => {
       clearLastMessage?.();
     }
 
-    if (lastMessage?.type === 'AAC_TARGET_FOOD') {
-      const { targetFoodId, targetFoodData, effect } = lastMessage.payload;
+// init scene with target food    
+if (lastMessage?.type === 'AAC_TARGET_FOOD') {
+  const { targetFoodId, targetFoodData, effect } = lastMessage.payload;
 
-      const scene = phaserRef.current?.scene as any;
-      if (typeof scene.setTargetFood === 'function') {
-        if (effect) {
-          scene.setTargetFood(targetFoodId, effect);
-        } else {
-          scene.setTargetFood(targetFoodId);
-        }
-      }
+  const scene = phaserRef.current?.scene as any;
 
-      if (targetFoodData) {
-        setCurrentFood(targetFoodData);
-      }
-
-      clearLastMessage?.();
+  if (scene && typeof scene.setTargetFood === 'function') {
+    if (effect) {
+      scene.setTargetFood(targetFoodId, effect);
+    } else {
+      scene.setTargetFood(targetFoodId);
     }
+  } else {
+    console.warn('[PhaserPage] scene or setTargetFood not available when AAC_TARGET_FOOD received');
+  }
+
+  if (targetFoodData) {
+    setCurrentFood(targetFoodData);
+  }
+
+  clearLastMessage?.();
+}
+
 
     if (lastMessage?.type === 'FRUIT_EATEN_BROADCAST') {
       const { foodId, x, y } = lastMessage.payload;
@@ -186,7 +207,7 @@ const PhaserPage: React.FC = () => {
 
       console.log('[PhaserPage] Game Over received. Navigating to Victory screen.');
       if (sessionId) {
-        navigate(`/victory/${sessionId}`, { state: { scores, colors } });
+        navigate(`/victory/${sessionId}`, { state: { scores, colors, sessionId, userId } });
       } else {
         navigate('/');
       }
@@ -282,7 +303,7 @@ return (
         </div>
 
         <div className={styles.leaderboardBox}>
-        <Leaderboard scores={scores} colors={colors} userId={userId ?? ''} />
+        <Leaderboard scores={scores} colors={colors} userId={userId ?? ''} connectedUserIds={Object.keys(colors)}  />
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ interface LeaderboardProps {
   scores: Record<string, number>;
   colors: Record<string, string>;
   userId: string;
+  connectedUserIds: string[];
 }
 
 /**
@@ -23,9 +24,11 @@ interface LeaderboardProps {
  * @param props - The props for the component
  * @returns A rendered list of players with scores and avatars
  */
-const Leaderboard: React.FC<LeaderboardProps> = ({ scores, colors, userId }) => {
+const Leaderboard: React.FC<LeaderboardProps> = ({ scores, colors, userId, connectedUserIds }) => {
   // Sort players by descending score
-  const sortedEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const sortedEntries = Object.entries(scores)
+    .filter(([playerId]) => connectedUserIds.includes(playerId)) // Filter out users who left
+    .sort((a, b) => b[1] - a[1]);
 
   return (
     <ul className={styles.list}>

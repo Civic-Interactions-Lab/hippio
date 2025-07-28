@@ -9,6 +9,8 @@ interface IWebSocketContext {
   clearLastMessage?: () => void;
   connectedUsers: { userId: string; role: string; color?: string }[];
   gameStarted: boolean;
+  sessionEnded: boolean;
+  setSessionEnded: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const WebSocketContext = createContext<IWebSocketContext | null>(null);
@@ -20,6 +22,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const ws = useRef<WebSocket | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
+
 
   useEffect(() => {
     const WSS_URL = import.meta.env.VITE_WSS_URL || 'ws://localhost:4000';
@@ -40,6 +44,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       // console.log('[WS_CONTEXT] Message from server:', data);
+
+      if (data.type === 'LEAVE_SESSION') {
+        console.log(`[WS] ${data.type} received`);
+        localStorage.removeItem('sessionInfo');
+        setSessionEnded(true);
+        return;
+      }
 
       if (data.type === 'TIMER_UPDATE') {
         console.log(`[WS_CONTEXT] Timer update: ${data.secondsLeft} seconds left`);
@@ -65,11 +76,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
        movementStore.notifyMove(data.payload);
        return;
       }
-
-      if (data.type === 'USERS_LIST_UPDATE') {
-        setConnectedUsers(data.payload.users);
-        return; 
-      }  
 
       if (data.type === 'START_GAME_BROADCAST') {
         console.log('[WS_CONTEXT] Game started!');
@@ -100,6 +106,29 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setLastMessage(data);
         return;
       }
+
+      if (data.type === 'RESET_GAME_BROADCAST') {
+        console.log('[WS_CONTEXT] Game reset received.');
+        setGameStarted(false);
+        setLastMessage(data);
+        EventBus.emit('RESET_GAME');
+        return;
+      }
+
+      if (data.type === 'USERS_LIST_UPDATE') {
+        console.log('[WS_CONTEXT] Users updated from local storage:', data.payload.users);
+        setConnectedUsers(data.payload.users);
+        setLastMessage(data);
+        return;
+      }
+
+      if (data.type === 'LEFT_SESSION_CONFIRM') {
+        console.log('[WS_CONTEXT] Received LEFT_SESSION_CONFIRM');
+        localStorage.removeItem('sessionInfo');
+        window.location.href = '/'; 
+        return;
+      }
+
       setLastMessage(data);
     };
 
@@ -142,7 +171,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     connectedUsers,
     gameStarted,
     sessionId,
-  };
+    sessionEnded,
+    setSessionEnded,
+    };
 
   return (
     <WebSocketContext.Provider value={value}>

@@ -52,7 +52,15 @@ function LandingPage() {
           const userId = generateUsername();
           // Navigate to role select, passing the username in the route state.
           console.log(`Joining game with code: ${gameCode} as user: ${userId}`);
-          navigate(`/roleselect/${gameCode}`, { state: { userId: userId } });
+          
+          localStorage.removeItem('sessionInfo');
+          navigate(`/roleselect/${gameCode}`, {
+            state: {
+              sessionId: gameCode,
+              userId: userId,
+            },
+          });
+          
           if (clearLastMessage) clearLastMessage();
         } else {
           setIsValidCode(false);

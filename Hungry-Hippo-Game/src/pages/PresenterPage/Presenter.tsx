@@ -91,8 +91,10 @@ function Presenter() {
    * Navigates the user back to the landing page.
    */
   const handleCancel = () => {
+    localStorage.removeItem('sessionInfo');
     navigate('/');
   };
+
 
   const spectatorId = "PresenterSpectator"; // Or use presenterId, or generate unique
 

@@ -33,7 +33,7 @@ We use **Git & GitHub** in a **monorepo** layout containing:
 
 ## Sprint and Issue Tracking
 * `Jira` for all sprints, user stories, and tasks 
-* Every branch is tied to a Jira ticket, matching the branch name to the ticket for easy tracking
+* Every branch is tied to a Jira ticket, matching the branch name to the ticket for easy tracking 
 
 ## Deployments
 * **Vercel** auto-deploys main to production on merge

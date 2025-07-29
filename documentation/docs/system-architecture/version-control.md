@@ -27,6 +27,10 @@ We use **Git & GitHub** in a **monorepo** layout containing:
         * **Vercel Deployment** – Deployment must complete successfully  
         * **Vercel Preview Comments** – No unresolved feedback in PR comments
 
+## Testing Requirements
+- All pull requests must pass unit tests and include test coverage
+- Run tests locally before opening a PR: npm run vitest run --coverage
+
 ## Sprint and Issue Tracking
 * `Jira` for all sprints, user stories, and tasks 
 * Every branch is tied to a Jira ticket, matching the branch name to the ticket for easy tracking

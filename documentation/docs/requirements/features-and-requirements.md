@@ -13,6 +13,7 @@ sidebar_position: 4
 - Hippos can **catch or deflect Food and traps** launched from the center.
 - Food must **bounce with physics**, possibly off edges, and expire after some time.
 - Food and traps should have **clear visual distinction**.
+- Presenter can spectate the gameplay and keep track of core game logic. 
 
 ### 🎯 AAC Game Conductor Role
 - An **AAC (Augmentative and Alternative Communication) user** acts as the **Game Conductor**.

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.3.2">
 <title data-rh="true">Backend API | Project Acc Hungry Hippos</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Backend"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Backend API | Project Acc Hungry Hippos"><meta data-rh="true" name="description" content="Backend API"><meta data-rh="true" property="og:description" content="Backend API"><link data-rh="true" rel="icon" href="/project-acc-hungry-hippos/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Backend"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Backend" hreflang="en"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Backend" hreflang="x-default"><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script><link rel="stylesheet" href="/project-acc-hungry-hippos/assets/css/styles.a93c73f5.css">
-<script src="/project-acc-hungry-hippos/assets/js/runtime~main.e5aa321f.js" defer="defer"></script>
+<script src="/project-acc-hungry-hippos/assets/js/runtime~main.cf99e1ab.js" defer="defer"></script>
 <script src="/project-acc-hungry-hippos/assets/js/main.d77e5541.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -12,10 +12,13 @@
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="table-of-contents">Table of Contents<a href="#table-of-contents" class="hash-link" aria-label="Direct link to Table of Contents" title="Direct link to Table of Contents">​</a></h2>
 <ul>
 <li><a href="#overview">Overview</a></li>
+<li><a href="#session-and-player-lifecycle">Session and Player Lifecycle</a></li>
 <li><a href="#utility-functions">Utility Functions</a>
 <ul>
-<li><a href="#generatesessionid">generateSessionId</a></li>
-<li><a href="#generateuniquesessionid">generateUniqueSessionId</a></li>
+<li><a href="#generatesessionid"><code>generateSessionId</code></a></li>
+<li><a href="#generateuniquesessionid"><code>generateUniqueSessionId</code></a></li>
+<li><a href="#getweightedrandomfood"><code>getWeightedRandomFood</code></a></li>
+<li><a href="#broadcast"><code>broadcast</code></a></li>
 </ul>
 </li>
 <li><a href="#websocket-communication">WebSocket Communication</a>
@@ -28,74 +31,131 @@
 </ul>
 <hr>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="overview">Overview<a href="#overview" class="hash-link" aria-label="Direct link to Overview" title="Direct link to Overview">​</a></h2>
-<p>The backend is a <strong>central, real-time game server</strong> built with <strong>Node.js</strong> and the <code>ws</code> WebSocket library. It manages the entire lifecycle of a game session.</p>
-<p>Instead of traditional REST endpoints, the server communicates with clients <strong>exclusively through WebSocket messages</strong>. It maintains the game state for each session — including player positions, scores, and the state of all active food items — and runs a central <code>setInterval</code> game loop to handle physics and spawning.</p>
+<p>The backend is a <strong>real-time multiplayer game server</strong> implemented in <strong>Node.js</strong> using the <code>ws</code> WebSocket library. It manages active game sessions, tracks scores and players, and arranges all real-time gameplay logic including spawning food, and effects.</p>
+<p>The server does <strong>not</strong> use REST endpoints. All communication is performed using WebSocket messages.</p>
 <ul>
 <li><strong>Production</strong>: Uses <strong>PostgreSQL (via Railway)</strong> to persist session/player data.</li>
 <li><strong>Local Development</strong>: Uses a JSON file for session storage.</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="session-and-player-lifecycle">Session and Player Lifecycle<a href="#session-and-player-lifecycle" class="hash-link" aria-label="Direct link to Session and Player Lifecycle" title="Direct link to Session and Player Lifecycle">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="create_session"><code>CREATE_SESSION</code><a href="#create_session" class="hash-link" aria-label="Direct link to create_session" title="Direct link to create_session">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Generates a new unique <code>sessionId</code>.</li>
+<li><strong>Pre-conditions</strong>: None.</li>
+<li><strong>Post-conditions</strong>:<!-- -->
+<ul>
+<li>Local: New entry added to <code>sessionID.json</code>.</li>
+<li>Prod: New row inserted in <code>sessions</code> table.</li>
+</ul>
+</li>
+<li><strong>Returns</strong>: <code>{ sessionId: string }</code></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="player_join"><code>PLAYER_JOIN</code><a href="#player_join" class="hash-link" aria-label="Direct link to player_join" title="Direct link to player_join">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Joins a user to a session and stores role/color.</li>
+<li><strong>Pre-conditions</strong>: <code>sessionId</code> must exist.</li>
+<li><strong>Post-conditions</strong>:<!-- -->
+<ul>
+<li>Socket added to session’s connection set.</li>
+<li>Broadcasts updated user list.</li>
+<li>Updates database if in production.</li>
+</ul>
+</li>
+<li><strong>Returns</strong>: Broadcasts <code>PLAYER_JOINED_BROADCAST</code> and <code>USERS_LIST_UPDATE</code>.</li>
 </ul>
 <hr>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="utility-functions">Utility Functions<a href="#utility-functions" class="hash-link" aria-label="Direct link to Utility Functions" title="Direct link to Utility Functions">​</a></h2>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="generatesessionidlength--5"><code>generateSessionId(length = 5)</code><a href="#generatesessionidlength--5" class="hash-link" aria-label="Direct link to generatesessionidlength--5" title="Direct link to generatesessionidlength--5">​</a></h3>
 <p>Generates a random alphanumeric session ID consisting of uppercase letters and digits.</p>
 <ul>
-<li><strong>Parameters</strong>:<br>
-<code>length</code> — <code>number</code>, defaults to <code>5</code></li>
-<li><strong>Returns</strong>:<br>
-<code>string</code> — A randomly generated session ID</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>length</code> (<code>number</code>) - Optional. Defaults to <code>5</code>.</li>
+</ul>
+</li>
+<li><strong>Returns</strong>:<!-- -->
+<ul>
+<li><code>string</code> - Random session ID.</li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: None.</li>
+<li><strong>Post-conditions</strong>: None.</li>
 </ul>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="generateuniquesessionidexistingsessions-length--5"><code>generateUniqueSessionId(existingSessions, length = 5)</code><a href="#generateuniquesessionidexistingsessions-length--5" class="hash-link" aria-label="Direct link to generateuniquesessionidexistingsessions-length--5" title="Direct link to generateuniquesessionidexistingsessions-length--5">​</a></h3>
-<p>Generates a unique session ID that does not exist in the provided list.</p>
+<p>Ensures the session ID is not already in use.</p>
 <ul>
 <li><strong>Parameters</strong>:<!-- -->
 <ul>
-<li><code>existingSessions</code> — <code>string[]</code></li>
-<li><code>length</code> — <code>number</code>, defaults to <code>5</code></li>
+<li><code>existingSessions</code> (<code>string[]</code>)</li>
+<li><code>length</code> (<code>number</code>) - Optional. Defaults to <code>5</code>.</li>
 </ul>
 </li>
-<li><strong>Returns</strong>:<br>
-<code>string</code> — A new unique session ID</li>
-</ul>
-<hr>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="broadcastsessionid-data"><code>broadcast(sessionId, data)</code><a href="#broadcastsessionid-data" class="hash-link" aria-label="Direct link to broadcastsessionid-data" title="Direct link to broadcastsessionid-data">​</a></h3>
-<p>Broadcasts a message to all WebSocket clients connected to a given session.</p>
+<li><strong>Returns</strong>:<!-- -->
 <ul>
-<li><strong>Parameters</strong>:<!-- -->
-<ul>
-<li><code>sessionId</code> — <code>string</code></li>
-<li><code>data</code> — <code>object</code></li>
+<li><code>string</code> - Unique session ID.</li>
 </ul>
 </li>
-<li><strong>Effect</strong>:<br>
-<!-- -->Sends a JSON message to all connected clients in the session.</li>
+<li><strong>Pre-conditions</strong>: <code>existingSessions</code> must be an array of valid IDs.</li>
+<li><strong>Post-conditions</strong>: New ID guaranteed not in existingSessions.</li>
 </ul>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="getweightedrandomfoodallfoods-targetid"><code>getWeightedRandomFood(allFoods, targetId)</code><a href="#getweightedrandomfoodallfoods-targetid" class="hash-link" aria-label="Direct link to getweightedrandomfoodallfoods-targetid" title="Direct link to getweightedrandomfoodallfoods-targetid">​</a></h3>
-<p>Returns a randomly selected food object with higher probability for the target food.</p>
+<p>Selects a food item randomly, with extra weight given to a &quot;target&quot; food ID.</p>
 <ul>
 <li><strong>Parameters</strong>:<!-- -->
 <ul>
-<li><code>allFoods</code> — <code>object[]</code> — List of all possible food items</li>
-<li><code>targetId</code> — <code>string</code> — ID of the food to favor</li>
+<li><code>allFoods</code> (<code>object[]</code>) - Full list of food items.</li>
+<li><code>targetId</code> (<code>string</code>) - ID of the target food to favor.</li>
 </ul>
 </li>
-<li><strong>Returns</strong>:<br>
-<code>object</code> — A food item selected with weighted probability</li>
+<li><strong>Returns</strong>:<!-- -->
+<ul>
+<li><code>object</code> - Randomly selected food object.</li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: <code>allFoods</code> must include targetId.</li>
+<li><strong>Post-conditions</strong>: Returns a new weighted choice each call.</li>
+</ul>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="broadcastsessionid-data"><code>broadcast(sessionId, data)</code><a href="#broadcastsessionid-data" class="hash-link" aria-label="Direct link to broadcastsessionid-data" title="Direct link to broadcastsessionid-data">​</a></h3>
+<p>Sends a message to all clients in a session.</p>
+<ul>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>sessionId</code> (<code>string</code>)</li>
+<li><code>data</code> (<code>object</code>) - Will be serialized with <code>JSON.stringify</code>.</li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: <code>sessions[sessionId]</code> must exist.</li>
+<li><strong>Post-conditions</strong>: All clients with <code>readyState === OPEN</code> will receive the message.</li>
 </ul>
 <hr>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="websocket-communication">WebSocket Communication<a href="#websocket-communication" class="hash-link" aria-label="Direct link to WebSocket Communication" title="Direct link to WebSocket Communication">​</a></h2>
 <p>The server operates by receiving messages from clients and broadcasting <strong>state updates</strong> to all clients in a given session.</p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="client-to-server-messages">Client-to-Server Messages<a href="#client-to-server-messages" class="hash-link" aria-label="Direct link to Client-to-Server Messages" title="Direct link to Client-to-Server Messages">​</a></h3>
-<table><thead><tr><th>Message Type</th><th>Payload</th><th>Description</th></tr></thead><tbody><tr><td><code>CREATE_SESSION</code></td><td><code>{}</code></td><td>Requests the server to generate a new unique session ID.</td></tr><tr><td><code>VALIDATE_SESSION</code></td><td><code>{ gameCode: string }</code></td><td>Asks the server if a given session code is valid.</td></tr><tr><td><code>PLAYER_JOIN</code></td><td><code>{ sessionId, userId, role, color }</code></td><td>Informs the server that a new player has joined a session.</td></tr><tr><td><code>PLAYER_MOVE</code></td><td><code>{ sessionId, userId, x, y }</code></td><td>Sends the local player&#x27;s position to the server.</td></tr><tr><td><code>AAC_FOOD_SELECTED</code></td><td><code>{ sessionId, food, effect }</code></td><td>AAC user selects a target food with optional effect.</td></tr><tr><td><code>FRUIT_EATEN_BY_PLAYER</code></td><td><code>{ sessionId, userId, isCorrect, effect }</code></td><td>Player collided with a fruit.</td></tr><tr><td><code>PLAYER_EFFECT_APPLIED</code></td><td><code>{ sessionId, targetUserId, effect }</code></td><td>A visual effect was applied to a player.</td></tr><tr><td><code>SET_EDGE</code></td><td><code>{ sessionId, userId, edge }</code></td><td>Assigns a player to a screen edge.</td></tr><tr><td><code>START_GAME</code></td><td><code>{ sessionId, mode }</code></td><td>Host starts the game for all players.</td></tr></tbody></table>
+<table><thead><tr><th>Message Type</th><th>Payload</th><th>Description</th></tr></thead><tbody><tr><td><code>CREATE_SESSION</code></td><td><code>{}</code></td><td>Requests a new unique session ID.</td></tr><tr><td><code>VALIDATE_SESSION</code></td><td><code>{ sessionId: string }</code></td><td>Validates session ID.</td></tr><tr><td><code>PLAYER_JOIN</code></td><td><code>{ sessionId, userId, role, color }</code></td><td>Adds user to session and syncs presence.</td></tr><tr><td><code>PLAYER_MOVE</code></td><td><code>{ sessionId, userId, x, y }</code></td><td>Sends current player position.</td></tr><tr><td><code>AAC_FOOD_SELECTED</code></td><td><code>{ sessionId, food, effect }</code></td><td>Target food selection by AAC user.</td></tr><tr><td><code>START_GAME</code></td><td><code>{ sessionId, mode }</code></td><td>Initializes game loop, spawns food.</td></tr><tr><td><code>START_TIMER</code></td><td><code>{ sessionId }</code></td><td>Starts countdown (180s).</td></tr><tr><td><code>SET_EDGE</code></td><td><code>{ sessionId, userId, edge }</code></td><td>Assigns spawn angle per player.</td></tr><tr><td><code>FRUIT_EATEN</code></td><td><code>{ sessionId, instanceId }</code></td><td>Tells server to remove food from list.</td></tr><tr><td><code>FRUIT_EATEN_BY_PLAYER</code></td><td><code>{ sessionId, userId, isCorrect, effect }</code></td><td>Updates score and clears effect.</td></tr><tr><td><code>PLAYER_EFFECT_APPLIED</code></td><td><code>{ sessionId, targetUserId, effect }</code></td><td>Triggers visual effect (burn, freeze).</td></tr><tr><td><code>SELECT_COLOR</code></td><td><code>{ sessionId, userId, color }</code></td><td>Assigns a color to a user.</td></tr></tbody></table>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="server-to-client-broadcasts">Server-to-Client Broadcasts<a href="#server-to-client-broadcasts" class="hash-link" aria-label="Direct link to Server-to-Client Broadcasts" title="Direct link to Server-to-Client Broadcasts">​</a></h3>
-<table><thead><tr><th>Message Type</th><th>Payload</th><th>Description</th></tr></thead><tbody><tr><td><code>SESSION_CREATED</code></td><td><code>{ sessionId: string }</code></td><td>Responds to <code>CREATE_SESSION</code> with new session ID.</td></tr><tr><td><code>USERS_LIST_UPDATE</code></td><td><code>{ users: [...] }</code></td><td>Broadcasts updated list of all players in session.</td></tr><tr><td><code>FOOD_STATE_UPDATE</code></td><td><code>{ foods: [...] }</code></td><td>Core game sync message — full state of active food.</td></tr><tr><td><code>AAC_TARGET_FOOD</code></td><td><code>{ targetFoodId, targetFoodData, effect }</code></td><td>Sets the correct food to target.</td></tr><tr><td><code>PLAYER_EFFECT_BROADCAST</code></td><td><code>{ targetUserId, effect }</code></td><td>Apply visual effect (e.g. freeze, grow) to player.</td></tr><tr><td><code>SCORE_UPDATE_BROADCAST</code></td><td><code>{ scores: {...} }</code></td><td>Sends updated scores to all players.</td></tr><tr><td><code>GAME_OVER</code></td><td><code>{}</code></td><td>Notifies all clients that the game has ended.</td></tr></tbody></table>
+<table><thead><tr><th>Message Type</th><th>Payload</th><th>Description</th></tr></thead><tbody><tr><td><code>SESSION_CREATED</code></td><td><code>{ sessionId: string }</code></td><td>A new session was created.</td></tr><tr><td><code>SESSION_VALIDATED</code></td><td><code>{ sessionId: string, isValid: boolean }</code></td><td>Result of a validation request.</td></tr><tr><td><code>PLAYER_JOINED_BROADCAST</code></td><td><code>{ userId, role, color }</code></td><td>Sent when new player joins.</td></tr><tr><td><code>USERS_LIST_UPDATE</code></td><td><code>{ users: [{ userId, role, color }] }</code></td><td>Updated player list.</td></tr><tr><td><code>FOOD_STATE_UPDATE</code></td><td><code>{ foods: [...foodInstances] }</code></td><td>Broadcasts food positions.</td></tr><tr><td><code>AAC_TARGET_FOOD</code></td><td><code>{ targetFoodId, targetFoodData, effect }</code></td><td>Designates target food.</td></tr><tr><td><code>SCORE_UPDATE_BROADCAST</code></td><td><code>{ scores: { [userId]: number } }</code></td><td>Live score updates.</td></tr><tr><td><code>REMOVE_FOOD</code></td><td><code>{ instanceId: string }</code></td><td>Removes food from client canvas.</td></tr><tr><td><code>PLAYER_EFFECT_BROADCAST</code></td><td><code>{ targetUserId, effect }</code></td><td>Applies power-up or penalty effect.</td></tr><tr><td><code>COLOR_UPDATE</code></td><td><code>{ takenColors: string[] }</code></td><td>Sends all chosen player colors.</td></tr><tr><td><code>TIMER_UPDATE</code></td><td><code>{ secondsLeft: number }</code></td><td>Countdown timer for game end.</td></tr><tr><td><code>GAME_OVER</code></td><td><code>{}</code></td><td>Signals game end state.</td></tr></tbody></table>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="data-structures">Data Structures<a href="#data-structures" class="hash-link" aria-label="Direct link to Data Structures" title="Direct link to Data Structures">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="sessions--sessionid-string-setwebsocket-"><code>sessions: { [sessionId: string]: Set&lt;WebSocket&gt; }</code><a href="#sessions--sessionid-string-setwebsocket-" class="hash-link" aria-label="Direct link to sessions--sessionid-string-setwebsocket-" title="Direct link to sessions--sessionid-string-setwebsocket-">​</a></h3>
+<p>Tracks all sockets connected to each active session.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="scoresbysession--sessionid-string--userid-string-number--"><code>scoresBySession: { [sessionId: string]: { [userId: string]: number } }</code><a href="#scoresbysession--sessionid-string--userid-string-number--" class="hash-link" aria-label="Direct link to scoresbysession--sessionid-string--userid-string-number--" title="Direct link to scoresbysession--sessionid-string--userid-string-number--">​</a></h3>
+<p>Stores player scores per session.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="activefoods--sessionid-string-foodinstance-"><code>activeFoods: { [sessionId: string]: FoodInstance[] }</code><a href="#activefoods--sessionid-string-foodinstance-" class="hash-link" aria-label="Direct link to activefoods--sessionid-string-foodinstance-" title="Direct link to activefoods--sessionid-string-foodinstance-">​</a></h3>
+<p>Holds current active food objects on screen.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fruitqueues--sessionid-string-food-"><code>fruitQueues: { [sessionId: string]: Food[] }</code><a href="#fruitqueues--sessionid-string-food-" class="hash-link" aria-label="Direct link to fruitqueues--sessionid-string-food-" title="Direct link to fruitqueues--sessionid-string-food-">​</a></h3>
+<p>FIFO queue of upcoming food to spawn.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fruitintervals--sessionid-string-interval-"><code>fruitIntervals: { [sessionId: string]: Interval }</code><a href="#fruitintervals--sessionid-string-interval-" class="hash-link" aria-label="Direct link to fruitintervals--sessionid-string-interval-" title="Direct link to fruitintervals--sessionid-string-interval-">​</a></h3>
+<p>Per-session loop interval that controls spawning and physics.</p>
+<hr>
 <hr>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="server-info">Server Info<a href="#server-info" class="hash-link" aria-label="Direct link to Server Info" title="Direct link to Server Info">​</a></h2>
 <ul>
-<li><strong>Port</strong>: <code>4000</code> (local dev)</li>
+<li><strong>Port</strong>: <code>4000</code> (local development)</li>
 <li><strong>Protocol</strong>: <code>ws://</code> (WebSocket)</li>
 <li><strong>Session Storage</strong>:<!-- -->
 <ul>
@@ -103,6 +163,8 @@
 <li>Production: <strong>PostgreSQL on Railway</strong></li>
 </ul>
 </li>
-</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos/edit/main/documentation/docs/api-specification/Backend.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>Kostandin Jorgji</b></span></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-acc-hungry-hippos/docs/api-specification/Frontend"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Frontend API</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-acc-hungry-hippos/docs/category/test-procedures"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Test Procedures</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#table-of-contents" class="table-of-contents__link toc-highlight">Table of Contents</a></li><li><a href="#overview" class="table-of-contents__link toc-highlight">Overview</a></li><li><a href="#utility-functions" class="table-of-contents__link toc-highlight">Utility Functions</a><ul><li><a href="#generatesessionidlength--5" class="table-of-contents__link toc-highlight"><code>generateSessionId(length = 5)</code></a></li><li><a href="#generateuniquesessionidexistingsessions-length--5" class="table-of-contents__link toc-highlight"><code>generateUniqueSessionId(existingSessions, length = 5)</code></a></li><li><a href="#broadcastsessionid-data" class="table-of-contents__link toc-highlight"><code>broadcast(sessionId, data)</code></a></li><li><a href="#getweightedrandomfoodallfoods-targetid" class="table-of-contents__link toc-highlight"><code>getWeightedRandomFood(allFoods, targetId)</code></a></li></ul></li><li><a href="#websocket-communication" class="table-of-contents__link toc-highlight">WebSocket Communication</a><ul><li><a href="#client-to-server-messages" class="table-of-contents__link toc-highlight">Client-to-Server Messages</a></li><li><a href="#server-to-client-broadcasts" class="table-of-contents__link toc-highlight">Server-to-Client Broadcasts</a></li></ul></li><li><a href="#server-info" class="table-of-contents__link toc-highlight">Server Info</a></li></ul></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-acc-hungry-hippos/docs/intro">Documentation</a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project Acc Hungry Hippos, Inc. Built with Docusaurus.</div></div></div></footer></div>
+<li><strong>Frontend Deployment (Production)</strong>:<br>
+<!-- -->Hosted on Vercel - communicates with this WebSocket backend via <code>wss://</code> in deployed mode.</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos/edit/main/documentation/docs/api-specification/Backend.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>MKarimF9</b></span></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-acc-hungry-hippos/docs/api-specification/Frontend"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Frontend API</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-acc-hungry-hippos/docs/category/test-procedures"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Test Procedures</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#table-of-contents" class="table-of-contents__link toc-highlight">Table of Contents</a></li><li><a href="#overview" class="table-of-contents__link toc-highlight">Overview</a></li><li><a href="#session-and-player-lifecycle" class="table-of-contents__link toc-highlight">Session and Player Lifecycle</a><ul><li><a href="#create_session" class="table-of-contents__link toc-highlight"><code>CREATE_SESSION</code></a></li><li><a href="#player_join" class="table-of-contents__link toc-highlight"><code>PLAYER_JOIN</code></a></li></ul></li><li><a href="#utility-functions" class="table-of-contents__link toc-highlight">Utility Functions</a><ul><li><a href="#generatesessionidlength--5" class="table-of-contents__link toc-highlight"><code>generateSessionId(length = 5)</code></a></li><li><a href="#generateuniquesessionidexistingsessions-length--5" class="table-of-contents__link toc-highlight"><code>generateUniqueSessionId(existingSessions, length = 5)</code></a></li><li><a href="#getweightedrandomfoodallfoods-targetid" class="table-of-contents__link toc-highlight"><code>getWeightedRandomFood(allFoods, targetId)</code></a></li><li><a href="#broadcastsessionid-data" class="table-of-contents__link toc-highlight"><code>broadcast(sessionId, data)</code></a></li></ul></li><li><a href="#websocket-communication" class="table-of-contents__link toc-highlight">WebSocket Communication</a><ul><li><a href="#client-to-server-messages" class="table-of-contents__link toc-highlight">Client-to-Server Messages</a></li><li><a href="#server-to-client-broadcasts" class="table-of-contents__link toc-highlight">Server-to-Client Broadcasts</a></li></ul></li><li><a href="#data-structures" class="table-of-contents__link toc-highlight">Data Structures</a><ul><li><a href="#sessions--sessionid-string-setwebsocket-" class="table-of-contents__link toc-highlight"><code>sessions: { [sessionId: string]: Set&lt;WebSocket&gt; }</code></a></li><li><a href="#scoresbysession--sessionid-string--userid-string-number--" class="table-of-contents__link toc-highlight"><code>scoresBySession: { [sessionId: string]: { [userId: string]: number } }</code></a></li><li><a href="#activefoods--sessionid-string-foodinstance-" class="table-of-contents__link toc-highlight"><code>activeFoods: { [sessionId: string]: FoodInstance[] }</code></a></li><li><a href="#fruitqueues--sessionid-string-food-" class="table-of-contents__link toc-highlight"><code>fruitQueues: { [sessionId: string]: Food[] }</code></a></li><li><a href="#fruitintervals--sessionid-string-interval-" class="table-of-contents__link toc-highlight"><code>fruitIntervals: { [sessionId: string]: Interval }</code></a></li></ul></li><li><a href="#server-info" class="table-of-contents__link toc-highlight">Server Info</a></li></ul></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-acc-hungry-hippos/docs/intro">Documentation</a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project Acc Hungry Hippos, Inc. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>

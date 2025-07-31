@@ -457,106 +457,73 @@ This is the object passed back to the parent through the forwarded `ref`.
 
 # LandingPage.tsx
 
-### Overview
+## Data Fields
 
-User interface for joining or creating a game session.  
-This component allows the user to enter a 5-character session code to join a game,  
-or to create a new game session by generating and saving a new session ID.
-
----
-
-### Data Fields
-
-| Field          | Type                         | Description                                               |
-|----------------|------------------------------|-----------------------------------------------------------|
-| `code`         | `string[]`                   | Stores user input for each character of the session code  |
-| `inputsRef`    | `useRef<HTMLInputElement[]>` | References the input boxes                                |
-| `isValidCode`  | `boolean`                    | Shows visual feedback when code is invalid                |
+| Field         | Type                             | Purpose                                                                                   |
+| ------------- | -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `code`        | `string[]`                       | Stores each character of the 5-character game session code entered by the user.           |
+| `inputsRef`   | `React.RefObject<(HTMLInputElement \| null)[]>` | References to input boxes for direct DOM control (focus management).               |
+| `isValidCode` | `boolean`                       | Flag to indicate if the entered code is valid; controls visual feedback for errors.       |
+| `isConnected` | `boolean`                       | WebSocket connection status from `useWebSocket()`.                                       |
+| `lastMessage` | `any`                           | Most recent message from WebSocket server.                                               |
+| `sendMessage` | `(msg: any) => void`            | Function to send messages to WebSocket backend.                                          |
+| `clearLastMessage` | `() => void`                | Clears `lastMessage` after processing to avoid repeated handling.                         |
 
 ---
 
-### WebSocket Fields (via Context)
-
-| Field            | Type         | Description                                         |
-|------------------|--------------|-----------------------------------------------------|
-| `isConnected`    | `boolean`    | WebSocket connection status                         |
-| `lastMessage`    | `any`        | Most recent message received                        |
-| `sendMessage`    | `(msg) => void` | Sends message to WebSocket                         |
-| `clearLastMessage` | `() => void` | Clears the latest received message                 |
-
----
+## Methods
 
 ### `handleStart(): void`
-
-Attempts to join an existing game session using the entered 5-character code.
-
-- **Purpose**:  
-  Validates the session with the backend. If valid, generates a user ID and navigates to the RoleSelect screen.  
-  If invalid, resets input and shows error feedback.
-
-- **Pre-condition**:  
-  Code must be exactly 5 characters.
-
-- **Post-condition**:  
-  Navigates to `/roleselect/:gameCode` with a generated `userId`.
-
-- **Error Handling**:  
-  Logs validation failure and resets inputs if the session is invalid.
-
----
+- Validates the entered game code (must be 5 characters).
+- Sends a `VALIDATE_SESSION` message to the backend WebSocket to check session validity.
+- If the session is valid, generates a random username and navigates to `/roleselect/:sessionId`.
+- If invalid, resets inputs, marks input invalid, and focuses the first input box.
+- Alerts user if the WebSocket connection is not ready.
 
 ### `handleCreateGame(): void`
-
-Sends a request to the server to create a new game session.  
-If successful, navigates to the presenter screen with the session ID.
-
-- **Error Handling**:  
-  Shows an alert if not connected to the server.
-
----
+- Sends `CREATE_SESSION` message to backend to generate a new game session.
+- Navigates to presenter page on success.
+- Alerts if connection is not ready.
 
 ### `handleChange(value: string, index: number): void`
+- Updates the corresponding input box with uppercase character.
+- Auto-focuses next input if available.
 
-Handles user input and moves focus to the next input box.
+### `handleKeyDown(e, index): void`
+- Handles backspace to move focus to previous input when current input is empty.
 
-- **Parameters**:
-  - `value`: Character entered
-  - `index`: Input index in the session code
-
----
-
-### `handleKeyDown(e: KeyboardEvent, index: number): void`
-
-Handles backspace to move focus to the previous input box.
-
-- **Parameters**:
-  - `e`: Keyboard event
-  - `index`: Index of input field
+### `handlePaste(e): void`
+- Allows user to paste up to 5 characters at once, distributing them across inputs.
+- Filters out non-alphanumeric characters.
+- Auto-focuses the next empty input.
 
 ---
 
-### `handlePaste(e: ClipboardEvent): void`
+## Effects
 
-Allows user to paste a full 5-character code.
-
-- **Behavior**:  
-  Distributes characters across input fields and focuses the next empty input.
-
----
-
-### Return
-
-- **Returns**: `JSX.Element` — The rendered landing page UI.
+### `useEffect(() => {...}, [lastMessage, navigate])`
+- Listens for WebSocket messages:
+  - `SESSION_VALIDATED`: navigates to RoleSelect if valid, otherwise resets input.
+  - `SESSION_CREATED`: navigates to presenter page after creation.
+- Clears `lastMessage` after processing.
 
 ---
 
-### Navigation Logic
+## UI Behavior
 
-- If `SESSION_VALIDATED` is received:  
-  Navigates to `/roleselect/:gameCode` with a randomly generated `userId`.
+- Displays Hungry Hippos logo and prompt to enter 5-character game code.
+- Provides 5 single-character input boxes for the code.
+- Shows red border around inputs if code is invalid.
+- "No code? Create new game!" clickable text to create a new session.
+- Join Game button triggers session join flow.
 
-- If `SESSION_CREATED` is received:  
-  Navigates to `/presenter/:sessionId`.
+---
+
+## Error Handling
+
+- Invalid session code resets input and focuses first input.
+- Alerts user if server connection is not ready when trying to join/create a session.
+- Logs errors to console for debugging (implicitly, via messaging failures).
 
 ---
 
@@ -733,5 +700,189 @@ SET EDGE SYNC WITH BACKEND
 
  ---
 
+# Presenter.tsx
+
+## Data Fields
+
+| Field            | Type                            | Purpose                                                                                  |
+| ---------------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `presenterBg`    | `string`                       | Path to the background image shown behind hippos and AAC device.                         |
+| `modeDetails`    | `Record<string, {label: string, iconPath: string, count: number}>` | Metadata for each game mode (label, icon, count) used in the mode selector UI.           |
+| `navigate`       | `ReturnType<typeof useNavigate>` | React Router navigation function.                                                       |
+| `sessionId`      | `string \| undefined`           | Session ID extracted from URL parameters, used for WebSocket joining and QR code.        |
+| `copied`         | `boolean`                      | State tracking if the session code was copied to clipboard (for tooltip display).        |
+| `mode`           | `'Easy' \| 'Medium' \| 'Hard'` | Currently selected game mode.                                                           |
+| `presenterId`    | `string`                       | Hardcoded userId for the Presenter client.                                              |
+| `sendMessage`    | `(msg: any) => void`           | WebSocket send function from context.                                                   |
+| `connectedUsers` | `Array<{ userId: string, role: string, color?: string }>` | List of all connected users in the session, received via WebSocket.                      |
+| `isConnected`    | `boolean`                      | Whether the WebSocket connection is currently open.                                     |
+| `modes`          | `Array<'Easy' \| 'Medium' \| 'Hard'>` | Array of game modes in cycle order.                                                    |
+| `spectatorId`    | `string`                       | User ID used when the Presenter opens a Spectator client to watch the game.             |
+| `aacCount`       | `number`                      | Number of connected AAC Users in the session.                                          |
+| `hippoPlayers`   | `Array<any>`                   | List of connected Hippo Players in the session.                                        |
+| `lobbyHippoSlots`| `Array<number>`                | Indices representing the 4 hippo slots displayed in the lobby UI.                      |
+
+---
+
+## Lifecycle & Effects
+
+### `useEffect(() => {...}, [mode])`
+- **Purpose**: Plays audio feedback corresponding to the current selected game mode.
+- **Pre-conditions**: `mode` must be one of `'Easy'`, `'Medium'`, or `'Hard'`.
+- **Returns**: void
+
+### `useEffect(() => {...}, [sessionId, isConnected, sendMessage])`
+- **Purpose**: When WebSocket connects, send a `PLAYER_JOIN` message to register as the Presenter.
+- **Pre-conditions**: `sessionId` must be valid and WebSocket must be connected.
+- **Returns**: void
+
+---
+
+## Functions
+
+### `cycleMode(direction: 'left' | 'right'): void`
+- **Purpose**: Changes the current game mode by cycling left (previous) or right (next).
+- **Parameters**: `'left'` or `'right'`
+- **Returns**: void
+
+### `playModeAudio(selectedMode: 'Easy' | 'Medium' | 'Hard'): void`
+- **Purpose**: Plays the audio file associated with the given game mode.
+- **Parameters**: `selectedMode` - The mode to play audio for.
+- **Returns**: void
+
+### `handleCancel(): void`
+- **Purpose**: Navigates back to the landing page when the cancel button is clicked.
+- **Returns**: void
+
+### `handleCopy(): void`
+- **Purpose**: Copies the current session ID to the clipboard and shows a tooltip.
+- **Returns**: void
+
+### `handleStartGame(): void`
+- **Purpose**: Sends messages to start the game and opens a Spectator client, then navigates there.
+- **Pre-conditions**: `sessionId` must be valid; at least 1 Hippo and 1 AAC user connected.
+- **Returns**: void
+
+### `renderHippoSlot(player: any, index: number): JSX.Element`
+- **Purpose**: Renders a UI slot for a hippo player, including colored hippo images if occupied.
+- **Parameters**:
+  - `player` - User occupying the slot or undefined.
+  - `index` - Slot index (0-3).
+- **Returns**: JSX element representing the hippo slot.
+
+---
+
+## Validation
+
+- If `sessionId` is missing or invalid (less than 5 characters), the component redirects to the landing page (`/`).
+
+---
+
+# RoleSelect.tsx
+
+## Data Fields
+
+| Field               | Type                              | Purpose                                                                                      |
+| ------------------- | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| `navigate`          | `ReturnType<typeof useNavigate>`   | React Router navigation function.                                                           |
+| `sessionId`         | `string \| undefined`              | Session ID from route parameters.                                                           |
+| `location`          | `ReturnType<typeof useLocation>`   | React Router location object; used to get passed userId state.                              |
+| `role`              | `string`                         | Current selected role (`'Hippo Player'`, `'AAC User'`, or empty string).                    |
+| `selectedColor`     | `string \| null`                  | Selected hippo color for Hippo Player role.                                                |
+| `username`          | `string`                         | Randomly generated user ID or passed userId from location state.                            |
+| `waiting`           | `boolean`                        | Whether the user clicked "Next" and is waiting for the game to start.                       |
+| `connectedUsers`    | `Array<{ userId: string, role: string, color?: string }>` | List of all connected users in the session.                                                |
+| `gameStarted`       | `boolean`                        | Whether the game has started (from WebSocket context).                                      |
+| `sendMessage`       | `(msg: any) => void`              | WebSocket send function.                                                                    |
+| `isConnected`       | `boolean`                        | WebSocket connection status.                                                                |
+| `takenColors`       | `string[]`                      | Hippo colors currently taken by connected Hippo Players.                                   |
+| `hippoPlayersCount` | `number`                        | Number of connected Hippo Players.                                                         |
+| `aacUsersCount`     | `number`                        | Number of connected AAC Users.                                                             |
+| `isHippoRoleFull`   | `boolean`                       | True if Hippo Player role is full (4 players).                                             |
+| `isAacRoleFull`     | `boolean`                       | True if AAC User role is full (1 user).                                                    |
+
+---
+
+## Lifecycle & Effects
+
+### `useEffect(() => {...}, [gameStarted, waiting, role, selectedColor, sessionId, username, navigate])`
+- **Purpose**: Navigates to the appropriate game screen once the game has started and user clicked "Next".
+- **Pre-conditions**: `waiting` must be true (after "Next" clicked), and `gameStarted` must become true.
+- **Returns**: void
+
+### `useEffect(() => {...}, [sessionId, username, isConnected, sendMessage])`
+- **Purpose**: Sends initial `PLAYER_JOIN` with role `"pending"` to WebSocket on mount.
+- **Pre-conditions**: `sessionId` and `username` must be defined; WebSocket must be connected.
+- **Returns**: void
+
+### `useEffect(() => {...}, [connectedUsers])`
+- **Purpose**: Tracks which hippo colors are taken by filtering connected Hippo Players.
+- **Returns**: void
+
+### `useEffect(() => {...}, [connectedUsers, role, isAacRoleFull])`
+- **Purpose**: Resets role if AAC User role is full and current role is AAC User.
+- **Returns**: void
+
+---
+
+## Functions
+
+### `handleStart(): void`
+- **Purpose**: Validates selection and sends `PLAYER_JOIN` with chosen role and color; sets waiting state.
+- **Pre-conditions**: Role must be selected; Hippo Player requires a color.
+- **Returns**: void
+
+### `handleRoleSelect(selectedRole: string): void`
+- **Purpose**: Handles switching roles, releasing color if switching from Hippo Player.
+- **Parameters**: `selectedRole` - the new selected role string.
+- **Returns**: void
+
+### `handleColorSelect(color: string): void`
+- **Purpose**: Sets selected color and sends `SELECT_COLOR` WebSocket message.
+- **Parameters**: `color` - hippo color string.
+- **Returns**: void
+
+### `handleCancel(): void`
+- **Purpose**: Navigates back to the landing page on cancel.
+- **Returns**: void
+
+---
+
+## UI Behavior
+
+- Disables role buttons when respective roles are full (4 Hippos, 1 AAC).
+- Shows "Waiting for game to start..." message after clicking "Next".
+- Highlights selected role and color visually.
+- Role selection and color selection required to enable the "Next" button.
+
+---
+
+## Validation
+
+- Requires valid `sessionId`.
+- Generates a random username if none provided from location state.
+
+---
 
 
+# Victory.tsx
+
+## Data Fields
+
+| Field         | Type                            | Purpose                                                        |
+| ------------- | ------------------------------- | -------------------------------------------------------------- |
+| `location`    | `ReturnType<typeof useLocation>` | React Router location object, used to access passed state data.|
+| `scores`      | `Record<string, number>`         | Player scores extracted from `location.state`. Defaults to `{}`.|
+| `navigate`    | `ReturnType<typeof useNavigate>` | React Router navigation function.                              |
+| `colors`      | `Record<string, string>`         | Maps player IDs to their hippo colors from `location.state`.  |
+| `sortedPlayers`| `[string, number][]`             | Array of `[playerId, score]` tuples sorted descending by score.|
+
+---
+
+## Functions
+
+### `handleCancel(): void`
+- **Purpose**: Navigates the user back to the home page when cancel button is clicked.
+- **Returns**: void
+
+---

@@ -4,94 +4,11 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.3.2">
 <title data-rh="true">Frontend API | Project Acc Hungry Hippos</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Frontend"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Frontend API | Project Acc Hungry Hippos"><meta data-rh="true" name="description" content="Frontend API"><meta data-rh="true" property="og:description" content="Frontend API"><link data-rh="true" rel="icon" href="/project-acc-hungry-hippos/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Frontend"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Frontend" hreflang="en"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/api-specification/Frontend" hreflang="x-default"><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script><link rel="stylesheet" href="/project-acc-hungry-hippos/assets/css/styles.a93c73f5.css">
-<script src="/project-acc-hungry-hippos/assets/js/runtime~main.c8f94129.js" defer="defer"></script>
+<script src="/project-acc-hungry-hippos/assets/js/runtime~main.4ca131a7.js" defer="defer"></script>
 <script src="/project-acc-hungry-hippos/assets/js/main.d77e5541.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <script>!function(){function t(t){document.documentElement.setAttribute("data-theme",t)}var e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return localStorage.getItem("theme")}catch(t){}}();t(null!==e?e:"light")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="navbar navbar--fixed-top"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/project-acc-hungry-hippos/"><div class="navbar__logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"></div><b class="navbar__title text--truncate">Project Acc Hungry Hippos</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/project-acc-hungry-hippos/docs/intro">Documentation</a></div><div class="navbar__items navbar__items--right"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="Switch between dark and light mode (currently light mode)" aria-label="Switch between dark and light mode (currently light mode)" aria-live="polite"><svg viewBox="0 0 24 24" width="24" height="24" class="lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" class="darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="main-wrapper mainWrapper_z2l0"><div class="docsWrapper_hBAB"><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button"></button><div class="docRoot_UBD9"><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class="sidebarViewport_aRkj"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/project-acc-hungry-hippos/docs/intro">Hungry Hippos</a></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist" href="/project-acc-hungry-hippos/docs/category/requirements-specification">Requirements Specification</a><button aria-label="Expand sidebar category &#x27;Requirements Specification&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist" href="/project-acc-hungry-hippos/docs/category/system-architecture">System Architecture</a><button aria-label="Expand sidebar category &#x27;System Architecture&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--active" href="/project-acc-hungry-hippos/docs/category/api-specification">API Specification</a><button aria-label="Collapse sidebar category &#x27;API Specification&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul style="display:block;overflow:visible;height:auto" class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/project-acc-hungry-hippos/docs/api-specification/Frontend">Frontend API</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/project-acc-hungry-hippos/docs/api-specification/Backend">Backend API</a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist" href="/project-acc-hungry-hippos/docs/category/test-procedures">Test Procedures</a><button aria-label="Expand sidebar category &#x27;Test Procedures&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_TBSr"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_VOVn"><div class="docItemContainer_Djhp"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label="Breadcrumbs"><ul class="breadcrumbs" itemscope="" itemtype="https://schema.org/BreadcrumbList"><li class="breadcrumbs__item"><a aria-label="Home page" class="breadcrumbs__link" href="/project-acc-hungry-hippos/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_YNFT"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li itemscope="" itemprop="itemListElement" itemtype="https://schema.org/ListItem" class="breadcrumbs__item"><a class="breadcrumbs__link" itemprop="item" href="/project-acc-hungry-hippos/docs/category/api-specification"><span itemprop="name">API Specification</span></a><meta itemprop="position" content="1"></li><li itemscope="" itemprop="itemListElement" itemtype="https://schema.org/ListItem" class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link" itemprop="name">Frontend API</span><meta itemprop="position" content="2"></li></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><h1>Frontend API</h1>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="table-of-contents">Table of Contents<a href="#table-of-contents" class="hash-link" aria-label="Direct link to Table of Contents" title="Direct link to Table of Contents">​</a></h2>
-<ul>
-<li><a href="#aac-interface">AAC Interface</a>
-<ul>
-<li><a href="#interface-aacinterfaceprops"><code>interface AacInterfaceProps</code></a></li>
-<li><a href="#onfoodselected-food-aacfood--void"><code>onFoodSelected</code></a></li>
-<li><a href="#const-aacinterface-reactfcaacinterfaceprops--"><code>AacInterface</code> Component</a></li>
-<li><a href="#const-selectedfood-setselectedfood--reactusestateaacfood--null"><code>selectedFood</code></a></li>
-<li><a href="#const-selectedcategory-setselectedcategory--reactusestatestring--null"><code>selectedCategory</code></a></li>
-<li><a href="#const-isaudioplaying-setisaudioplaying--reactusestatefalse"><code>isAudioPlaying</code></a></li>
-<li><a href="#const-handlefoodclick--food-aacfood--"><code>handleFoodClick</code></a></li>
-<li><a href="#audioonerror--"><code>audio.onerror</code></a></li>
-<li><a href="#const-rendercategoryview--"><code>renderCategoryView</code></a></li>
-<li><a href="#const-renderfoodsview--"><code>renderFoodsView</code></a></li>
-<li><a href="#return--div-classnameaac-container-div-classnameaac-device-h1-aac-device-"><code>AAC Interface JSX</code></a></li>
-</ul>
-</li>
-<li><a href="#foodsts">Foods.ts</a>
-<ul>
-<li><a href="#export-interface-aacfood"><code>AacFood</code></a></li>
-<li><a href="#export-interface-aaccategory"><code>AacCategory</code></a></li>
-<li><a href="#export-interface-aacdata"><code>AacData</code></a></li>
-<li><a href="#export-const-aac_data-aacdata--aacdata-as-aacdata"><code>AAC_DATA</code></a></li>
-</ul>
-</li>
-<li><a href="#gamets">Game.ts</a>
-<ul>
-<li><a href="#class-game-extends-phaserscene"><code>Game</code> class</a></li>
-<li><a href="#private-hippo-phaserphysicsarcadesprite"><code>hippo</code></a></li>
-<li><a href="#private-foods-phaserphysicsarcadegroup"><code>foods</code></a></li>
-<li><a href="#private-foodkeys-string"><code>foodKeys</code></a></li>
-<li><a href="#private-lanepositions-number"><code>lanePositions</code></a></li>
-<li><a href="#private-foodspawntimer-phasertimetimerevent"><code>foodSpawnTimer</code></a></li>
-<li><a href="#constructor"><code>constructor</code></a></li>
-<li><a href="#preload"><code>preload</code></a></li>
-<li><a href="#create"><code>create</code></a></li>
-<li><a href="#setfoodkeyskeys-string"><code>setFoodKeys</code></a></li>
-<li><a href="#startspawningfood"><code>startSpawningFood</code></a></li>
-<li><a href="#spawnfood"><code>spawnFood</code></a></li>
-<li><a href="#addfoodmanuallyfoodkey-string"><code>addFoodManually</code></a></li>
-<li><a href="#handlefoodcollisionhippo-food"><code>handleFoodCollision</code></a></li>
-<li><a href="#update"><code>update</code></a></li>
-</ul>
-</li>
-<li><a href="#phasergametsx">PhaserGame.tsx</a>
-<ul>
-<li><a href="#phasergame-reactfciprops"><code>PhaserGame</code></a></li>
-<li><a href="#interface-irefphasergame"><code>IRefPhaserGame</code></a></li>
-<li><a href="#interface-iprops"><code>IProps</code></a></li>
-<li><a href="#uselayouteffect"><code>useLayoutEffect</code></a></li>
-<li><a href="#useeffect"><code>useEffect</code></a></li>
-<li><a href="#return"><code>PhaserGame JSX</code></a></li>
-</ul>
-</li>
-<li><a href="#landingpagetsx">LandingPage.tsx</a>
-<ul>
-<li><a href="#landingpage"><code>LandingPage</code></a></li>
-<li><a href="#const-code-setcode--usestate"><code>code</code></a></li>
-<li><a href="#const-inputsref--useref"><code>inputsRef</code></a></li>
-<li><a href="#const-isvalidcode-setisvalidcode--usestate"><code>isValidCode</code></a></li>
-<li><a href="#const-handlestart--async--"><code>handleStart</code></a></li>
-<li><a href="#const-handlecreategame--async--"><code>handleCreateGame</code></a></li>
-<li><a href="#const-handlechange--"><code>handleChange</code></a></li>
-<li><a href="#const-handlekeydown--"><code>handleKeyDown</code></a></li>
-<li><a href="#const-handlepaste--"><code>handlePaste</code></a></li>
-</ul>
-</li>
-<li><a href="#buttonclicktsx">ButtonClick.tsx</a>
-<ul>
-<li><a href="#buttonclick-component"><code>ButtonClick</code></a></li>
-<li><a href="#interface-buttonclickprops"><code>ButtonClickProps</code></a></li>
-</ul>
-</li>
-<li><a href="#gamepagetsx">GamePage.tsx</a>
-<ul>
-<li><a href="#const-gamepage-reactfc--"><code>GamePage</code> Component</a></li>
-<li><a href="#const-phaserref--userefirefphasergame--null"><code>phaserRef</code></a></li>
-<li><a href="#const-foodstack-setfoodstack--reactusestateaacfood"><code>foodStack</code></a></li>
-<li><a href="#const-handleselectedfood--selectedfood-aacfood--"><code>handleSelectedFood</code></a></li>
-<li><a href="#return--div-idapp--aacinterface-onfoodselected"><code>JSX Return</code></a></li>
-</ul>
-</li>
-</ul>
 <h1>AAC Interface</h1>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="interface-aacinterfaceprops"><code>interface AacInterfaceProps</code><a href="#interface-aacinterfaceprops" class="hash-link" aria-label="Direct link to interface-aacinterfaceprops" title="Direct link to interface-aacinterfaceprops">​</a></h2>
 <p>Defines the props for the AacInterface component.</p>
@@ -148,67 +65,309 @@
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="export-const-aac_data-aacdata--aacdata-as-aacdata"><code>export const AAC_DATA: AacData = aacData as AacData</code><a href="#export-const-aac_data-aacdata--aacdata-as-aacdata" class="hash-link" aria-label="Direct link to export-const-aac_data-aacdata--aacdata-as-aacdata" title="Direct link to export-const-aac_data-aacdata--aacdata-as-aacdata">​</a></h2>
 <p>Exports the AAC data, which includes categories and their respective foods. This data is imported from a JSON file.</p>
 <h1>Game.ts</h1>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="class-game-extends-phaserscene"><code>class Game extends Phaser.Scene</code><a href="#class-game-extends-phaserscene" class="hash-link" aria-label="Direct link to class-game-extends-phaserscene" title="Direct link to class-game-extends-phaserscene">​</a></h2>
-<p>Defines the core gameplay scene using Phaser. Handles spawning food items, collision detection with the hippo, and animations.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="private-hippo-phaserphysicsarcadesprite"><code>private hippo: Phaser.Physics.Arcade.Sprite</code><a href="#private-hippo-phaserphysicsarcadesprite" class="hash-link" aria-label="Direct link to private-hippo-phaserphysicsarcadesprite" title="Direct link to private-hippo-phaserphysicsarcadesprite">​</a></h2>
-<p>Animated hippo character that interacts with food.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="private-foods-phaserphysicsarcadegroup"><code>private foods: Phaser.Physics.Arcade.Group</code><a href="#private-foods-phaserphysicsarcadegroup" class="hash-link" aria-label="Direct link to private-foods-phaserphysicsarcadegroup" title="Direct link to private-foods-phaserphysicsarcadegroup">​</a></h2>
-<p>Group that contains all active food objects.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="private-foodkeys-string"><code>private foodKeys: string[]</code><a href="#private-foodkeys-string" class="hash-link" aria-label="Direct link to private-foodkeys-string" title="Direct link to private-foodkeys-string">​</a></h2>
-<p>Tracks food types allowed to spawn, based on AAC selection.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="private-lanepositions-number"><code>private lanePositions: number[]</code><a href="#private-lanepositions-number" class="hash-link" aria-label="Direct link to private-lanepositions-number" title="Direct link to private-lanepositions-number">​</a></h2>
-<p>Predefined X-axis lanes where food may appear.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="private-foodspawntimer-phasertimetimerevent"><code>private foodSpawnTimer: Phaser.Time.TimerEvent</code><a href="#private-foodspawntimer-phasertimetimerevent" class="hash-link" aria-label="Direct link to private-foodspawntimer-phasertimetimerevent" title="Direct link to private-foodspawntimer-phasertimetimerevent">​</a></h2>
-<p>Timer that triggers periodic spawning of food.</p>
-<hr>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="constructor"><code>constructor()</code><a href="#constructor" class="hash-link" aria-label="Direct link to constructor" title="Direct link to constructor">​</a></h2>
-<p>Initializes the scene with the key <code>&quot;Game&quot;</code>.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="preload"><code>preload()</code><a href="#preload" class="hash-link" aria-label="Direct link to preload" title="Direct link to preload">​</a></h2>
-<p>Preloads all images and sprite sheets, including dynamically loaded food assets.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="create"><code>create()</code><a href="#create" class="hash-link" aria-label="Direct link to create" title="Direct link to create">​</a></h2>
-<p>Adds hippo, food group, animations, and physics overlaps to the scene.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="setfoodkeyskeys-string"><code>setFoodKeys(keys: string[])</code><a href="#setfoodkeyskeys-string" class="hash-link" aria-label="Direct link to setfoodkeyskeys-string" title="Direct link to setfoodkeyskeys-string">​</a></h2>
-<p>Sets which food types are currently allowed to spawn.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="class-game-extends-phaserscene"><code>class: Game extends Phaser.Scene</code><a href="#class-game-extends-phaserscene" class="hash-link" aria-label="Direct link to class-game-extends-phaserscene" title="Direct link to class-game-extends-phaserscene">​</a></h2>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="data-fields">Data Fields<a href="#data-fields" class="hash-link" aria-label="Direct link to Data Fields" title="Direct link to Data Fields">​</a></h2>
+<table><thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td><code>sessionId</code></td><td><code>string</code></td><td>Current WebSocket session ID</td></tr><tr><td><code>hippo</code></td><td><code>Hippo | null</code></td><td>Local player’s hippo sprite</td></tr><tr><td><code>foods</code></td><td><code>Phaser.Physics.Arcade.Group</code></td><td>Group of all active food sprites</td></tr><tr><td><code>currentTargetFoodId</code></td><td><code>string | null</code></td><td>ID of food chosen by AAC user</td></tr><tr><td><code>currentTargetFoodEffect</code></td><td><code>AacVerb | null</code></td><td>Active effect (burn, freeze, grow)</td></tr><tr><td><code>playerScores</code></td><td><code>Record&lt;string, number&gt;</code></td><td>Map of player scores</td></tr><tr><td><code>players</code></td><td><code>Record&lt;string, Hippo&gt;</code></td><td>Map of player IDs to hippo sprites</td></tr><tr><td><code>edgeAssignments</code></td><td><code>Record&lt;string, string&gt;</code></td><td>Screen edge (top, bottom, etc.) per player</td></tr><tr><td><code>availableEdges</code></td><td><code>string[]</code></td><td>Remaining edges available for assignment</td></tr><tr><td><code>cursors</code></td><td><code>Phaser.Types.Input.Keyboard.CursorKeys</code></td><td>Arrow key input</td></tr><tr><td><code>sendMessage</code></td><td><code>(msg: any) =&gt; void</code></td><td>WebSocket message sender</td></tr><tr><td><code>localPlayerId</code></td><td><code>string</code></td><td>Current user’s ID</td></tr><tr><td><code>usePointerControl</code></td><td><code>boolean</code></td><td>Whether pointer dragging is active</td></tr><tr><td><code>isKeyboardActive</code></td><td><code>boolean</code></td><td>Whether keyboard is being used</td></tr><tr><td><code>role</code></td><td><code>string</code></td><td>&quot;Hippo Player&quot;, &quot;Spectator&quot;, &quot;AAC User&quot;</td></tr><tr><td><code>lastSentX/Y</code></td><td><code>number | null</code></td><td>Last movement sync position</td></tr><tr><td><code>lastMoveSentAt</code></td><td><code>number</code></td><td>Timestamp of last movement sent</td></tr><tr><td><code>modeSettings</code></td><td><code>ModeSettings</code></td><td>Current game mode rules (fruitSpeed, penalties)</td></tr><tr><td><code>hasUserInteracted</code></td><td><code>boolean</code></td><td>Used to hide swipe tutorial</td></tr><tr><td><code>swipeHint</code></td><td><code>Phaser.GameObjects.Image | undefined</code></td><td>Swipe hint image</td></tr><tr><td><code>timerText</code></td><td><code>Phaser.GameObjects.Text</code></td><td>Countdown timer UI</td></tr></tbody></table>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="methods">Methods<a href="#methods" class="hash-link" aria-label="Direct link to Methods" title="Direct link to Methods">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="constructor"><code>constructor()</code><a href="#constructor" class="hash-link" aria-label="Direct link to constructor" title="Direct link to constructor">​</a></h3>
 <ul>
-<li><strong>Parameters</strong>: <code>keys</code> — string array of food IDs.</li>
+<li><strong>Purpose</strong>: Initializes the Phaser scene with ID <code>&quot;Game&quot;</code>.</li>
+<li><strong>Pre-conditions</strong>: None</li>
+<li><strong>Post-conditions</strong>: Scene is registered with the Phaser runtime.</li>
+<li><strong>Returns</strong>: <code>Game</code> instance</li>
+<li><strong>Exceptions</strong>: None</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="startspawningfood"><code>startSpawningFood()</code><a href="#startspawningfood" class="hash-link" aria-label="Direct link to startspawningfood" title="Direct link to startspawningfood">​</a></h2>
-<p>Starts a 1500ms interval that repeatedly calls <code>spawnFood</code>.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="spawnfood"><code>spawnFood()</code><a href="#spawnfood" class="hash-link" aria-label="Direct link to spawnfood" title="Direct link to spawnfood">​</a></h2>
-<p>Chooses a food key and lane, then drops the food with physics.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="addfoodmanuallyfoodkey-string"><code>addFoodManually(foodKey: string)</code><a href="#addfoodmanuallyfoodkey-string" class="hash-link" aria-label="Direct link to addfoodmanuallyfoodkey-string" title="Direct link to addfoodmanuallyfoodkey-string">​</a></h2>
-<p>Allows an external event like AAC selection to spawn a specific food.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="handlefoodcollisionhippo-food"><code>handleFoodCollision(hippo, food)</code><a href="#handlefoodcollisionhippo-food" class="hash-link" aria-label="Direct link to handlefoodcollisionhippo-food" title="Direct link to handlefoodcollisionhippo-food">​</a></h2>
-<p>Handles logic when the hippo collides with food. Destroys the food.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="update"><code>update()</code><a href="#update" class="hash-link" aria-label="Direct link to update" title="Direct link to update">​</a></h2>
-<p>Phaser&#x27;s update loop. Destroys food that hits the ground.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="initdata"><code>init(data)</code><a href="#initdata" class="hash-link" aria-label="Direct link to initdata" title="Direct link to initdata">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Initializes the scene with player/session/game mode info.</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>data: { sendMessage, localPlayerId, sessionId, role, connectedUsers?, modeSettings? }</code></li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: Called from React before <code>create()</code>.</li>
+<li><strong>Post-conditions</strong>: Internal state and players are set up.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="preload"><code>preload()</code><a href="#preload" class="hash-link" aria-label="Direct link to preload" title="Direct link to preload">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Loads images and assets into memory.</li>
+<li><strong>Pre-conditions</strong>: None</li>
+<li><strong>Post-conditions</strong>: Images available to use in scene.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="create"><code>create()</code><a href="#create" class="hash-link" aria-label="Direct link to create" title="Direct link to create">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Builds the game world, sets up input and listeners.</li>
+<li><strong>Pre-conditions</strong>: <code>preload()</code> must have been called.</li>
+<li><strong>Post-conditions</strong>: Scene is active.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="update"><code>update()</code><a href="#update" class="hash-link" aria-label="Direct link to update" title="Direct link to update">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Handles input, movement, and syncs positions.</li>
+<li><strong>Pre-conditions</strong>: <code>create()</code> must have been called.</li>
+<li><strong>Post-conditions</strong>: Scene reflects latest state each frame.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: WebSocket send failure is caught and logged:<!-- -->
+<ul>
+<li><code>&#x27;[Game.update] Failed to send player movement&#x27;</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="gameplay-methods">Gameplay Methods<a href="#gameplay-methods" class="hash-link" aria-label="Direct link to Gameplay Methods" title="Direct link to Gameplay Methods">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="addplayerplayerid-string-color-string"><code>addPlayer(playerId: string, color?: string)</code><a href="#addplayerplayerid-string-color-string" class="hash-link" aria-label="Direct link to addplayerplayerid-string-color-string" title="Direct link to addplayerplayerid-string-color-string">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Adds a new hippo to the scene at an available edge.</li>
+<li><strong>Pre-conditions</strong>: <code>connectedUsers</code> passed to <code>init()</code></li>
+<li><strong>Post-conditions</strong>: Hippo sprite is visible and tracked</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="getedgecursorsedge-cursors"><code>getEdgeCursors(edge, cursors)</code><a href="#getedgecursorsedge-cursors" class="hash-link" aria-label="Direct link to getedgecursorsedge-cursors" title="Direct link to getedgecursorsedge-cursors">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Remaps arrow keys to match orientation of assigned edge.</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>edge: Edge</code> -- assigned side of screen</li>
+<li><code>cursors: CursorKeys</code> -- raw keyboard input</li>
+</ul>
+</li>
+<li><strong>Returns</strong>: Remapped <code>CursorKeys</code> object</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="handlepointerpointer"><code>handlePointer(pointer)</code><a href="#handlepointerpointer" class="hash-link" aria-label="Direct link to handlepointerpointer" title="Direct link to handlepointerpointer">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Updates hippo position based on touch/mouse drag.</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>pointer: Phaser.Input.Pointer</code></li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: Only runs for local Hippo Player</li>
+<li><strong>Post-conditions</strong>: Hippo target position is updated</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="websocket-interaction">WebSocket Interaction<a href="#websocket-interaction" class="hash-link" aria-label="Direct link to WebSocket Interaction" title="Direct link to WebSocket Interaction">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="requeststarttimer"><code>requestStartTimer()</code><a href="#requeststarttimer" class="hash-link" aria-label="Direct link to requeststarttimer" title="Direct link to requeststarttimer">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Sends <code>&quot;START_TIMER&quot;</code> message to backend</li>
+<li><strong>Pre-conditions</strong>: Scene must be active</li>
+<li><strong>Post-conditions</strong>: Backend starts countdown</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="applymodesettingssettings"><code>applyModeSettings(settings)</code><a href="#applymodesettingssettings" class="hash-link" aria-label="Direct link to applymodesettingssettings" title="Direct link to applymodesettingssettings">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Updates game difficulty rules</li>
+<li><strong>Parameters</strong>: <code>settings: ModeSettings</code></li>
+<li><strong>Pre-conditions</strong>: Called before game starts</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="eventbus-integration">EventBus Integration<a href="#eventbus-integration" class="hash-link" aria-label="Direct link to EventBus Integration" title="Direct link to EventBus Integration">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="applyeffecttoplayeruserid-effect"><code>applyEffectToPlayer(userId, effect)</code><a href="#applyeffecttoplayeruserid-effect" class="hash-link" aria-label="Direct link to applyeffecttoplayeruserid-effect" title="Direct link to applyeffecttoplayeruserid-effect">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Applies freeze, grow, burn effect with tint to a hippo</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>userId: string</code></li>
+<li><code>effect: AacVerb</code></li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: <code>effect</code> must be valid</li>
+<li><strong>Post-conditions</strong>: Visual and gameplay change applied</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="handlefruitcollisionplayerid-fruit"><code>handleFruitCollision(playerId, fruit)</code><a href="#handlefruitcollisionplayerid-fruit" class="hash-link" aria-label="Direct link to handlefruitcollisionplayerid-fruit" title="Direct link to handlefruitcollisionplayerid-fruit">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Triggered when a hippo touches fruit</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>playerId: string</code></li>
+<li><code>fruit: GameObject</code></li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: Collision must occur</li>
+<li><strong>Post-conditions</strong>:<!-- -->
+<ul>
+<li>Fruit disappears if correct</li>
+<li>Score updated</li>
+<li>Effects sent if enabled</li>
+</ul>
+</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>:<!-- -->
+<ul>
+<li>WebSocket errors logged:<!-- -->
+<ul>
+<li><code>&#x27;[Game.handleFruitCollision] Error sending score update:&#x27;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="food-management">Food Management<a href="#food-management" class="hash-link" aria-label="Direct link to Food Management" title="Direct link to Food Management">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="settargetfoodfoodid-effect"><code>setTargetFood(foodId, effect?)</code><a href="#settargetfoodfoodid-effect" class="hash-link" aria-label="Direct link to settargetfoodfoodid-effect" title="Direct link to settargetfoodfoodid-effect">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Marks a fruit as the AAC target.</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>foodId: string</code></li>
+<li><code>effect?: AacVerb | null</code></li>
+</ul>
+</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removefoodbyinstanceidinstanceid"><code>removeFoodByInstanceId(instanceId)</code><a href="#removefoodbyinstanceidinstanceid" class="hash-link" aria-label="Direct link to removefoodbyinstanceidinstanceid" title="Direct link to removefoodbyinstanceidinstanceid">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Deletes a fruit from the screen.</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>instanceId: string</code></li>
+</ul>
+</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="syncfoodstateserverfoods"><code>syncFoodState(serverFoods)</code><a href="#syncfoodstateserverfoods" class="hash-link" aria-label="Direct link to syncfoodstateserverfoods" title="Direct link to syncfoodstateserverfoods">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Matches client-side fruits to server state</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>serverFoods: FoodState[]</code></li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>: Called on <code>FOOD_STATE_UPDATE</code></li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="timer">Timer<a href="#timer" class="hash-link" aria-label="Direct link to Timer" title="Direct link to Timer">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="updatetimeruisecondsleft"><code>updateTimerUI(secondsLeft)</code><a href="#updatetimeruisecondsleft" class="hash-link" aria-label="Direct link to updatetimeruisecondsleft" title="Direct link to updatetimeruisecondsleft">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Changes on-screen timer text.</li>
+<li><strong>Parameters</strong>: <code>secondsLeft: number</code></li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="handlegameover"><code>handleGameOver()</code><a href="#handlegameover" class="hash-link" aria-label="Direct link to handlegameover" title="Direct link to handlegameover">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Stops game and displays &quot;Game Over&quot; overlay</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="utility">Utility<a href="#utility" class="hash-link" aria-label="Direct link to Utility" title="Direct link to Utility">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="getedgeassignments"><code>getEdgeAssignments()</code><a href="#getedgeassignments" class="hash-link" aria-label="Direct link to getedgeassignments" title="Direct link to getedgeassignments">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Returns mapping of players to their screen edges</li>
+<li><strong>Returns</strong>: <code>Record&lt;string, string&gt;</code></li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
 <h1>PhaserGame.tsx</h1>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="phasergame-reactfciprops"><code>PhaserGame: React.FC&lt;IProps&gt;</code><a href="#phasergame-reactfciprops" class="hash-link" aria-label="Direct link to phasergame-reactfciprops" title="Direct link to phasergame-reactfciprops">​</a></h2>
-<p>A React wrapper component that initializes the Phaser game engine and provides a reference to the game and active scene via <code>ref</code>.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="interface-irefphasergame"><code>interface IRefPhaserGame</code><a href="#interface-irefphasergame" class="hash-link" aria-label="Direct link to interface-irefphasergame" title="Direct link to interface-irefphasergame">​</a></h2>
-<p>Reference structure passed back to parent via <code>ref</code>.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="overview">Overview<a href="#overview" class="hash-link" aria-label="Direct link to Overview" title="Direct link to Overview">​</a></h2>
+<p>This is a React component that:</p>
 <ul>
-<li><strong>game</strong>: <code>Phaser.Game | null</code> — The Phaser game instance.</li>
-<li><strong>scene</strong>: <code>Phaser.Scene | null</code> — The active scene instance when ready.</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="interface-iprops"><code>interface IProps</code><a href="#interface-iprops" class="hash-link" aria-label="Direct link to interface-iprops" title="Direct link to interface-iprops">​</a></h2>
-<p>Props accepted by the component:</p>
-<ul>
-<li><strong>currentActiveScene</strong>: <code>(scene_instance: Phaser.Scene) =&gt; void</code> — Optional callback to notify parent of the active Phaser scene.</li>
+<li>Mounts and manages a Phaser game instance</li>
+<li>Forwards access to the game and scene via a shared ref</li>
+<li>Responds to Phaser&#x27;s <code>&#x27;current-scene-ready&#x27;</code> event</li>
 </ul>
 <hr>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="uselayouteffect"><code>useLayoutEffect</code><a href="#uselayouteffect" class="hash-link" aria-label="Direct link to uselayouteffect" title="Direct link to uselayouteffect">​</a></h2>
-<p>Initializes the Phaser game on mount and ensures full cleanup on unmount.</p>
-<hr>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect"><code>useEffect</code><a href="#useeffect" class="hash-link" aria-label="Direct link to useeffect" title="Direct link to useeffect">​</a></h2>
-<p>Listens for the <code>&#x27;current-scene-ready&#x27;</code> event. When triggered:</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="currentactivescene"><code>currentActiveScene</code><a href="#currentactivescene" class="hash-link" aria-label="Direct link to currentactivescene" title="Direct link to currentactivescene">​</a></h3>
 <ul>
-<li>Injects AAC food keys into the scene using <code>setFoodKeys</code>.</li>
-<li>Shares the scene instance via <code>ref</code> and <code>currentActiveScene</code>.</li>
+<li><strong>Type</strong>: <code>(scene_instance: Phaser.Scene) =&gt; void</code></li>
+<li><strong>Purpose</strong>: A callback function passed from the parent that receives the Phaser scene instance once it becomes ready.</li>
 </ul>
 <hr>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="return"><code>return</code><a href="#return" class="hash-link" aria-label="Direct link to return" title="Direct link to return">​</a></h2>
-<p>Renders a <code>&lt;div id=&quot;game-container&quot;&gt;</code> for mounting the Phaser canvas.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="ref-type-irefphasergame"><strong>Ref Type: <code>IRefPhaserGame</code></strong><a href="#ref-type-irefphasergame" class="hash-link" aria-label="Direct link to ref-type-irefphasergame" title="Direct link to ref-type-irefphasergame">​</a></h2>
+<p>This is the object passed back to the parent through the forwarded <code>ref</code>.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td><code>game</code></td><td><code>Phaser.Game | null</code></td><td>The root Phaser game instance, created with <code>StartGame()</code></td></tr><tr><td><code>scene</code></td><td><code>Phaser.Scene | null</code></td><td>The current scene instance that is emitted by <code>EventBus</code></td></tr></tbody></table>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="local-state-inside-component"><strong>Local State (Inside Component)</strong><a href="#local-state-inside-component" class="hash-link" aria-label="Direct link to local-state-inside-component" title="Direct link to local-state-inside-component">​</a></h2>
+<table><thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td><code>game</code></td><td><code>React.RefObject&lt;Phaser.Game | null&gt;</code></td><td>Mutable reference to the Phaser game instance that doesn&#x27;t change value when the component re-renders</td></tr><tr><td><code>ref</code></td><td><code>React.ForwardedRef&lt;IRefPhaserGame&gt;</code></td><td>Exposes <code>{ game, scene }</code> to parent via <code>ref.current</code> or callback</td></tr></tbody></table>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="uselayouteffect"><code>useLayoutEffect()</code><a href="#uselayouteffect" class="hash-link" aria-label="Direct link to uselayouteffect" title="Direct link to uselayouteffect">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Creates the Phaser game instance on mount and destroys it on unmount.</li>
+<li><strong>Parameters</strong>: None directly (hook-based).</li>
+<li><strong>Pre-conditions</strong>:<!-- -->
+<ul>
+<li>Component must be mounted.</li>
+<li>A container with <code>id=&quot;game-container&quot;</code> must exist in the DOM.</li>
+</ul>
+</li>
+<li><strong>Post-conditions</strong>:<!-- -->
+<ul>
+<li><code>game.current</code> is assigned a <code>Phaser.Game</code> instance.</li>
+<li>The <code>ref</code> receives <code>{ game, scene: null }</code>.</li>
+</ul>
+</li>
+<li><strong>Returns</strong>: A cleanup function that:<!-- -->
+<ul>
+<li>Destroys the game (<code>game.current.destroy(true)</code>)</li>
+<li>Clears <code>game.current</code> to <code>null</code>.</li>
+</ul>
+</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect"><code>useEffect()</code><a href="#useeffect" class="hash-link" aria-label="Direct link to useeffect" title="Direct link to useeffect">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Waits for <code>&#x27;current-scene-ready&#x27;</code> from the Phaser game and:<!-- -->
+<ul>
+<li>Injects AAC food keys into the scene</li>
+<li>Calls <code>currentActiveScene(scene)</code> if provided</li>
+<li>Updates the forwarded <code>ref</code> with <code>{ game, scene }</code></li>
+</ul>
+</li>
+<li><strong>Parameters</strong>: None directly (hook-based). Uses:<!-- -->
+<ul>
+<li><code>EventBus.on(&#x27;current-scene-ready&#x27;, scene_instance =&gt; ...)</code></li>
+</ul>
+</li>
+<li><strong>Pre-conditions</strong>:<!-- -->
+<ul>
+<li>Phaser game must emit <code>EventBus</code> event <code>&#x27;current-scene-ready&#x27;</code></li>
+<li>Scene must support <code>.setFoodKeys()</code> method (optional)</li>
+</ul>
+</li>
+<li><strong>Post-conditions</strong>:<!-- -->
+<ul>
+<li>Food keys are injected into the scene</li>
+<li><code>currentActiveScene(scene)</code> callback is executed</li>
+<li><code>ref.current</code> is updated with the live <code>scene</code> instance</li>
+</ul>
+</li>
+<li><strong>Returns</strong>: A cleanup function that removes the event listener:<!-- -->
+<ul>
+<li><code>EventBus.removeListener(&#x27;current-scene-ready&#x27;);</code></li>
+</ul>
+</li>
+<li><strong>Exceptions</strong>: None.</li>
+</ul>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="return--div-idgame-container--"><code>return ( &lt;div id=&quot;game-container&quot; /&gt; )</code><a href="#return--div-idgame-container--" class="hash-link" aria-label="Direct link to return--div-idgame-container--" title="Direct link to return--div-idgame-container--">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Renders a DOM element into which the Phaser game will mount its canvas.</li>
+<li><strong>Pre-conditions</strong>: Used by <code>StartGame(&quot;game-container&quot;)</code>.</li>
+<li><strong>Post-conditions</strong>: Phaser canvas is injected into this <code>div</code>.</li>
+<li><strong>Returns</strong>: JSX element:<!-- -->
+<ul>
+<li><code>&lt;div id=&quot;game-container&quot;&gt;&lt;/div&gt;</code></li>
+</ul>
+</li>
+<li><strong>Exceptions</strong>: None.</li>
+</ul>
 <hr>
 <h1>LandingPage.tsx</h1>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="landingpage"><code>LandingPage</code><a href="#landingpage" class="hash-link" aria-label="Direct link to landingpage" title="Direct link to landingpage">​</a></h2>
@@ -290,23 +449,114 @@
 </li>
 </ul>
 <hr>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="const-gamepage-reactfc---"><code>const GamePage: React.FC = () =&gt;</code><a href="#const-gamepage-reactfc---" class="hash-link" aria-label="Direct link to const-gamepage-reactfc---" title="Direct link to const-gamepage-reactfc---">​</a></h2>
+<h1>PhaserPage.tsx</h1>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="data-fields-1">Data Fields<a href="#data-fields-1" class="hash-link" aria-label="Direct link to Data Fields" title="Direct link to Data Fields">​</a></h2>
+<table><thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td><code>currentFood</code></td><td><code>AacFood | null</code></td><td>The current food the AAC user has selected as the target.</td></tr><tr><td><code>scores</code></td><td><code>Record&lt;string, number&gt;</code></td><td>Player score map, updated via WebSocket.</td></tr><tr><td><code>gameMode</code></td><td><code>GameMode | null</code></td><td>The game difficulty mode (<code>Easy</code>, <code>Medium</code>, <code>Hard</code>).</td></tr><tr><td><code>secondsLeft</code></td><td><code>number</code></td><td>Countdown timer shown in sidebar.</td></tr><tr><td><code>sessionId</code></td><td><code>string | undefined</code></td><td>Unique session ID from URL params.</td></tr><tr><td><code>userId</code></td><td><code>string | undefined</code></td><td>Current user ID from URL params.</td></tr><tr><td><code>location</code></td><td><code>Location</code></td><td>From <code>useLocation()</code>; contains user role (<code>Hippo</code>, <code>AAC</code>, <code>Spectator</code>) in <code>.state</code>.</td></tr><tr><td><code>navigate</code></td><td><code>ReturnType&lt;typeof useNavigate&gt;</code></td><td>React Router navigation function.</td></tr><tr><td><code>isSpectator</code></td><td><code>boolean</code></td><td><code>true</code> if the current user is a spectator (from location state).</td></tr><tr><td><code>phaserRef</code></td><td><code>React.RefObject&lt;IRefPhaserGame | null&gt;</code></td><td>Reference to Phaser game and scene (<code>{ game, scene }</code>). Passed into <code>&lt;PhaserGame /&gt;</code>.</td></tr><tr><td><code>connectedUsers</code></td><td><code>{ userId, role, color? }[]</code></td><td>List of all players in the current session.</td></tr><tr><td><code>lastMessage</code></td><td><code>any</code></td><td>Most recent message received over WebSocket.</td></tr><tr><td><code>sendMessage</code></td><td><code>(msg: any) =&gt; void</code></td><td>Sends data to the backend WebSocket server.</td></tr><tr><td><code>clearLastMessage</code></td><td><code>() =&gt; void</code></td><td>Clears <code>lastMessage</code> to avoid duplicate handling.</td></tr><tr><td><code>colors</code></td><td><code>Record&lt;string, string&gt;</code></td><td>Maps each user ID to their assigned hippo color, for leaderboard use.</td></tr></tbody></table>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="join-on-mount">JOIN on MOUNT<a href="#join-on-mount" class="hash-link" aria-label="Direct link to JOIN on MOUNT" title="Direct link to JOIN on MOUNT">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---sessionid-userid-role"><code>useEffect(() =&gt; {...}, [sessionId, userId, role])</code><a href="#useeffect---sessionid-userid-role" class="hash-link" aria-label="Direct link to useeffect---sessionid-userid-role" title="Direct link to useeffect---sessionid-userid-role">​</a></h3>
 <ul>
-<li><strong>Returns:</strong> <code>JSX.Element</code> — The rendered game page.</li>
+<li><strong>Purpose</strong>: Joins the WebSocket session when the component mounts.</li>
+<li><strong>Parameters</strong>: None directly.</li>
+<li><strong>Pre-conditions</strong>: Requires valid <code>sessionId</code>, <code>userId</code>, and <code>role</code>.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None.</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="const-phaserref--userefirefphasergame--nullnull"><code>const phaserRef = useRef&lt;IRefPhaserGame | null&gt;(null)</code><a href="#const-phaserref--userefirefphasergame--nullnull" class="hash-link" aria-label="Direct link to const-phaserref--userefirefphasergame--nullnull" title="Direct link to const-phaserref--userefirefphasergame--nullnull">​</a></h2>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="remote-player-movement-sync">REMOTE PLAYER MOVEMENT SYNC<a href="#remote-player-movement-sync" class="hash-link" aria-label="Direct link to REMOTE PLAYER MOVEMENT SYNC" title="Direct link to REMOTE PLAYER MOVEMENT SYNC">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---lastmessage-userid-clearlastmessage"><code>useEffect(() =&gt; {...}, [lastMessage, userId, clearLastMessage])</code><a href="#useeffect---lastmessage-userid-clearlastmessage" class="hash-link" aria-label="Direct link to useeffect---lastmessage-userid-clearlastmessage" title="Direct link to useeffect---lastmessage-userid-clearlastmessage">​</a></h3>
 <ul>
-<li>@description A React ref pointing to the PhaserGame component instance. Used to access its scene and methods like addFoodManually.</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="const-foodstack-setfoodstack--reactusestateaacfood"><code>const [foodStack, setFoodStack] = React.useState&lt;AacFood[]&gt;([])</code><a href="#const-foodstack-setfoodstack--reactusestateaacfood" class="hash-link" aria-label="Direct link to const-foodstack-setfoodstack--reactusestateaacfood" title="Direct link to const-foodstack-setfoodstack--reactusestateaacfood">​</a></h2>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="const-handleselectedfood--selectedfood-aacfood-"><code>const handleSelectedFood = (selectedFood: AacFood) =&gt;</code><a href="#const-handleselectedfood--selectedfood-aacfood-" class="hash-link" aria-label="Direct link to const-handleselectedfood--selectedfood-aacfood-" title="Direct link to const-handleselectedfood--selectedfood-aacfood-">​</a></h2>
+<li><strong>Purpose</strong>: Updates remote player movement when a <code>PLAYER_MOVE_BROADCAST</code> is received.</li>
+<li><strong>Parameters</strong>:<!-- -->
 <ul>
-<li><strong>Parameters:</strong> <code>selectedFood</code> — <code>AacFood</code> — - The food object selected from the AAC interface.</li>
+<li><code>lastMessage</code>: contains the payload with <code>userId</code>, <code>x</code>, <code>y</code>.</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="return--div-idapp-aacinterface-onfoodselected"><code>return ( &lt;div id=&quot;app&quot;&gt; &lt;AacInterface onFoodSelected=</code><a href="#return--div-idapp-aacinterface-onfoodselected" class="hash-link" aria-label="Direct link to return--div-idapp-aacinterface-onfoodselected" title="Direct link to return--div-idapp-aacinterface-onfoodselected">​</a></h2>
+</li>
+<li><strong>Pre-conditions</strong>: Scene must exist and support <code>updateRemotePlayer()</code>.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None.</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="game-mode-broadcast">GAME MODE BROADCAST<a href="#game-mode-broadcast" class="hash-link" aria-label="Direct link to GAME MODE BROADCAST" title="Direct link to GAME MODE BROADCAST">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---lastmessage-clearlastmessage"><code>useEffect(() =&gt; {...}, [lastMessage, clearLastMessage])</code><a href="#useeffect---lastmessage-clearlastmessage" class="hash-link" aria-label="Direct link to useeffect---lastmessage-clearlastmessage" title="Direct link to useeffect---lastmessage-clearlastmessage">​</a></h3>
 <ul>
-<li><strong>Returns:</strong> <code>JSX.Element</code> —</li>
+<li><strong>Purpose</strong>: Applies game mode settings when <code>START_GAME_BROADCAST</code> is received.</li>
+<li><strong>Parameters</strong>:<!-- -->
+<ul>
+<li><code>lastMessage.payload.mode: GameMode</code></li>
 </ul>
-<hr></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos/edit/main/documentation/docs/api-specification/Frontend.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>tun70323</b></span></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-acc-hungry-hippos/docs/category/api-specification"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">API Specification</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-acc-hungry-hippos/docs/api-specification/Backend"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Backend API</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#table-of-contents" class="table-of-contents__link toc-highlight">Table of Contents</a></li><li><a href="#interface-aacinterfaceprops" class="table-of-contents__link toc-highlight"><code>interface AacInterfaceProps</code></a></li><li><a href="#onfoodselected-food-aacfood--void" class="table-of-contents__link toc-highlight"><code>onFoodSelected: (food: AacFood) =&gt; void</code></a></li><li><a href="#const-aacinterface-reactfcaacinterfaceprops--" class="table-of-contents__link toc-highlight"><code>const AacInterface: React.FC&lt;AacInterfaceProps&gt; = (</code></a></li><li><a href="#const-selectedfood-setselectedfood--reactusestateaacfood--nullnull" class="table-of-contents__link toc-highlight"><code>const [selectedFood, setSelectedFood] = React.useState&lt;AacFood | null&gt;(null)</code></a></li><li><a href="#const-selectedcategory-setselectedcategory--reactusestatestring--nullnull" class="table-of-contents__link toc-highlight"><code>const [selectedCategory, setSelectedCategory] = React.useState&lt;string | null&gt;(null)</code></a></li><li><a href="#const-isaudioplaying-setisaudioplaying--reactusestatefalse" class="table-of-contents__link toc-highlight"><code>const [isAudioPlaying, setIsAudioPlaying] = React.useState(false)</code></a></li><li><a href="#const-handlefoodclick--food-aacfood-" class="table-of-contents__link toc-highlight"><code>const handleFoodClick = (food: AacFood) =&gt;</code></a></li><li><a href="#audioonerror---" class="table-of-contents__link toc-highlight"><code>audio.onerror = () =&gt;</code></a></li><li><a href="#const-rendercategoryview---" class="table-of-contents__link toc-highlight"><code>const renderCategoryView = () =&gt;</code></a></li><li><a href="#const-renderfoodsview---" class="table-of-contents__link toc-highlight"><code>const renderFoodsView = () =&gt;</code></a></li><li><a href="#return--div-classnameaac-container-div-classnameaac-device-h1-aac-device-" class="table-of-contents__link toc-highlight"><code>return ( &lt;div className=&quot;aac-container&quot;&gt; &lt;div className=&quot;aac-device&quot;&gt; &lt;h1&gt; AAC Device &lt;</code></a></li><li><a href="#export-interface-aacfood" class="table-of-contents__link toc-highlight"><code>export interface AacFood</code></a></li><li><a href="#export-interface-aaccategory" class="table-of-contents__link toc-highlight"><code>export interface AacCategory</code></a></li><li><a href="#export-interface-aacdata" class="table-of-contents__link toc-highlight"><code>export interface AacData</code></a></li><li><a href="#export-const-aac_data-aacdata--aacdata-as-aacdata" class="table-of-contents__link toc-highlight"><code>export const AAC_DATA: AacData = aacData as AacData</code></a></li><li><a href="#class-game-extends-phaserscene" class="table-of-contents__link toc-highlight"><code>class Game extends Phaser.Scene</code></a></li><li><a href="#private-hippo-phaserphysicsarcadesprite" class="table-of-contents__link toc-highlight"><code>private hippo: Phaser.Physics.Arcade.Sprite</code></a></li><li><a href="#private-foods-phaserphysicsarcadegroup" class="table-of-contents__link toc-highlight"><code>private foods: Phaser.Physics.Arcade.Group</code></a></li><li><a href="#private-foodkeys-string" class="table-of-contents__link toc-highlight"><code>private foodKeys: string[]</code></a></li><li><a href="#private-lanepositions-number" class="table-of-contents__link toc-highlight"><code>private lanePositions: number[]</code></a></li><li><a href="#private-foodspawntimer-phasertimetimerevent" class="table-of-contents__link toc-highlight"><code>private foodSpawnTimer: Phaser.Time.TimerEvent</code></a></li><li><a href="#constructor" class="table-of-contents__link toc-highlight"><code>constructor()</code></a></li><li><a href="#preload" class="table-of-contents__link toc-highlight"><code>preload()</code></a></li><li><a href="#create" class="table-of-contents__link toc-highlight"><code>create()</code></a></li><li><a href="#setfoodkeyskeys-string" class="table-of-contents__link toc-highlight"><code>setFoodKeys(keys: string[])</code></a></li><li><a href="#startspawningfood" class="table-of-contents__link toc-highlight"><code>startSpawningFood()</code></a></li><li><a href="#spawnfood" class="table-of-contents__link toc-highlight"><code>spawnFood()</code></a></li><li><a href="#addfoodmanuallyfoodkey-string" class="table-of-contents__link toc-highlight"><code>addFoodManually(foodKey: string)</code></a></li><li><a href="#handlefoodcollisionhippo-food" class="table-of-contents__link toc-highlight"><code>handleFoodCollision(hippo, food)</code></a></li><li><a href="#update" class="table-of-contents__link toc-highlight"><code>update()</code></a></li><li><a href="#phasergame-reactfciprops" class="table-of-contents__link toc-highlight"><code>PhaserGame: React.FC&lt;IProps&gt;</code></a></li><li><a href="#interface-irefphasergame" class="table-of-contents__link toc-highlight"><code>interface IRefPhaserGame</code></a></li><li><a href="#interface-iprops" class="table-of-contents__link toc-highlight"><code>interface IProps</code></a></li><li><a href="#uselayouteffect" class="table-of-contents__link toc-highlight"><code>useLayoutEffect</code></a></li><li><a href="#useeffect" class="table-of-contents__link toc-highlight"><code>useEffect</code></a></li><li><a href="#return" class="table-of-contents__link toc-highlight"><code>return</code></a></li><li><a href="#landingpage" class="table-of-contents__link toc-highlight"><code>LandingPage</code></a><ul><li><a href="#const-code-setcode--usestate----" class="table-of-contents__link toc-highlight"><code>const [code, setCode] = useState([&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;])</code></a></li><li><a href="#const-inputsref--userefhtmlinputelement--null" class="table-of-contents__link toc-highlight"><code>const inputsRef = useRef&lt;(HTMLInputElement | null)[]&gt;([])</code></a></li><li><a href="#const-isvalidcode-setisvalidcode--usestatetrue" class="table-of-contents__link toc-highlight"><code>const [isValidCode, setIsValidCode] = useState(true)</code></a></li></ul></li><li><a href="#const-handlestart--async--" class="table-of-contents__link toc-highlight"><code>const handleStart = async () =&gt;</code></a></li><li><a href="#const-handlecreategame--async--" class="table-of-contents__link toc-highlight"><code>const handleCreateGame = async () =&gt;</code></a></li><li><a href="#const-handlechange--value-string-index-number-" class="table-of-contents__link toc-highlight"><code>const handleChange = (value: string, index: number) =&gt;</code></a></li><li><a href="#const-handlekeydown--e-index-" class="table-of-contents__link toc-highlight"><code>const handleKeyDown = (e, index) =&gt;</code></a></li><li><a href="#const-handlepaste--e-" class="table-of-contents__link toc-highlight"><code>const handlePaste = (e) =&gt;</code></a></li><li><a href="#return-" class="table-of-contents__link toc-highlight"><code>return (...)</code></a></li><li><a href="#buttonclick-component" class="table-of-contents__link toc-highlight"><code>ButtonClick</code> Component</a><ul><li><a href="#usage" class="table-of-contents__link toc-highlight">Usage</a></li></ul></li><li><a href="#interface-buttonclickprops" class="table-of-contents__link toc-highlight"><code>interface ButtonClickProps</code></a></li><li><a href="#function-buttonclick-text-onclick--buttonclickprops-jsxelement" class="table-of-contents__link toc-highlight"><code>function ButtonClick({ text, onClick }: ButtonClickProps): JSX.Element</code></a></li><li><a href="#const-gamepage-reactfc---" class="table-of-contents__link toc-highlight"><code>const GamePage: React.FC = () =&gt;</code></a></li><li><a href="#const-phaserref--userefirefphasergame--nullnull" class="table-of-contents__link toc-highlight"><code>const phaserRef = useRef&lt;IRefPhaserGame | null&gt;(null)</code></a></li><li><a href="#const-foodstack-setfoodstack--reactusestateaacfood" class="table-of-contents__link toc-highlight"><code>const [foodStack, setFoodStack] = React.useState&lt;AacFood[]&gt;([])</code></a></li><li><a href="#const-handleselectedfood--selectedfood-aacfood-" class="table-of-contents__link toc-highlight"><code>const handleSelectedFood = (selectedFood: AacFood) =&gt;</code></a></li><li><a href="#return--div-idapp-aacinterface-onfoodselected" class="table-of-contents__link toc-highlight"><code>return ( &lt;div id=&quot;app&quot;&gt; &lt;AacInterface onFoodSelected=</code></a></li></ul></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-acc-hungry-hippos/docs/intro">Documentation</a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project Acc Hungry Hippos, Inc. Built with Docusaurus.</div></div></div></footer></div>
+</li>
+<li><strong>Pre-conditions</strong>: Scene must support <code>applyModeSettings()</code>.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None.</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="food-state-sync">FOOD STATE SYNC<a href="#food-state-sync" class="hash-link" aria-label="Direct link to FOOD STATE SYNC" title="Direct link to FOOD STATE SYNC">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---lastmessage-clearlastmessage-1"><code>useEffect(() =&gt; {...}, [lastMessage, clearLastMessage])</code><a href="#useeffect---lastmessage-clearlastmessage-1" class="hash-link" aria-label="Direct link to useeffect---lastmessage-clearlastmessage-1" title="Direct link to useeffect---lastmessage-clearlastmessage-1">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Handles multiple WebSocket message types:<!-- -->
+<ul>
+<li><code>FOOD_STATE_UPDATE</code>: syncs food state via <code>EventBus</code>.</li>
+<li><code>AAC_TARGET_FOOD</code>: sets the target food in the scene and sidebar.</li>
+<li><code>REMOVE_FOOD</code>: deletes food object from scene.</li>
+<li><code>PLAYER_EFFECT_BROADCAST</code>: applies effects via <code>EventBus</code>.</li>
+</ul>
+</li>
+<li><strong>Parameters</strong>: <code>lastMessage</code> payload varies by type.</li>
+<li><strong>Pre-conditions</strong>: Scene must support relevant methods.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None.</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="fruit-eaten-local-emitted-from-phaser">FRUIT EATEN LOCAL (EMITTED FROM PHASER)<a href="#fruit-eaten-local-emitted-from-phaser" class="hash-link" aria-label="Direct link to FRUIT EATEN LOCAL (EMITTED FROM PHASER)" title="Direct link to FRUIT EATEN LOCAL (EMITTED FROM PHASER)">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---sendmessage-sessionid"><code>useEffect(() =&gt; {...}, [sendMessage, sessionId])</code><a href="#useeffect---sendmessage-sessionid" class="hash-link" aria-label="Direct link to useeffect---sendmessage-sessionid" title="Direct link to useeffect---sendmessage-sessionid">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Emits <code>FRUIT_EATEN</code> to backend when triggered by the Phaser scene.</li>
+<li><strong>Parameters</strong>: <code>instanceId</code> from <code>EventBus</code>.</li>
+<li><strong>Pre-conditions</strong>: Requires <code>sessionId</code> and <code>sendMessage</code>.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None.</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="score-update-broadcast-eventbus">SCORE UPDATE BROADCAST (EVENTBUS)<a href="#score-update-broadcast-eventbus" class="hash-link" aria-label="Direct link to SCORE UPDATE BROADCAST (EVENTBUS)" title="Direct link to SCORE UPDATE BROADCAST (EVENTBUS)">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---"><code>useEffect(() =&gt; {...}, [])</code><a href="#useeffect---" class="hash-link" aria-label="Direct link to useeffect---" title="Direct link to useeffect---">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Updates the local scoreboard when <code>scoreUpdate</code> is emitted from <code>EventBus</code>.</li>
+<li><strong>Parameters</strong>: <code>{ scores }</code></li>
+<li><strong>Pre-conditions</strong>: None</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="timer-update-broadcast-eventbus">TIMER UPDATE BROADCAST (EVENTBUS)<a href="#timer-update-broadcast-eventbus" class="hash-link" aria-label="Direct link to TIMER UPDATE BROADCAST (EVENTBUS)" title="Direct link to TIMER UPDATE BROADCAST (EVENTBUS)">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect----1"><code>useEffect(() =&gt; {...}, [])</code><a href="#useeffect----1" class="hash-link" aria-label="Direct link to useeffect----1" title="Direct link to useeffect----1">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Updates the timer when <code>TIMER_UPDATE</code> is emitted from <code>EventBus</code>.</li>
+<li><strong>Parameters</strong>: <code>time: number</code></li>
+<li><strong>Pre-conditions</strong>: Timer must be active</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="game-over--victory-navigation">GAME OVER → VICTORY NAVIGATION<a href="#game-over--victory-navigation" class="hash-link" aria-label="Direct link to GAME OVER → VICTORY NAVIGATION" title="Direct link to GAME OVER → VICTORY NAVIGATION">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---navigate-sessionid-scores-connectedusers"><code>useEffect(() =&gt; {...}, [navigate, sessionId, scores, connectedUsers])</code><a href="#useeffect---navigate-sessionid-scores-connectedusers" class="hash-link" aria-label="Direct link to useeffect---navigate-sessionid-scores-connectedusers" title="Direct link to useeffect---navigate-sessionid-scores-connectedusers">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Navigates to the Victory page when <code>gameOver</code> is emitted.</li>
+<li><strong>Parameters</strong>: none</li>
+<li><strong>Pre-conditions</strong>: <code>sessionId</code> must exist</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: Falls back to <code>/</code> if <code>sessionId</code> is missing</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="set-edge-sync-with-backend">SET EDGE SYNC WITH BACKEND<a href="#set-edge-sync-with-backend" class="hash-link" aria-label="Direct link to SET EDGE SYNC WITH BACKEND" title="Direct link to SET EDGE SYNC WITH BACKEND">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="useeffect---sendmessage-sessionid-userid-locationstaterole"><code>useEffect(() =&gt; {...}, [sendMessage, sessionId, userId, location.state?.role])</code><a href="#useeffect---sendmessage-sessionid-userid-locationstaterole" class="hash-link" aria-label="Direct link to useeffect---sendmessage-sessionid-userid-locationstaterole" title="Direct link to useeffect---sendmessage-sessionid-userid-locationstaterole">​</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Sends <code>SET_EDGE</code> to backend after <code>edges-ready</code> is emitted from the scene.</li>
+<li><strong>Parameters</strong>: <code>{ sessionId, userId, edge }</code></li>
+<li><strong>Pre-conditions</strong>: User must not be a Spectator, and edge must be known.</li>
+<li><strong>Returns</strong>: void</li>
+<li><strong>Exceptions</strong>: None</li>
+</ul>
+<hr></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos/edit/main/documentation/docs/api-specification/Frontend.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>Kostandin Jorgji</b></span></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-acc-hungry-hippos/docs/category/api-specification"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">API Specification</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-acc-hungry-hippos/docs/api-specification/Backend"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Backend API</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#interface-aacinterfaceprops" class="table-of-contents__link toc-highlight"><code>interface AacInterfaceProps</code></a></li><li><a href="#onfoodselected-food-aacfood--void" class="table-of-contents__link toc-highlight"><code>onFoodSelected: (food: AacFood) =&gt; void</code></a></li><li><a href="#const-aacinterface-reactfcaacinterfaceprops--" class="table-of-contents__link toc-highlight"><code>const AacInterface: React.FC&lt;AacInterfaceProps&gt; = (</code></a></li><li><a href="#const-selectedfood-setselectedfood--reactusestateaacfood--nullnull" class="table-of-contents__link toc-highlight"><code>const [selectedFood, setSelectedFood] = React.useState&lt;AacFood | null&gt;(null)</code></a></li><li><a href="#const-selectedcategory-setselectedcategory--reactusestatestring--nullnull" class="table-of-contents__link toc-highlight"><code>const [selectedCategory, setSelectedCategory] = React.useState&lt;string | null&gt;(null)</code></a></li><li><a href="#const-isaudioplaying-setisaudioplaying--reactusestatefalse" class="table-of-contents__link toc-highlight"><code>const [isAudioPlaying, setIsAudioPlaying] = React.useState(false)</code></a></li><li><a href="#const-handlefoodclick--food-aacfood-" class="table-of-contents__link toc-highlight"><code>const handleFoodClick = (food: AacFood) =&gt;</code></a></li><li><a href="#audioonerror---" class="table-of-contents__link toc-highlight"><code>audio.onerror = () =&gt;</code></a></li><li><a href="#const-rendercategoryview---" class="table-of-contents__link toc-highlight"><code>const renderCategoryView = () =&gt;</code></a></li><li><a href="#const-renderfoodsview---" class="table-of-contents__link toc-highlight"><code>const renderFoodsView = () =&gt;</code></a></li><li><a href="#return--div-classnameaac-container-div-classnameaac-device-h1-aac-device-" class="table-of-contents__link toc-highlight"><code>return ( &lt;div className=&quot;aac-container&quot;&gt; &lt;div className=&quot;aac-device&quot;&gt; &lt;h1&gt; AAC Device &lt;</code></a></li><li><a href="#export-interface-aacfood" class="table-of-contents__link toc-highlight"><code>export interface AacFood</code></a></li><li><a href="#export-interface-aaccategory" class="table-of-contents__link toc-highlight"><code>export interface AacCategory</code></a></li><li><a href="#export-interface-aacdata" class="table-of-contents__link toc-highlight"><code>export interface AacData</code></a></li><li><a href="#export-const-aac_data-aacdata--aacdata-as-aacdata" class="table-of-contents__link toc-highlight"><code>export const AAC_DATA: AacData = aacData as AacData</code></a></li><li><a href="#class-game-extends-phaserscene" class="table-of-contents__link toc-highlight"><code>class: Game extends Phaser.Scene</code></a></li><li><a href="#data-fields" class="table-of-contents__link toc-highlight">Data Fields</a></li><li><a href="#methods" class="table-of-contents__link toc-highlight">Methods</a><ul><li><a href="#constructor" class="table-of-contents__link toc-highlight"><code>constructor()</code></a></li><li><a href="#initdata" class="table-of-contents__link toc-highlight"><code>init(data)</code></a></li><li><a href="#preload" class="table-of-contents__link toc-highlight"><code>preload()</code></a></li><li><a href="#create" class="table-of-contents__link toc-highlight"><code>create()</code></a></li><li><a href="#update" class="table-of-contents__link toc-highlight"><code>update()</code></a></li></ul></li><li><a href="#gameplay-methods" class="table-of-contents__link toc-highlight">Gameplay Methods</a><ul><li><a href="#addplayerplayerid-string-color-string" class="table-of-contents__link toc-highlight"><code>addPlayer(playerId: string, color?: string)</code></a></li><li><a href="#getedgecursorsedge-cursors" class="table-of-contents__link toc-highlight"><code>getEdgeCursors(edge, cursors)</code></a></li><li><a href="#handlepointerpointer" class="table-of-contents__link toc-highlight"><code>handlePointer(pointer)</code></a></li></ul></li><li><a href="#websocket-interaction" class="table-of-contents__link toc-highlight">WebSocket Interaction</a><ul><li><a href="#requeststarttimer" class="table-of-contents__link toc-highlight"><code>requestStartTimer()</code></a></li><li><a href="#applymodesettingssettings" class="table-of-contents__link toc-highlight"><code>applyModeSettings(settings)</code></a></li></ul></li><li><a href="#eventbus-integration" class="table-of-contents__link toc-highlight">EventBus Integration</a><ul><li><a href="#applyeffecttoplayeruserid-effect" class="table-of-contents__link toc-highlight"><code>applyEffectToPlayer(userId, effect)</code></a></li><li><a href="#handlefruitcollisionplayerid-fruit" class="table-of-contents__link toc-highlight"><code>handleFruitCollision(playerId, fruit)</code></a></li></ul></li><li><a href="#food-management" class="table-of-contents__link toc-highlight">Food Management</a><ul><li><a href="#settargetfoodfoodid-effect" class="table-of-contents__link toc-highlight"><code>setTargetFood(foodId, effect?)</code></a></li><li><a href="#removefoodbyinstanceidinstanceid" class="table-of-contents__link toc-highlight"><code>removeFoodByInstanceId(instanceId)</code></a></li><li><a href="#syncfoodstateserverfoods" class="table-of-contents__link toc-highlight"><code>syncFoodState(serverFoods)</code></a></li></ul></li><li><a href="#timer" class="table-of-contents__link toc-highlight">Timer</a><ul><li><a href="#updatetimeruisecondsleft" class="table-of-contents__link toc-highlight"><code>updateTimerUI(secondsLeft)</code></a></li><li><a href="#handlegameover" class="table-of-contents__link toc-highlight"><code>handleGameOver()</code></a></li></ul></li><li><a href="#utility" class="table-of-contents__link toc-highlight">Utility</a><ul><li><a href="#getedgeassignments" class="table-of-contents__link toc-highlight"><code>getEdgeAssignments()</code></a></li></ul></li><li><a href="#overview" class="table-of-contents__link toc-highlight">Overview</a><ul><li><a href="#currentactivescene" class="table-of-contents__link toc-highlight"><code>currentActiveScene</code></a></li></ul></li><li><a href="#ref-type-irefphasergame" class="table-of-contents__link toc-highlight"><strong>Ref Type: <code>IRefPhaserGame</code></strong></a></li><li><a href="#local-state-inside-component" class="table-of-contents__link toc-highlight"><strong>Local State (Inside Component)</strong></a><ul><li><a href="#uselayouteffect" class="table-of-contents__link toc-highlight"><code>useLayoutEffect()</code></a></li><li><a href="#useeffect" class="table-of-contents__link toc-highlight"><code>useEffect()</code></a></li><li><a href="#return--div-idgame-container--" class="table-of-contents__link toc-highlight"><code>return ( &lt;div id=&quot;game-container&quot; /&gt; )</code></a></li></ul></li><li><a href="#landingpage" class="table-of-contents__link toc-highlight"><code>LandingPage</code></a><ul><li><a href="#const-code-setcode--usestate----" class="table-of-contents__link toc-highlight"><code>const [code, setCode] = useState([&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;])</code></a></li><li><a href="#const-inputsref--userefhtmlinputelement--null" class="table-of-contents__link toc-highlight"><code>const inputsRef = useRef&lt;(HTMLInputElement | null)[]&gt;([])</code></a></li><li><a href="#const-isvalidcode-setisvalidcode--usestatetrue" class="table-of-contents__link toc-highlight"><code>const [isValidCode, setIsValidCode] = useState(true)</code></a></li></ul></li><li><a href="#const-handlestart--async--" class="table-of-contents__link toc-highlight"><code>const handleStart = async () =&gt;</code></a></li><li><a href="#const-handlecreategame--async--" class="table-of-contents__link toc-highlight"><code>const handleCreateGame = async () =&gt;</code></a></li><li><a href="#const-handlechange--value-string-index-number-" class="table-of-contents__link toc-highlight"><code>const handleChange = (value: string, index: number) =&gt;</code></a></li><li><a href="#const-handlekeydown--e-index-" class="table-of-contents__link toc-highlight"><code>const handleKeyDown = (e, index) =&gt;</code></a></li><li><a href="#const-handlepaste--e-" class="table-of-contents__link toc-highlight"><code>const handlePaste = (e) =&gt;</code></a></li><li><a href="#return-" class="table-of-contents__link toc-highlight"><code>return (...)</code></a></li><li><a href="#buttonclick-component" class="table-of-contents__link toc-highlight"><code>ButtonClick</code> Component</a><ul><li><a href="#usage" class="table-of-contents__link toc-highlight">Usage</a></li></ul></li><li><a href="#interface-buttonclickprops" class="table-of-contents__link toc-highlight"><code>interface ButtonClickProps</code></a></li><li><a href="#function-buttonclick-text-onclick--buttonclickprops-jsxelement" class="table-of-contents__link toc-highlight"><code>function ButtonClick({ text, onClick }: ButtonClickProps): JSX.Element</code></a></li><li><a href="#data-fields-1" class="table-of-contents__link toc-highlight">Data Fields</a></li><li><a href="#join-on-mount" class="table-of-contents__link toc-highlight">JOIN on MOUNT</a><ul><li><a href="#useeffect---sessionid-userid-role" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [sessionId, userId, role])</code></a></li></ul></li><li><a href="#remote-player-movement-sync" class="table-of-contents__link toc-highlight">REMOTE PLAYER MOVEMENT SYNC</a><ul><li><a href="#useeffect---lastmessage-userid-clearlastmessage" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [lastMessage, userId, clearLastMessage])</code></a></li></ul></li><li><a href="#game-mode-broadcast" class="table-of-contents__link toc-highlight">GAME MODE BROADCAST</a><ul><li><a href="#useeffect---lastmessage-clearlastmessage" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [lastMessage, clearLastMessage])</code></a></li></ul></li><li><a href="#food-state-sync" class="table-of-contents__link toc-highlight">FOOD STATE SYNC</a><ul><li><a href="#useeffect---lastmessage-clearlastmessage-1" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [lastMessage, clearLastMessage])</code></a></li></ul></li><li><a href="#fruit-eaten-local-emitted-from-phaser" class="table-of-contents__link toc-highlight">FRUIT EATEN LOCAL (EMITTED FROM PHASER)</a><ul><li><a href="#useeffect---sendmessage-sessionid" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [sendMessage, sessionId])</code></a></li></ul></li><li><a href="#score-update-broadcast-eventbus" class="table-of-contents__link toc-highlight">SCORE UPDATE BROADCAST (EVENTBUS)</a><ul><li><a href="#useeffect---" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [])</code></a></li></ul></li><li><a href="#timer-update-broadcast-eventbus" class="table-of-contents__link toc-highlight">TIMER UPDATE BROADCAST (EVENTBUS)</a><ul><li><a href="#useeffect----1" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [])</code></a></li></ul></li><li><a href="#game-over--victory-navigation" class="table-of-contents__link toc-highlight">GAME OVER → VICTORY NAVIGATION</a><ul><li><a href="#useeffect---navigate-sessionid-scores-connectedusers" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [navigate, sessionId, scores, connectedUsers])</code></a></li></ul></li><li><a href="#set-edge-sync-with-backend" class="table-of-contents__link toc-highlight">SET EDGE SYNC WITH BACKEND</a><ul><li><a href="#useeffect---sendmessage-sessionid-userid-locationstaterole" class="table-of-contents__link toc-highlight"><code>useEffect(() =&gt; {...}, [sendMessage, sessionId, userId, location.state?.role])</code></a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-acc-hungry-hippos/docs/intro">Documentation</a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project Acc Hungry Hippos, Inc. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>

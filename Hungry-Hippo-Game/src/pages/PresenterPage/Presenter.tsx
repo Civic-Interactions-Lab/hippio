@@ -6,14 +6,40 @@ import { QRCodeSVG } from 'qrcode.react';
 import { HIPPO_COLORS } from '../../config/hippoColors';  
 
 /**
- * Presenter - React component that displays the session ID to the host after creating a new game.
+ * Presenter Component
  *
- * Purpose:
- * - Allows the host to view the game session code.
- * - Provides instructions to share the session code with other players.
- * - Includes a button to cancel the new game and return to the landing page.
- * - Shows a waiting lobby with connected users and their roles.
+ * The Presenter is the host interface shown after creating a new game session.
+ *
+ * ## Purpose:
+ * - Displays the session code as text and QR code.
+ * - Allows the host to copy the session ID.
+ * - Lets the host choose a game mode (Easy, Medium, Hard).
+ * - Shows a lobby with currently connected users (hippo players and AAC users).
+ * - Allows the host to start the game when all required participants are present.
+ *
+ * ## Features:
+ * - Session ID is shown and copyable.
+ * - QR code directs users to the role selection screen.
+ * - Shows up to 4 hippo slots and 1 AAC device.
+ * - Hosts can cycle between game modes (with visual + audio feedback).
+ * - Prevents game start until at least 1 AAC user and 1 Hippo player are connected.
+ * - Sends `PLAYER_JOIN`, `START_GAME`, and `START_TIMER` messages via WebSocket.
+ *
+ * ## Hooks:
+ * - `useParams`: Gets `sessionId` from the route.
+ * - `useWebSocket`: Sends messages, receives user list.
+ * - `useEffect`: Joins the session as "Presenter", plays audio on mode change.
+ * - `useNavigate`: Redirects user back or forwards to Spectator screen.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered Presenter game lobby interface.
+ *
+ * @example
+ * ```tsx
+ * <Route path="/presenter/:sessionId" element={<Presenter />} />
+ * ```
  */
+
 
 const presenterBg = '/assets/presenterBg.png';
 

@@ -17,6 +17,14 @@ interface ButtonClickProps {
  * @component
  * @param {ButtonClickProps} props - The props for the button.
  * @returns {JSX.Element} A styled button with a click handler.
+ * @example
+ * ```tsx
+ * const handleStart = () => {
+ *   console.log("Game started");
+ * };
+ *
+ * <ButtonClick text="Start Game" onClick={handleStart} />
+ * ```
  */
 function ButtonClick({ text, onClick }: ButtonClickProps) {
   return (

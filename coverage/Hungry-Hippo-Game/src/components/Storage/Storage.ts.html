@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">89.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>17/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">89.47% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>17/19</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -105,77 +105,77 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">interface PlayerData {
+<span class="cline-any cline-yes">13x</span></td><td class="text"><pre class="prettyprint lang-js">interface PlayerData {
   userId: string;
   role: string;
   color?: string | null;
   edge?: string | null;
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export const updatePlayerInSessionStorage = (sessionId: string, playerData: PlayerData) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-<span class="cstat-no" title="statement not covered" >    const stored = localStorage.getItem('playerSessions');</span>
-<span class="cstat-no" title="statement not covered" >    const allSessions = stored ? JSON.parse(stored) : {};</span>
+export const updatePlayerInSessionStorage = (sessionId: string, playerData: PlayerData) =&gt; {
+  try {
+    const stored = localStorage.getItem('playerSessions');
+    const allSessions = stored ? JSON.parse(stored) : {};
 &nbsp;
     // Get players for the current session, or start a new list
-<span class="cstat-no" title="statement not covered" >    const playersInSession = allSessions[sessionId] || [];</span>
+    const playersInSession = allSessions[sessionId] || [];
 &nbsp;
     // Find if this user already exists
-<span class="cstat-no" title="statement not covered" >    const playerIndex = playersInSession.findIndex((p: PlayerData) =&gt; p.userId === playerData.userId);</span>
+    const playerIndex = playersInSession.findIndex((p: PlayerData) =&gt; p.userId === playerData.userId);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (playerIndex &gt; -1) {</span>
+    if (playerIndex &gt; -1) {
       // Player exists, update their data
-<span class="cstat-no" title="statement not covered" >      playersInSession[playerIndex] = { ...playersInSession[playerIndex], ...playerData };</span>
-<span class="cstat-no" title="statement not covered" >    } else {</span>
+      playersInSession[playerIndex] = { ...playersInSession[playerIndex], ...playerData };
+    } else {
       // New player, add them
-<span class="cstat-no" title="statement not covered" >      playersInSession.push(playerData);</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
+      playersInSession.push(playerData);
+    }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    const latestSessionOnly = {</span>
-<span class="cstat-no" title="statement not covered" >      [sessionId]: playersInSession</span>
-<span class="cstat-no" title="statement not covered" >    };</span>
+    const latestSessionOnly = {
+      [sessionId]: playersInSession
+    };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    localStorage.setItem('playerSessions', JSON.stringify(latestSessionOnly));</span>
+    localStorage.setItem('playerSessions', JSON.stringify(latestSessionOnly));
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  } catch (err) {</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  } catch (err) {</span>
 <span class="cstat-no" title="statement not covered" >    console.error('Failed to update player session in storage', err);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >};</span></pre></td></tr></table></pre>
+};</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-05T18:29:33.776Z
+                at 2025-08-05T18:44:26.697Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

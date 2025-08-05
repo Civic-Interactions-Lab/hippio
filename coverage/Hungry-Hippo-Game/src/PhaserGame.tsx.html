@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/119</span>
+                <span class='fraction'>0/142</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/119</span>
+                <span class='fraction'>0/142</span>
             </div>
         
             
@@ -182,7 +182,53 @@
 <a name='L117'></a><a href='#L117'>117</a>
 <a name='L118'></a><a href='#L118'>118</a>
 <a name='L119'></a><a href='#L119'>119</a>
-<a name='L120'></a><a href='#L120'>120</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -381,36 +427,59 @@
 <span class="cstat-no" title="statement not covered" >     * useEffect listens for the Phaser event `current-scene-ready`,</span>
 <span class="cstat-no" title="statement not covered" >     * then injects AAC food keys into the scene and shares the scene reference via ref.</span>
 <span class="cstat-no" title="statement not covered" >    */</span>
-<span class="cstat-no" title="statement not covered" >    useEffect(() =&gt;</span>
-<span class="cstat-no" title="statement not covered" >    {</span>
-<span class="cstat-no" title="statement not covered" >        EventBus.on('current-scene-ready', (scene_instance: Phaser.Scene) =&gt;</span>
-<span class="cstat-no" title="statement not covered" >        {</span>
-<span class="cstat-no" title="statement not covered" >            const foodKeys = Object.values(AAC_DATA).flat().map(food =&gt; food.id);</span>
-<span class="cstat-no" title="statement not covered" >            if ('setFoodKeys' in scene_instance &amp;&amp; typeof scene_instance['setFoodKeys'] === 'function') {</span>
-<span class="cstat-no" title="statement not covered" >                scene_instance['setFoodKeys'](foodKeys);</span>
-<span class="cstat-no" title="statement not covered" >            }</span>
-<span class="cstat-no" title="statement not covered" >            </span>
-<span class="cstat-no" title="statement not covered" >            if (currentActiveScene &amp;&amp; typeof currentActiveScene === 'function')</span>
-<span class="cstat-no" title="statement not covered" >            {</span>
+<span class="cstat-no" title="statement not covered" >   useEffect(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  // Define the handler outside, so the reference is stable</span>
+<span class="cstat-no" title="statement not covered" >  const handler = (scene_instance: Phaser.Scene) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const foodKeys = AAC_DATA.categories.flatMap(cat =&gt; cat.foods.map(f =&gt; f.id));</span>
+<span class="cstat-no" title="statement not covered" >    if ('setFoodKeys' in scene_instance &amp;&amp; typeof scene_instance['setFoodKeys'] === 'function') {</span>
+<span class="cstat-no" title="statement not covered" >      scene_instance['setFoodKeys'](foodKeys);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if (currentActiveScene &amp;&amp; typeof currentActiveScene === 'function') {</span>
+<span class="cstat-no" title="statement not covered" >      currentActiveScene(scene_instance);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if (typeof ref === 'function') {</span>
+<span class="cstat-no" title="statement not covered" >      ref({ game: game.current, scene: scene_instance });</span>
+<span class="cstat-no" title="statement not covered" >    } else if (ref) {</span>
+<span class="cstat-no" title="statement not covered" >      ref.current = { game: game.current, scene: scene_instance };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >                currentActiveScene(scene_instance);</span>
+<span class="cstat-no" title="statement not covered" >  EventBus.on('current-scene-ready', handler);</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >  return () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    EventBus.off('current-scene-ready', handler);</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
+<span class="cstat-no" title="statement not covered" >}, [currentActiveScene, ref]);</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >            if (typeof ref === 'function')</span>
-<span class="cstat-no" title="statement not covered" >            {</span>
-<span class="cstat-no" title="statement not covered" >                ref({ game: game.current, scene: scene_instance });</span>
-<span class="cstat-no" title="statement not covered" >            } else if (ref)</span>
-<span class="cstat-no" title="statement not covered" >            {</span>
-<span class="cstat-no" title="statement not covered" >                ref.current = { game: game.current, scene: scene_instance };</span>
-<span class="cstat-no" title="statement not covered" >            }</span>
-<span class="cstat-no" title="statement not covered" >            </span>
-<span class="cstat-no" title="statement not covered" >        });</span>
-<span class="cstat-no" title="statement not covered" >        return () =&gt;</span>
-<span class="cstat-no" title="statement not covered" >        {</span>
-<span class="cstat-no" title="statement not covered" >            EventBus.removeListener('current-scene-ready');</span>
-<span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >    }, [currentActiveScene, ref]);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >// Prevent iPad/iPhone swipe navigation during gameplay, but allow edge gestures for system nav</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  const container = document.getElementById('game-container');</span>
+<span class="cstat-no" title="statement not covered" >  if (!container || !('ontouchstart' in window)) return;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  function preventEdgeSwipe(e: TouchEvent) {</span>
+<span class="cstat-no" title="statement not covered" >    const touch = e.touches[0];</span>
+<span class="cstat-no" title="statement not covered" >    if (!touch) return;</span>
+<span class="cstat-no" title="statement not covered" >    // Allow system gesture if &lt;10px from left/right edge</span>
+<span class="cstat-no" title="statement not covered" >    const atLeftEdge = touch.clientX &lt; 10;</span>
+<span class="cstat-no" title="statement not covered" >    const atRightEdge = touch.clientX &gt; window.innerWidth - 10;</span>
+<span class="cstat-no" title="statement not covered" >    if (!atLeftEdge &amp;&amp; !atRightEdge) {</span>
+<span class="cstat-no" title="statement not covered" >      e.preventDefault();</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  container.addEventListener('touchstart', preventEdgeSwipe, { passive: false });</span>
+<span class="cstat-no" title="statement not covered" >  container.addEventListener('touchmove', preventEdgeSwipe, { passive: false });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  return () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    container.removeEventListener('touchstart', preventEdgeSwipe);</span>
+<span class="cstat-no" title="statement not covered" >    container.removeEventListener('touchmove', preventEdgeSwipe);</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
+<span class="cstat-no" title="statement not covered" >}, []);</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    /**</span>
 <span class="cstat-no" title="statement not covered" >     * Renders the HTML container that will hold the Phaser canvas.</span>
@@ -427,7 +496,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-16T16:37:43.032Z
+                at 2025-08-05T17:15:02.038Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

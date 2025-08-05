@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>17/17</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>17/17</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -123,7 +123,7 @@
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -162,27 +162,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from 'react';
-import styles from './UserList.module.css';
+<span class="cstat-no" title="statement not covered" >import styles from './UserList.module.css';</span>
 &nbsp;
 interface User {
   userId: string;
@@ -221,25 +221,25 @@ interface UserListProps {
  * &lt;UserList users={users} /&gt;
  * ```
  */
-const UserList: React.FC&lt;UserListProps&gt; = ({ users }) =&gt; {
-  if (!users || users.length === 0) {
-    return &lt;p&gt;No users connected yet.&lt;/p&gt;;
-  }
+<span class="cstat-no" title="statement not covered" >const UserList: React.FC&lt;UserListProps&gt; = ({ users }) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if (!users || users.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >    return &lt;p&gt;No users connected yet.&lt;/p&gt;;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
-  return (
-    &lt;div className={styles.userListContainer}&gt;
-      &lt;ul className={styles.userList}&gt;
-        {users.map(({ userId, role }) =&gt; (
-          &lt;li key={userId}&gt;
-            &lt;strong&gt;{userId}&lt;/strong&gt; — &lt;em&gt;{role}&lt;/em&gt;
-          &lt;/li&gt;
-        ))}
-      &lt;/ul&gt;
-    &lt;/div&gt;
+<span class="cstat-no" title="statement not covered" >  return (</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div className={styles.userListContainer}&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;ul className={styles.userList}&gt;</span>
+<span class="cstat-no" title="statement not covered" >        {users.map(({ userId, role }) =&gt; (</span>
+<span class="cstat-no" title="statement not covered" >          &lt;li key={userId}&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;strong&gt;{userId}&lt;/strong&gt; — &lt;em&gt;{role}&lt;/em&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;/li&gt;</span>
+<span class="cstat-no" title="statement not covered" >        ))}</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/ul&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
   );
-};
+<span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
-export default UserList;
+<span class="cstat-no" title="statement not covered" >export default UserList;</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -247,7 +247,7 @@ export default UserList;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-05T17:15:02.038Z
+                at 2025-08-05T18:29:33.776Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

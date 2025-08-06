@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/25</span>
+                <span class='fraction'>0/30</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/25</span>
+                <span class='fraction'>0/30</span>
             </div>
         
             
@@ -99,9 +99,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -114,23 +111,26 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { BrowserRouter, Routes, Route } from 'react-router-dom';<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { BrowserRouter, Routes, Route } from 'react-router-dom';</span></span></span>
 <span class="cstat-no" title="statement not covered" >import LandingPage from './pages/LandingPage/LandingPage';</span>
 <span class="cstat-no" title="statement not covered" >import Presenter from './pages/PresenterPage/Presenter';</span>
 <span class="cstat-no" title="statement not covered" >import RoleSelect from './pages/RoleSelection/RoleSelect';</span>
 <span class="cstat-no" title="statement not covered" >import PhaserPage from './pages/PhaserPage/PhaserPage';</span>
 <span class="cstat-no" title="statement not covered" >import AacPage from './pages/AacPage/AacPage';</span>
 <span class="cstat-no" title="statement not covered" >import Victory from './pages/Victory/Victory';</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >import { Navigate } from 'react-router-dom';</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >function App() {</span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;BrowserRouter&gt;</span>
@@ -143,13 +143,13 @@
 <span class="cstat-no" title="statement not covered" >        &lt;Route path="/game" element={&lt;PhaserPage /&gt;} /&gt; {}</span>
 <span class="cstat-no" title="statement not covered" >        &lt;Route path="/spectator/:sessionId/:userId" element={&lt;PhaserPage /&gt;} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;Route path="/victory/:sessionId" element={&lt;Victory /&gt;} /&gt;</span>
-        {/* Redirect to landing page */}
+<span class="cstat-no" title="statement not covered" >        {/* Redirect to landing page */}</span>
 <span class="cstat-no" title="statement not covered" >        &lt;Route path="*" element={&lt;Navigate to="/" replace /&gt;} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;/Routes&gt;</span>
 <span class="cstat-no" title="statement not covered" >    &lt;/BrowserRouter&gt;</span>
-  );
+<span class="cstat-no" title="statement not covered" >  );</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export default App;</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -157,7 +157,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-05T18:44:26.697Z
+                at 2025-08-06T17:37:36.030Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

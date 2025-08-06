@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.3.2">
 <title data-rh="true">Integration tests | Project AAC Hungry Hippos</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/testing/integration-testing"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Integration tests | Project AAC Hungry Hippos"><meta data-rh="true" name="description" content="We will be using Vitest and React Testing Library"><meta data-rh="true" property="og:description" content="We will be using Vitest and React Testing Library"><link data-rh="true" rel="icon" href="/project-acc-hungry-hippos/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/testing/integration-testing"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/testing/integration-testing" hreflang="en"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Spring.github.io/project-acc-hungry-hippos/docs/testing/integration-testing" hreflang="x-default"><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script><link rel="stylesheet" href="/project-acc-hungry-hippos/assets/css/styles.a93c73f5.css">
-<script src="/project-acc-hungry-hippos/assets/js/runtime~main.bb60a47c.js" defer="defer"></script>
+<script src="/project-acc-hungry-hippos/assets/js/runtime~main.c5148554.js" defer="defer"></script>
 <script src="/project-acc-hungry-hippos/assets/js/main.eec0aeed.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -15,19 +15,17 @@
 A player initiates a new game session from a device, to allow others to join and begin the game.</p>
 <p>Assertion:</p>
 <ul>
-<li>The host device sends a session creation request and receives a unique room code.</li>
+<li>The host device creates a new session/ game code.</li>
 <li>The room code is displayed clearly on the host’s device.</li>
-<li>The session is registered and shown in the lobby state.</li>
-<li>The designated AAC device is properly identified and linked to the session.</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="use-case-2">Use Case 2<a href="#use-case-2" class="hash-link" aria-label="Direct link to Use Case 2" title="Direct link to Use Case 2">​</a></h2>
 <p>Description:
-A player or AAC user joins an existing game session using a provided session code.</p>
+A player or AAC user joins a valid game session using a provided session code.</p>
 <p>Assertion:</p>
 <ul>
 <li>Valid session codes are accepted and verified.</li>
-<li>The joining device is added to the appropriate session lobby.</li>
 <li>Invalid or expired codes are rejected with proper feedback.</li>
+<li>Players can select a role.</li>
 <li>Players and AAC users are listed in the lobby once joined.</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="use-case-3">Use Case 3<a href="#use-case-3" class="hash-link" aria-label="Direct link to Use Case 3" title="Direct link to Use Case 3">​</a></h2>
@@ -35,8 +33,8 @@ A player or AAC user joins an existing game session using a provided session cod
 The host player starts the game session once all players have joined.</p>
 <p>Assertion:</p>
 <ul>
-<li>The host triggers the game start via the interface.</li>
-<li>Firebase updates the game state to begin a countdown.</li>
+<li>The host triggers the game start via the interface. Only when 1 AAC user, and at least 1 Hippo Player have joined.</li>
+<li>Websocket updates the game state to begin a countdown.</li>
 <li>All connected clients receive a synced countdown and transition to gameplay view.</li>
 <li>The game begins simultaneously across all connected devices after countdown completes.</li>
 </ul>
@@ -53,11 +51,11 @@ The host player starts the game session once all players have joined.</p>
 <!-- -->A Hippo player slides their hippo along the edge of the arena and attempts to eat the correct fruit launched by the AAC user.</p>
 <p>Assertion:</p>
 <ul>
-<li>Fruits are launched from the center and bounce outward.</li>
+<li>Fruits are launched from the center and spawn outward.</li>
 <li>Hippos are restricted to their assigned edge (top, bottom, left, or right).</li>
-<li>Players can slide their hippo along their edge using input controls.</li>
+<li>Players can slide their hippo along their edge using keyboard arrows, or mouse.</li>
 <li>When a hippo collides with the correct fruit (from the visible AAC queue), the player earns 1 point.</li>
-<li>If the hippo eats a wrong fruit, no points are awarded (or a penalty may occur).</li>
+<li>If the hippo eats a wrong fruit, no points are awarded (on easy mode), or points are deducted (on medium, hard mode)</li>
 <li>Real-time score updates are reflected on all player and AAC user screens.</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="use-case-6">Use Case 6<a href="#use-case-6" class="hash-link" aria-label="Direct link to Use Case 6" title="Direct link to Use Case 6">​</a></h2>
@@ -67,7 +65,7 @@ The host player starts the game session once all players have joined.</p>
 <ul>
 <li>A default timer is set when the game begins.</li>
 <li>The timer begins once the host taps “Start Game.”</li>
-<li>The game state transitions to “ended” when time runs out.</li>
+<li>The game state transitions to “Victory” when time runs out.</li>
 <li>A final score screen is displayed to all participants</li>
 <li>Options for “Play Again” and “End Game” are shown to the host.</li>
 </ul>

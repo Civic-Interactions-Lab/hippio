@@ -159,6 +159,9 @@ Ensures the session ID is not already in use.
   - **Example**: `{ "ABCDE" }`
 - **Pre-conditions**: `existingSessions` must be an array of valid IDs.
 - **Post-conditions**: New ID guaranteed not in existingSessions.
+- **Error handling**  
+  - Attempts up to **1000** random IDs.  
+    If no unique ID is found it throws **`Error: Max attempts reached`**
 
 ---
 
@@ -174,6 +177,8 @@ Selects a food item randomly, with extra weight given to a "target" food ID.
   - **Example**: `{ id: "apple", name: "Apple", imagePath: "/assets/fruits/apple.png" }`
 - **Pre-conditions**: `allFoods` must include targetId.
 - **Post-conditions**: Returns a new weighted choice each call.
+- **Error handling**  
+  - Logs *“Food list is empty or undefined”* and returns **`null`** when `allFoods` is empty / invalid.  
 
 ---
 
@@ -186,12 +191,17 @@ Sends a message to all clients in a session.
   - `data` (`object`) - Will be serialized with `JSON.stringify`.
 - **Pre-conditions**: `sessions[sessionId]` must exist.
 - **Post-conditions**: All clients with `readyState === OPEN` will receive the message.
+- **Error handling**  
+  - If `sessions[sessionId]` is missing, the function exits silently.  
+  - Wraps each `client.send()` in `try / catch`; on failure it logs  
+
 - **Example**:  
   ```js
   broadcast("ABCDE", {
     type: "SCORE_UPDATE_BROADCAST",
     payload: { scores: { User123: 3, User456: 1 } }
   });
+
 
 
 ---

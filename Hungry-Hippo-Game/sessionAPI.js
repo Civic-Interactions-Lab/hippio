@@ -133,6 +133,10 @@ const setupDatabase = async () => {
 // Function to get a weighted random food item from the list
 // This function will give more weight to the target food, making it more likely to be selected
 function getWeightedRandomFood(allFoods, targetId) {
+  if (!allFoods || allFoods.length === 0) {
+    console.error('Food list is empty or undefined');
+    return null;
+  }
   const weightedList = [];
   for (const food of allFoods) {
     const weight = food.id === targetId ? TARGET_FOOD_WEIGHT : 1;
@@ -862,13 +866,17 @@ wss.on('connection', (ws) => {
  * @param {object} data The data to send
  */
 function broadcast(sessionId, data) {
-    if (sessions[sessionId]) {
-        sessions[sessionId].forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(data));
-            }
-        });
-    }
+  if (sessions[sessionId]) {
+    sessions[sessionId].forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        try {
+          client.send(JSON.stringify(data));
+        } catch (err) {
+          console.error('Error broadcasting to client:', err);
+        }
+      }
+    });
+  }
 }
 
 /**
@@ -896,8 +904,14 @@ function generateSessionId(length = 5) {
  */
 function generateUniqueSessionId(existingSessions, length = 5) {
   let newId;
+  let attempts = 0;
+  const maxAttempts = 1000;
   do {
+    if (attempts >= maxAttempts) {
+      throw new Error('Max attempts reached');
+    }
     newId = generateSessionId(length);
+    attempts++;
   } while (existingSessions.includes(newId));
   return newId;
 }

@@ -99,7 +99,7 @@ describe('RoleSelect Component', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    expect(screen.getByText('Waiting for game to start...')).toBeInTheDocument();
+    expect(screen.getByText(/Waiting \. \. \./i)).toBeInTheDocument();
     expect(mockSendMessage).toHaveBeenCalledWith({
       type: 'PLAYER_JOIN',
       payload: {

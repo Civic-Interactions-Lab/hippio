@@ -9,11 +9,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      GIT_USER: ${{secrets.USER}}
-      GIT_PASS: ${{secrets.TOKEN}}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install
         run: cd documentation && yarn install
 
@@ -21,6 +24,6 @@ jobs:
         run: |
           export ORG_NAME=$(echo ${GITHUB_REPOSITORY%/*})
           export PROJECT_NAME=$(echo ${GITHUB_REPOSITORY#*/})
-          git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
-          git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
-          cd documentation && NODE_ENV="production" yarn deploy
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cd documentation && NODE_ENV="production" GIT_USER="github-actions[bot]" GIT_PASS="${{ secrets.GITHUB_TOKEN }}" yarn deploy

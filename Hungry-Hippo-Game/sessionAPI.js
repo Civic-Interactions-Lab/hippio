@@ -90,19 +90,6 @@ server.on('upgrade', (request, socket, head) => {
 });
 
 
-server.on('upgrade', (request, socket, head) => {
-  const origin = request.headers.origin;
-  if (!allowedOrigins.includes(origin)) {
-    console.log(`[WSS] Connection from unauthorized origin ${origin} rejected.`);
-    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-    socket.destroy();
-    return;
-  }
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    console.log(`[WSS] Connection from ${origin} accepted.`);
-    wss.emit('connection', ws, request);
-  });
-});
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 let pool;

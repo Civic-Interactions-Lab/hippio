@@ -164,7 +164,6 @@ wss.on('connection', (ws) => {
     try {
       const data = JSON.parse(message);
       // console.log('WSS Received:', data);
-
       // Validate session request
       if (data.type === 'VALIDATE_SESSION') {
         const { gameCode } = data.payload;
@@ -226,6 +225,10 @@ wss.on('connection', (ws) => {
           }
         } 
         // Create CSV file with header for this session
+        const logsDir = path.join(__dirname, "logs");
+        if (!fs.existsSync(logsDir)) {
+          fs.mkdirSync(logsDir);
+        }
         const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
         if (!fs.existsSync(logFilePath)) {
           fs.writeFileSync(logFilePath, "timestamp,playerId,actionType,details\n");

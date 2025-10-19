@@ -3,7 +3,7 @@ name: Run Vitest for Hungry Hippo Game
 on:
   push:
     branches:
-      - main 
+      - main
   pull_request:
     branches:
       - main
@@ -16,21 +16,21 @@ jobs:
         working-directory: Hungry-Hippo-Game
 
     steps:
-      
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
-     
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  
+          node-version: '22'
 
       - name: Install dependencies
-        run: npm install  
+        run: npm install
 
       - name: Run Vitest tests
-        run: npx vitest run --coverage
+        run: npm run testc
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -38,8 +38,8 @@ jobs:
           name: coverage-report
           path: documentation/static/coverage/
 
-  
 
-    
 
-    
+
+
+

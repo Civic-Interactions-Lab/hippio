@@ -5,10 +5,11 @@
 // const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /**
- * The URL or reference to your projects logo!
+ * The URL or reference to your projects full_hci_logo_reg!
  * @type {string}
  */
-const logo = 'https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg';
+const full_hci_logo_reg = "/img/Full-Name-HCI-Logo-Lightmode.svg";
+const white_hci_logo_reg = "/img/White-Secondary-Logo.svg";
 
 const main_template_jira_scripts = () => {
   if (process.env.ORG_NAME === 'ApplebaumIan'){
@@ -129,7 +130,7 @@ const config = {
         title: title,
         logo: {
           alt: 'My Site Logo',
-          src: logo,
+          src: "/img/Logo-Red-Transparent.svg",
         },
         items: [
           {
@@ -147,8 +148,9 @@ const config = {
       },
       footer: {
         logo: {
-          alt: 'My Site Logo',
-          src: logo,
+          alt: 'HCI Lab Logo',
+          src: full_hci_logo_reg,
+          srcDark: white_hci_logo_reg
         },
         links: [
           {

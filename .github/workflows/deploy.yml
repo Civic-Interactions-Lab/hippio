@@ -48,7 +48,7 @@ jobs:
           echo "Downloading artifact from: $ART_URL"
           mkdir -p documentation/static/coverage
           curl -L -H "Authorization: Bearer $GITHUB_TOKEN" -o /tmp/coverage.zip "$ART_URL"
-          unzip -o /tmp/coverage.zip -d documentation/static/coverage
+          unzip -o /tmp/coverage-report.zip -d documentation/static/coverage
 
       - name: Install
         run: cd documentation && yarn install

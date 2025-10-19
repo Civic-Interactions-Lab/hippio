@@ -4,7 +4,6 @@
 [![Documentation Website Link](https://img.shields.io/badge/-Documentation%20Website-brightgreen)](https://applebaumian.github.io/tu-cis-4398-docs-template/)
 
 
-</div>
 
 ## Table of Contents
 ### 1. [Keywords](https://github.com/Capstone-Projects-2025-Spring/project-acc-hungry-hippos#keywords)

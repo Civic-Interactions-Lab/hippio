@@ -189,7 +189,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} ${title}, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Temple University Human-Computer Interaction Lab. Built with Docusaurus.`,
       },
       // prism: {
       //   theme: lightCodeTheme,

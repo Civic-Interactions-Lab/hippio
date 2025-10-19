@@ -17,38 +17,24 @@ permissions:
 
 jobs:
   deploy:
-#    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure jq and unzip are available
-        run: sudo apt-get update && sudo apt-get install -y jq unzip
+      - name: Download coverage report from tests workflow
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          workflow: main.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: coverage-report
+          use_unzip: true
+          path: documentation/static/coverage
 
-      - name: Download coverage-report artifact from tests workflow
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          RUN_ID=${{ github.event.workflow_run.id }}
-          echo "Fetching artifacts for workflow run: $RUN_ID"
-          API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts"
-
-          ART_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "$API_URL")
-          ART_URL=$(echo "$ART_JSON" | jq -r '.artifacts[] | select(.name=="coverage-report") | .archive_download_url')
-
-          if [ -z "$ART_URL" ] || [ "$ART_URL" = "null" ]; then
-            echo "coverage-report artifact not found on workflow run $RUN_ID"
-            exit 1
-          fi
-
-          echo "Downloading artifact from: $ART_URL"
-          mkdir -p documentation/static/coverage
-          curl -L -H "Authorization: Bearer $GITHUB_TOKEN" -o /tmp/coverage.zip "$ART_URL"
-          unzip -o /tmp/coverage-report.zip -d documentation/static/coverage
+      - name: Verify downloaded files
+        run: ls -laR documentation/static/coverage
 
       - name: Install
         run: cd documentation && yarn install

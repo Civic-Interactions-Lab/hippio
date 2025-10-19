@@ -39,8 +39,8 @@ const title = rawProjectName
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   /*TODO: Change to your project's title and tagline*/
-  title: "Project AAC Hungry Hippos",
-  tagline: 'Visit https://project-acc-hungry-hippos.vercel.app/ for the live site.',
+  title: "Hipp.io",
+  tagline: 'AAC-controlled Hungry Hippos — you choose the fruit, the hippos gobble it.',
   /*Unless you move this website to a seperate repo don't change url and baseurl.*/
   url: 'https://'+process.env.ORG_NAME+'.github.io/',
   baseUrl: '/'+process.env.PROJECT_NAME+'/',

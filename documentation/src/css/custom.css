@@ -6,27 +6,29 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #9d2235;
-  --ifm-color-primary-dark: #8d1f30;
-  --ifm-color-primary-darker: #851d2d;
-  --ifm-color-primary-darkest: #6e1825;
-  --ifm-color-primary-light: #ad253a;
-  --ifm-color-primary-lighter: #b5273d;
-  --ifm-color-primary-lightest: #cc2c45;
-  --ifm-code-font-size: 95%;
+  --ifm-color-primary: #aa2c45;
+  --ifm-color-primary-dark: #99283e;
+  --ifm-color-primary-darker: #90253b;
+  --ifm-color-primary-darkest: #771f30;
+  --ifm-color-primary-light: #bb304c;
+  --ifm-color-primary-lighter: #c3334f;
+  --ifm-color-primary-lightest: #ce435f;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #ff3858;
-  --ifm-color-primary-dark: #ff193e;
-  --ifm-color-primary-darker: #ff0931;
-  --ifm-color-primary-darkest: #f90028;
-  --ifm-color-primary-light: #ff5772;
-  --ifm-color-primary-lighter: #ff677f;
-  --ifm-color-primary-lightest: #ff7087;
-  --ifm-footer-background-color: black;
+  --ifm-color-primary: #D45D79; /* Lighter shade of Well Read for accessibility */
+  --ifm-color-primary-dark: #C74865;
+  --ifm-color-primary-darker: #BF3E5A;
+  --ifm-color-primary-darkest: #A62B45;
+  --ifm-color-primary-light: #E1728D;
+  --ifm-color-primary-lighter: #E6829A;
+  --ifm-color-primary-lightest: #F5AEC1;
+  --ifm-background-color: #292727; /* Thunder */
+  --ifm-font-color-base: #F9F9F9; /* Alabaster */
+  --ifm-footer-background-color: #aa2c45; /* Thunder */
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
 }
 
 .medium-zoom-overlay{

@@ -42,8 +42,8 @@ const sessions = {};
 const reconnectionTimers = {};
 const sessionFilePath = path.resolve(__dirname, './src/data/sessionID.json');
 const scoresBySession = {};
-const fruitQueues = {};      
-const fruitIntervals = {}; 
+const fruitQueues = {};
+const fruitIntervals = {};
 const TARGET_FOOD_WEIGHT = 16; // Weight for the target food in the queue
 
 const sessionGameModes = {};
@@ -55,29 +55,50 @@ const lastSpawnAt = {};
 const QUEUE_MAX = 10;
 
 // Reject connections from unauthorized origins
-const allowedOrigins = [
+// ALLOWED_ORIGINS is a comma-separated list. Example:
+// "https://hippio-smoky.vercel.app, https://preview-foo.vercel.app, http://localhost:3000"
+function parseAllowedOrigins(raw) {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    // strip trailing slashes and force lowercase for comparison
+    .map(s => s.replace(/\/+$/, '').toLowerCase());
+}
+
+const DEFAULT_ALLOWED = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
   'http://localhost:3003',
   'http://localhost:3004',
-  'http://localhost:3005',
-  'https://project-acc-hungry-hippos.vercel.app'
-];
+  'http://localhost:3005'
+].map(s => s.replace(/\/+$/, '').toLowerCase());
+
+const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS) ?? [];
+if (allowedOrigins.length === 0) {
+  console.warn('[WSS] ALLOWED_ORIGINS not set. Falling back to defaults (dev only).');
+}
+const ORIGINS = allowedOrigins.length ? allowedOrigins : DEFAULT_ALLOWED;
 
 server.on('upgrade', (request, socket, head) => {
-  const origin = request.headers.origin;
-  if (!allowedOrigins.includes(origin)) {
-    console.log(`[WSS] Connection from unauthorized origin ${origin} rejected.`);
+  const originHeader = (request.headers.origin || '').toLowerCase().replace(/\/+$/, '');
+  // Check if the origin is in the allowed list
+  if (!originHeader || !ORIGINS.includes(originHeader)) {
+    console.log(`[WSS] Unauthorized origin: "${originHeader}". Allowed: ${JSON.stringify(ORIGINS)}`);
     socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
     socket.destroy();
     return;
   }
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    console.log(`[WSS] Connection from ${origin} accepted.`);
+  // If authorized, proceed with the WebSocket handshake
+  wss.handleUpgrade(request, socket, head, ws => {
+    console.log(`[WSS] Connection from ${originHeader} accepted.`);
     wss.emit('connection', ws, request);
   });
 });
+
+
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 let pool;
@@ -223,7 +244,7 @@ wss.on('connection', (ws) => {
               console.error('Error creating session:', err);
             }
           }
-        } 
+        }
         // Create CSV file with header for this session
         const logsDir = path.join(__dirname, "logs");
         if (!fs.existsSync(logsDir)) {
@@ -232,6 +253,7 @@ wss.on('connection', (ws) => {
         const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
         if (!fs.existsSync(logFilePath)) {
           fs.writeFileSync(logFilePath, "timestamp,playerId,actionType,details\n");
+
         }
         ws.send(JSON.stringify({
           type: 'SESSION_CREATED',
@@ -242,18 +264,19 @@ wss.on('connection', (ws) => {
       }
 
       if (data.type === 'PLAYER_MOVE') {
-      const { sessionId, userId, x, y } = data.payload;
-      broadcast(sessionId, {
+        const { sessionId, userId, x, y } = data.payload;
+        broadcast(sessionId, {
           type: 'PLAYER_MOVE_BROADCAST',
-          payload: { 
-            userId, 
-            x, 
-            y 
+          payload: {
+            userId,
+            x,
+            y
           }
-         });
+
+        });
         logPlayerAction(sessionId, userId, "moved", `x: ${x}, y: ${y}`);
-        }
-        
+      }
+
       // When a player joins, store their WebSocket connection in the correct session room
       if (data.type === 'PLAYER_JOIN') {
         const { sessionId, userId, role, color } = data.payload;
@@ -292,11 +315,11 @@ wss.on('connection', (ws) => {
           }
         }
         // Broadcast to all clients in that session that a new player has joined
-        broadcast(sessionId, { 
-          type: 'PLAYER_JOINED_BROADCAST', 
-          payload: { 
+        broadcast(sessionId, {
+          type: 'PLAYER_JOINED_BROADCAST',
+          payload: {
             userId, role, color
-          } 
+          }
         });
         // Collect all users in the session
         const usersInSession = Array.from(sessions[sessionId])
@@ -365,7 +388,7 @@ wss.on('connection', (ws) => {
               }
               sessions[sessionId].statsLogged = true;
             } catch (err) {
-                console.error('[WSS] Error cleaning up presenter role:', err);
+              console.error('[WSS] Error cleaning up presenter role:', err);
             }
           }
         }
@@ -382,7 +405,7 @@ wss.on('connection', (ws) => {
 
         // Seed queue with objects
         if (!fruitQueues[sessionId]) {
-         // const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
+          // const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
           // fruitQueues[sessionId] = [];
           // for (let i = 0; i < 10; i++) {
           //   const food = allFoods[Math.floor(Math.random() * allFoods.length)];
@@ -535,7 +558,7 @@ wss.on('connection', (ws) => {
 
             clearInterval(fruitIntervals[sessionId]);
 
-            cleanupSession(sessionId); 
+            cleanupSession(sessionId);
 
 
             delete fruitIntervals[sessionId];
@@ -543,8 +566,7 @@ wss.on('connection', (ws) => {
 
             clearInterval(interval);
           }
-          else
-          {
+          else {
             broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft });
             secondsLeft--;
           }
@@ -562,7 +584,7 @@ wss.on('connection', (ws) => {
         }
 
         const assignedEdges = [...sessions[sessionId]].map(c => `${c.userId}: ${c.edge}`);
-       // console.log(`[WSS DEBUG] Current edge map for session ${sessionId}:`, assignedEdges);
+        // console.log(`[WSS DEBUG] Current edge map for session ${sessionId}:`, assignedEdges);
       }
 
       // When an AAC user selects a food, broadcast it to the session
@@ -600,12 +622,12 @@ wss.on('connection', (ws) => {
           const head = fruitQueues[sessionId][0];
           const headId = head && (head.id || head); // tolerate any stray ids
           if (headId !== food.id) {
-          //   fruitQueues[sessionId].unshift(food);
+            //   fruitQueues[sessionId].unshift(food);
 
-          // if (fruitQueues[sessionId].length > QUEUE_MAX) {
-          //   fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
-          // }
-          enqueueFruit(sessionId, food, { front: true });
+            // if (fruitQueues[sessionId].length > QUEUE_MAX) {
+            //   fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
+            // }
+            enqueueFruit(sessionId, food, { front: true });
 
           }
         }
@@ -617,8 +639,8 @@ wss.on('connection', (ws) => {
         // Broadcasts the selected food as the official target
         broadcast(sessionId, {
           type: 'AAC_TARGET_FOOD',
-          payload: { 
-            targetFoodId: food.id, 
+          payload: {
+            targetFoodId: food.id,
             targetFoodData: food,
             effect: finalEffect
           }
@@ -637,9 +659,9 @@ wss.on('connection', (ws) => {
       // Defines angle ranges in radians
       function getAngleRangeForEdge(edge) {
         switch (edge) {
-          case 'top': return { min: -Math.PI * 3/4, max: -Math.PI / 4 };     // Up: -135° to -45°
-          case 'bottom': return { min: Math.PI / 4, max: Math.PI * 3/4 };    // Down: +45° to +135°
-          case 'left': return { min: Math.PI * 7/8, max: Math.PI * 9/8 };    // Left: 157.5° to 202.5°
+          case 'top': return { min: -Math.PI * 3 / 4, max: -Math.PI / 4 };     // Up: -135° to -45°
+          case 'bottom': return { min: Math.PI / 4, max: Math.PI * 3 / 4 };    // Down: +45° to +135°
+          case 'left': return { min: Math.PI * 7 / 8, max: Math.PI * 9 / 8 };    // Left: 157.5° to 202.5°
           case 'right': return { min: -Math.PI / 4, max: Math.PI / 4 };      // Right: -45° to +45°
           default: return { min: 0, max: 2 * Math.PI };
         }
@@ -671,7 +693,7 @@ wss.on('connection', (ws) => {
             //console.log(`[WSS] Player ${userId} burned, score reduced by 2 from ${prev} to ${scoresBySession[sessionId][userId]}`);
           } else if (effect === 'grow') {
             scoresBySession[sessionId][userId] = prev + 2;
-           // console.log(`[WSS] Player ${userId} grew, score increased by 2 from ${prev} to ${scoresBySession[sessionId][userId]}`);
+            // console.log(`[WSS] Player ${userId} grew, score increased by 2 from ${prev} to ${scoresBySession[sessionId][userId]}`);
           } else {
             scoresBySession[sessionId][userId] = prev + 1;
           }
@@ -730,7 +752,7 @@ wss.on('connection', (ws) => {
 
       // When a client requests an update on taken colors, broadcast the current state
       if (data.type === 'REQUEST_COLOR_UPDATE') {
-      const { sessionId } = data.payload;
+        const { sessionId } = data.payload;
         if (sessions[sessionId]) {
           const takenColors = Array.from(sessions[sessionId])
             .map(client => client.color)
@@ -776,8 +798,8 @@ wss.on('connection', (ws) => {
       }
 
     } catch (error) {
-        console.error('WSS Error processing message:', error);
-        sendError(ws, { message: 'Server error' });
+      console.error('WSS Error processing message:', error);
+      sendError(ws, { message: 'Server error' });
     }
   });
 
@@ -793,7 +815,7 @@ wss.on('connection', (ws) => {
     if (IS_PROD && sessionId && userId) {
       try {
         await pool.query('DELETE FROM players WHERE session_id = $1 AND user_id = $2', [sessionId, userId]);
-        
+
         const result = await pool.query('SELECT COUNT(*) FROM players WHERE session_id = $1', [sessionId]);
         remainingPlayers = parseInt(result.rows[0].count, 10);
 
@@ -808,7 +830,7 @@ wss.on('connection', (ws) => {
         console.error('Error removing player from database:', err);
       }
     }
-  
+
     // Remove the session from the sessions object if it is empty
     if (sessions[sessionId] && sessions[sessionId].size === 0) {
       cleanupSession(sessionId);

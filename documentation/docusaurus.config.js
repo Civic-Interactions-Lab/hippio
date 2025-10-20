@@ -5,10 +5,11 @@
 // const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /**
- * The URL or reference to your projects logo!
+ * The URL or reference to your projects full_hci_logo_reg!
  * @type {string}
  */
-const logo = 'https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg';
+const full_hci_logo_reg = "/img/Full-Name-HCI-Logo-Lightmode.svg";
+const white_hci_logo_reg = "/img/White-Secondary-Logo.svg";
 
 const main_template_jira_scripts = () => {
   if (process.env.ORG_NAME === 'ApplebaumIan'){
@@ -38,8 +39,8 @@ const title = rawProjectName
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   /*TODO: Change to your project's title and tagline*/
-  title: "Project AAC Hungry Hippos",
-  tagline: 'Visit https://project-acc-hungry-hippos.vercel.app/ for the live site.',
+  title: "Hipp.io",
+  tagline: 'AAC-controlled Hungry Hippos — you choose the fruit, the hippos gobble it.',
   /*Unless you move this website to a seperate repo don't change url and baseurl.*/
   url: 'https://'+process.env.ORG_NAME+'.github.io/',
   baseUrl: '/'+process.env.PROJECT_NAME+'/',
@@ -129,7 +130,7 @@ const config = {
         title: title,
         logo: {
           alt: 'My Site Logo',
-          src: logo,
+          src: "/img/Logo-Red-Transparent.svg",
         },
         items: [
           {
@@ -147,8 +148,9 @@ const config = {
       },
       footer: {
         logo: {
-          alt: 'My Site Logo',
-          src: logo,
+          alt: 'HCI Lab Logo',
+          src: full_hci_logo_reg,
+          srcDark: white_hci_logo_reg
         },
         links: [
           {
@@ -187,7 +189,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} ${title}, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Temple University Human-Computer Interaction Lab. Built with Docusaurus.`,
       },
       // prism: {
       //   theme: lightCodeTheme,

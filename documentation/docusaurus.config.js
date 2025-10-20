@@ -11,9 +11,9 @@
 const full_hci_logo_reg = "/img/Full-Name-HCI-Logo-Lightmode.svg";
 const white_hci_logo_reg = "/img/White-Secondary-Logo.svg";
 
-const main_template_jira_scripts = () => {
-  if (process.env.ORG_NAME === 'ApplebaumIan'){
-    return [    'https://temple-cis-projects-in-cs.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/azc3hx/b/8/c95134bc67d3a521bb3f4331beb9b804/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=50af7ec2',
+const main_tempgitlate_jira_scripts = () => {
+  if (process.env.ORG_NAME === 'ApplebaumIan') {
+    return ['https://temple-cis-projects-in-cs.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/azc3hx/b/8/c95134bc67d3a521bb3f4331beb9b804/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=50af7ec2',
       'https://temple-cis-projects-in-cs.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/azc3hx/b/8/c95134bc67d3a521bb3f4331beb9b804/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=160e88a6',]
   } else {
     return []
@@ -21,7 +21,9 @@ const main_template_jira_scripts = () => {
 }
 
 // Fallback value if PROJECT_NAME is not defined:
-const rawProjectName = process.env.PROJECT_NAME || 'docs-dev-mode';
+const rawProjectName = process.env.PROJECT_NAME || 'hippio';
+const orgName = process.env.ORG_NAME || 'Civic-Interactions-Lab';
+
 
 // Transform PROJECT_NAME (or fallback) to a title-like string:
 const title = rawProjectName
@@ -42,8 +44,8 @@ const config = {
   title: "Hipp.io",
   tagline: 'AAC-controlled Hungry Hippos — you choose the fruit, the hippos gobble it.',
   /*Unless you move this website to a seperate repo don't change url and baseurl.*/
-  url: 'https://'+process.env.ORG_NAME+'.github.io/',
-  baseUrl: '/'+process.env.PROJECT_NAME+'/',
+  url: 'https://' + orgName + '.github.io/',
+  baseUrl: '/' + rawProjectName + '/',
   trailingSlash: false,
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
@@ -51,8 +53,8 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: process.env.ORG_NAME, // Usually your GitHub org/user name.
-  projectName: process.env.PROJECT_NAME, // Usually your repo name.
+  organizationName: orgName,
+  projectName: rawProjectName,
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -64,36 +66,36 @@ const config = {
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-live-codeblock','@docusaurus/theme-mermaid'],
+  themes: ['@docusaurus/theme-live-codeblock', '@docusaurus/theme-mermaid'],
   presets: [
     [
       'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
-        docs: {
-          showLastUpdateAuthor: true,
-          sidebarPath: require.resolve('./sidebars.js'),
-          routeBasePath: 'docs',
-          path: 'docs',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/'+process.env.ORG_NAME+'/'+process.env.PROJECT_NAME+'/edit/main/documentation/',
-          // remarkPlugins: [require('mdx-mermaid')],
+      /** @type {import('@docusaurus/preset-classic').Options} */git
+        ({
+          docs: {
+            showLastUpdateAuthor: true,
+            sidebarPath: require.resolve('./sidebars.js'),
+            routeBasePath: 'docs',
+            path: 'docs',
+            // Please change this to your repo.
+            // Remove this to remove the "edit this page" links.
+            editUrl:
+              'https://github.com/' + process.env.ORG_NAME + '/' + process.env.PROJECT_NAME + '/edit/main/documentation/',
+            // remarkPlugins: [require('mdx-mermaid')],
 
-        },
-        // tutorials: {
-        //   sidebarPath: require.resolve('./tutorialSidebars.js'),
-        //   // Please change this to your repo.
-        //   // Remove this to remove the "edit this page" links.
-        //   editUrl:
-        //     'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-        // },
+          },
+          // tutorials: {
+          //   sidebarPath: require.resolve('./tutorialSidebars.js'),
+          //   // Please change this to your repo.
+          //   // Remove this to remove the "edit this page" links.
+          //   editUrl:
+          //     'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          // },
 
-        theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
-      }),
+          theme: {
+            customCss: require.resolve('./src/css/custom.css'),
+          },
+        }),
     ],
     [
       'redocusaurus',
@@ -117,14 +119,16 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      ...(process.env.NODE_ENV === 'development' ? {announcementBar : {
-        id: 'dev_mode',
-        content:
+      ...(process.env.NODE_ENV === 'development' ? {
+        announcementBar: {
+          id: 'dev_mode',
+          content:
             'You are currently working on a local development version of your docs. This is <b>NOT</b> the live site.',
-        backgroundColor: '#ffca00',
-        textColor: '#091E42',
-        isCloseable: false,
-      }} : {}),
+          backgroundColor: '#ffca00',
+          textColor: '#091E42',
+          isCloseable: false,
+        }
+      } : {}),
       navbar: {
         /*TODO: Change to your project's title*/
         title: title,
@@ -140,7 +144,7 @@ const config = {
             label: 'Documentation',
           },
           {
-            href: 'https://github.com/'+process.env.ORG_NAME+'/'+process.env.PROJECT_NAME,
+            href: 'https://github.com/' + process.env.ORG_NAME + '/' + process.env.PROJECT_NAME,
             label: 'GitHub',
             position: 'right',
           },
@@ -184,7 +188,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/'+process.env.ORG_NAME+'/'+process.env.PROJECT_NAME,
+                href: 'https://github.com/' + process.env.ORG_NAME + '/' + process.env.PROJECT_NAME,
               },
             ],
           },
@@ -202,7 +206,7 @@ const config = {
         // see: https://www.npmjs.com/package/medium-zoom#options
         options: {
           margin: 24,
-          zIndex:100,
+          zIndex: 100,
           background: 'white',
           // scrollOffset: 10,
           // container: '#zoom-container',
@@ -222,8 +226,8 @@ const config = {
 
 
   ],
-  scripts:['https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js',
-      ...main_template_jira_scripts()
+  scripts: ['https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js',
+    ...main_template_jira_scripts()
   ],
 };
 console.log(config.scripts)

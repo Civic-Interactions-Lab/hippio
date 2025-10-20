@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -97,6 +97,9 @@
 <a name='L32'></a><a href='#L32'>32</a>
 <a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -111,27 +114,24 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { Game as MainGame } from './scenes/Game';</span></span></span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Game as MainGame } from './scenes/Game';<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
 <span class="cstat-no" title="statement not covered" >import { AUTO, Game, Types } from 'phaser';</span>
-<span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >// Find out more information about the Game Config at:</span>
-<span class="cstat-no" title="statement not covered" >// https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig</span>
+&nbsp;
+// Find out more information about the Game Config at:
+// https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 <span class="cstat-no" title="statement not covered" >const config: Types.Core.GameConfig = {</span>
 <span class="cstat-no" title="statement not covered" >    type: AUTO,</span>
 <span class="cstat-no" title="statement not covered" >    parent: 'game-container',</span>
@@ -146,18 +146,18 @@
 <span class="cstat-no" title="statement not covered" >        arcade: {</span>
 <span class="cstat-no" title="statement not covered" >            gravity: { x: 0, y: 0 }, // no global gravity; using velocity</span>
 <span class="cstat-no" title="statement not covered" >            debug: false// change to true if you want to see hitboxes</span>
-<span class="cstat-no" title="statement not covered" >            </span>
+            
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    },</span>
 <span class="cstat-no" title="statement not covered" >    scene: [</span>
 <span class="cstat-no" title="statement not covered" >        MainGame</span>
 <span class="cstat-no" title="statement not covered" >    ]</span>
 <span class="cstat-no" title="statement not covered" >};</span>
-<span class="cstat-no" title="statement not covered" ></span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >const StartGame = (parent: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return new Game({ ...config, parent });</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-<span class="cstat-no" title="statement not covered" ></span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >export default StartGame;</span>
 &nbsp;</pre></td></tr></table></pre>
 
@@ -166,7 +166,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-06T17:37:36.030Z
+                at 2025-10-20T13:52:05.531Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

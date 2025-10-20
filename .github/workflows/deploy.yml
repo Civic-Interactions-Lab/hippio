@@ -24,6 +24,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Ensure coverage dir is empty
+        run: |
+          rm -rf documentation/static/coverage
+          mkdir -p documentation/static/coverage
+
       - name: Download coverage report from tests workflow
         uses: dawidd6/action-download-artifact@v11
         with:

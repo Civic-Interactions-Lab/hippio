@@ -6,6 +6,15 @@ const { Pool } = require('pg');
 
 const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
 
+// Helper function to append to CSV
+function logPlayerAction(sessionId, playerId, actionType, details = "") {
+  const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
+  const timestamp = new Date().toISOString();
+  const row = `${timestamp},${playerId},${actionType},"${details.replace(/"/g, '""')}"\n`;
+  fs.appendFile(logFilePath, row, (err) => {
+    if (err) console.error("Error writing to CSV log:", err);
+  });
+}
 
 // Constants for game modes and their configurations
 const MODE_CONFIG = {
@@ -176,7 +185,6 @@ wss.on('connection', (ws) => {
     try {
       const data = JSON.parse(message);
       // console.log('WSS Received:', data);
-
       // Validate session request
       if (data.type === 'VALIDATE_SESSION') {
         const { gameCode } = data.payload;
@@ -237,6 +245,16 @@ wss.on('connection', (ws) => {
             }
           }
         }
+        // Create CSV file with header for this session
+        const logsDir = path.join(__dirname, "logs");
+        if (!fs.existsSync(logsDir)) {
+          fs.mkdirSync(logsDir);
+        }
+        const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
+        if (!fs.existsSync(logFilePath)) {
+          fs.writeFileSync(logFilePath, "timestamp,playerId,actionType,details\n");
+
+        }
         ws.send(JSON.stringify({
           type: 'SESSION_CREATED',
           payload: { sessionId }
@@ -254,7 +272,9 @@ wss.on('connection', (ws) => {
             x,
             y
           }
+
         });
+        logPlayerAction(sessionId, userId, "moved", `x: ${x}, y: ${y}`);
       }
 
       // When a player joins, store their WebSocket connection in the correct session room
@@ -276,6 +296,8 @@ wss.on('connection', (ws) => {
 
         sessions[sessionId].add(ws);
         console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
+
+        logPlayerAction(sessionId, userId, "joined session", `role: ${role}, color: ${color}`);
 
         if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
         if (role === 'Hippo Player' && !scoresBySession[sessionId][userId]) {
@@ -374,6 +396,8 @@ wss.on('connection', (ws) => {
         if (sessions[sessionId]) {
           sessions[sessionId].gameStarted = true;
         }
+
+        logPlayerAction(sessionId, "None", "started game", `mode: ${mode}`);
 
         // Store mode and reset per-session state
         sessionGameModes[sessionId] = mode;
@@ -523,7 +547,7 @@ wss.on('connection', (ws) => {
       if (data.type === 'START_TIMER') {
         const { sessionId } = data.payload;
         //console.log(`[WSS] Starting timer for session ${sessionId}`);
-
+        logPlayerAction(sessionId, "None", "started timer");
         let secondsLeft = 180;
         //console.log('[WSS] SECONDSLEFT INIT:', secondsLeft); 
         const interval = setInterval(() => {
@@ -566,6 +590,7 @@ wss.on('connection', (ws) => {
       // When an AAC user selects a food, broadcast it to the session
       if (data.type === 'AAC_FOOD_SELECTED') {
         const { sessionId, food, effect } = data.payload;
+        logPlayerAction(sessionId, "None", "aac food selected", `food name: ${food.name}, food color: ${food.color}, effect: ${effect}`);
         //console.log(`WSS Food selected in session ${sessionId}:`, food, effect);
 
         const gameMode = sessionGameModes[sessionId] || 'Easy';
@@ -657,7 +682,7 @@ wss.on('connection', (ws) => {
       // Broadcast updated scores
       if (data.type === 'FRUIT_EATEN_BY_PLAYER') {
         const { sessionId, userId, isCorrect, allowPenalty, effect } = data.payload;
-
+        logPlayerAction(sessionId, userId, "fruit eaten", `isCorrect: ${isCorrect}, effect: ${effect}, allowPenalty: ${allowPenalty}`);
         if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
         const prev = scoresBySession[sessionId][userId] || 0;
 
@@ -693,6 +718,7 @@ wss.on('connection', (ws) => {
       // When a player selects a color, broadcast it to the session
       if (data.type === 'SELECT_COLOR') {
         const { sessionId, userId, color } = data.payload;
+        logPlayerAction(sessionId, userId, "color selected", `color: ${color}`);
         if (sessions[sessionId]) {
           // Find the client who sent the message and assign them the color
           for (const client of sessions[sessionId]) {
@@ -743,7 +769,7 @@ wss.on('connection', (ws) => {
       if (data.type === 'RESET_GAME') {
         const { sessionId } = data.payload;
         console.log('[WSS] RESET_GAME received for session', sessionId);
-
+        logPlayerAction(sessionId, "None", "game reset");
         // Reset scores to 0 for Hippo Players
         if (scoresBySession[sessionId]) {
           console.log('[WSS] Scores before reset:', scoresBySession[sessionId]);

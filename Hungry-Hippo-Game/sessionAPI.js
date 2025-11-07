@@ -44,7 +44,9 @@ const sessionFilePath = path.resolve(__dirname, './src/data/sessionID.json');
 const scoresBySession = {};
 const fruitQueues = {};
 const fruitIntervals = {};
-const TARGET_FOOD_WEIGHT = 16; // Weight for the target food in the queue
+
+// Target food will have 40% spawn chance, remaining 60% split among all other foods
+const TARGET_FOOD_PROBABILITY = 0.4; // 40% chance for target item
 
 const sessionGameModes = {};
 let foodInstanceCounter = 0
@@ -162,19 +164,40 @@ const setupDatabase = async () => {
 
 // Function to get a weighted random food item from the list
 // This function will give more weight to the target food, making it more likely to be selected
+/**
+ * (default 40%) and all other items share the remaining probability equally.
+ *
+ * @param {Array} allFoods - All available food items
+ * @param {string} targetId - The ID of the current target food
+ * @returns {Object} A randomly selected food item based on weighted probability
+ */
 function getWeightedRandomFood(allFoods, targetId) {
   if (!allFoods || allFoods.length === 0) {
     console.error('Food list is empty or undefined');
     return null;
   }
-  const weightedList = [];
-  for (const food of allFoods) {
-    const weight = food.id === targetId ? TARGET_FOOD_WEIGHT : 1;
-    for (let i = 0; i < weight; i++) {
-      weightedList.push(food);
-    }
+
+  // If no target is set, return random food
+  if (!targetId) {
+    return allFoods[Math.floor(Math.random() * allFoods.length)];
   }
-  return weightedList[Math.floor(Math.random() * weightedList.length)];
+
+  const randomValue = Math.random();
+
+  // 40% chance to return the target food
+  if (randomValue < TARGET_FOOD_PROBABILITY) {
+    const targetFood = allFoods.find(f => f.id === targetId);
+    return targetFood || allFoods[Math.floor(Math.random() * allFoods.length)];
+  }
+
+  // 60% chance to return a non-target food
+  const nonTargetFoods = allFoods.filter(f => f.id !== targetId);
+  if (nonTargetFoods.length === 0) {
+    // If target is the only food, return it
+    return allFoods.find(f => f.id === targetId);
+  }
+
+  return nonTargetFoods[Math.floor(Math.random() * nonTargetFoods.length)];
 }
 
 // Websocket Server

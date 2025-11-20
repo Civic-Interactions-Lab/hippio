@@ -35,8 +35,14 @@ const PhaserPage: React.FC = () => {
   const [currentFood, setCurrentFood] = useState<AacFood | null>(null);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [secondsLeft, setSecondsLeft] = useState<number>(60);
+  // Store pending target food if scene isn't ready yet
+  const [pendingTargetFood, setPendingTargetFood] = useState<{
+    targetFoodId: string;
+    targetFoodData: AacFood;
+    effect: AacVerb | null
+  } | null>(null);
 
   // Defensive: what if no state? Fallback to false.
   const isSpectator = location.state?.role === 'Spectator';
@@ -149,6 +155,11 @@ const PhaserPage: React.FC = () => {
         } else {
           scene.setTargetFood(targetFoodId);
         }
+        // Scene is ready, clear any pending target
+        setPendingTargetFood(null);
+      } else {
+        // Scene not ready, store target for later
+        setPendingTargetFood({ targetFoodId, targetFoodData, effect });
       }
       if (targetFoodData) {
         setCurrentFood(targetFoodData);
@@ -189,6 +200,22 @@ const PhaserPage: React.FC = () => {
       EventBus.off('fruit-eaten', handleFruitEaten);
     };
   }, [sendMessage, sessionId]);
+
+  // --- APPLY PENDING TARGET FOOD WHEN SCENE IS READY ---
+  useEffect(() => {
+    if (pendingTargetFood && phaserRef.current?.scene) {
+      const scene = phaserRef.current.scene as any;
+      if (scene && typeof scene.setTargetFood === 'function') {
+        const { targetFoodId, effect } = pendingTargetFood;
+        if (effect) {
+          scene.setTargetFood(targetFoodId, effect);
+        } else {
+          scene.setTargetFood(targetFoodId);
+        }
+        setPendingTargetFood(null);
+      }
+    }
+  }, [pendingTargetFood, phaserRef.current]);
 
   // --- SCORE UPDATE BROADCAST (EVENTBUS) ---
   useEffect(() => {

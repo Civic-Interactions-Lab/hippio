@@ -52,6 +52,8 @@ const sessionGameModes = {};
 let foodInstanceCounter = 0
 const activeFoods = {};
 const lastSpawnAt = {};
+const aacLastActivityTime = {};
+const idleCheckIntervals = {};
 
 
 const QUEUE_MAX = 10;
@@ -483,6 +485,8 @@ wss.on('connection', (ws) => {
                 if (!sessions[sessionId].initialTargetSent) {
                   sessions[sessionId].currentTargetFoodId = nextFoodId;
                   sessions[sessionId].initialTargetSent = true;
+                  // Rebuild queue with weighted probability for the initial target
+                  rebuildFruitQueue(sessionId, nextFoodId);
                   broadcast(sessionId, {
                     type: 'AAC_TARGET_FOOD',
                     payload: { targetFoodId: nextFoodId, targetFoodData: targetFood, effect: null },
@@ -560,6 +564,34 @@ wss.on('connection', (ws) => {
           );
         }, TICK_INTERVAL);
 
+        // Start idle check timer for AAC users
+        aacLastActivityTime[sessionId] = Date.now();
+        const IDLE_CHECK_INTERVAL = 1000; // Check every second
+        const IDLE_THRESHOLD = 15000; // 15 seconds
+
+        idleCheckIntervals[sessionId] = setInterval(() => {
+          if (!sessions[sessionId]) {
+            clearInterval(idleCheckIntervals[sessionId]);
+            delete idleCheckIntervals[sessionId];
+            return;
+          }
+
+          const now = Date.now();
+          const timeSinceLastActivity = now - (aacLastActivityTime[sessionId] || now);
+
+          // If AAC user has been idle for 15 seconds, send audio prompt
+          if (timeSinceLastActivity >= IDLE_THRESHOLD) {
+            broadcast(sessionId, {
+              type: 'AAC_IDLE_PROMPT',
+              payload: {
+                audioPath: '/audio/idleMessage.mp3'
+              }
+            });
+            // Reset the timer to avoid spamming the prompt
+            aacLastActivityTime[sessionId] = now;
+          }
+        }, IDLE_CHECK_INTERVAL);
+
         broadcast(sessionId, {
           type: 'START_GAME_BROADCAST',
           payload: { sessionId, mode },
@@ -613,6 +645,10 @@ wss.on('connection', (ws) => {
       // When an AAC user selects a food, broadcast it to the session
       if (data.type === 'AAC_FOOD_SELECTED') {
         const { sessionId, food, effect } = data.payload;
+
+        // Reset idle timer when AAC user selects a food
+        aacLastActivityTime[sessionId] = Date.now();
+
         logPlayerAction(sessionId, "None", "aac food selected", `food name: ${food.name}, food color: ${food.color}, effect: ${effect}`);
         //console.log(`WSS Food selected in session ${sessionId}:`, food, effect);
 
@@ -639,25 +675,16 @@ wss.on('connection', (ws) => {
           }
         }
 
-        if (fruitQueues[sessionId]) {
-          // Pushes AAC-selected food to the front of the queue
-          // Keep queue entries as full objects, not ids
-          const head = fruitQueues[sessionId][0];
-          const headId = head && (head.id || head); // tolerate any stray ids
-          if (headId !== food.id) {
-            //   fruitQueues[sessionId].unshift(food);
-
-            // if (fruitQueues[sessionId].length > QUEUE_MAX) {
-            //   fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
-            // }
-            enqueueFruit(sessionId, food, { front: true });
-
-          }
-        }
-
         // Updates the session's current weighted target
         sessions[sessionId].currentTargetFoodId = food.id;
         sessions[sessionId].currentTargetEffect = finalEffect;
+
+        // Rebuild the entire queue with the new target food probability
+        // This ensures the 40% spawn rate kicks in immediately
+        if (fruitQueues[sessionId]) {
+          rebuildFruitQueue(sessionId, food.id);
+          enqueueFruit(sessionId, food, { front: true });
+        }
 
         // Broadcasts the selected food as the official target
         broadcast(sessionId, {
@@ -999,12 +1026,18 @@ function cleanupSession(sessionId) {
     clearInterval(fruitIntervals[sessionId]);
     delete fruitIntervals[sessionId];
   }
+  // Clear idle check interval if present
+  if (idleCheckIntervals[sessionId]) {
+    clearInterval(idleCheckIntervals[sessionId]);
+    delete idleCheckIntervals[sessionId];
+  }
   // Remove all per-session state
   delete activeFoods[sessionId];
   delete fruitQueues[sessionId];
   delete scoresBySession[sessionId];
   delete sessionGameModes[sessionId];
   delete lastSpawnAt[sessionId];
+  delete aacLastActivityTime[sessionId];
 }
 
 
@@ -1029,6 +1062,20 @@ function dequeueFruit(sessionId) {
 
 function clearFruitQueue(sessionId) {
   fruitQueues[sessionId] = [];
+}
+
+/**
+ * Rebuilds the fruit queue with weighted items based on the current target food.
+ * @param {string} sessionId
+ * @param {string} targetFoodId
+ */
+function rebuildFruitQueue(sessionId, targetFoodId) {
+  clearFruitQueue(sessionId);
+  for (let i = 0; i < QUEUE_MAX; i++) {
+    const weightedFood = getWeightedRandomFood(allFoods, targetFoodId);
+    enqueueFruit(sessionId, weightedFood);
+  }
+  console.log(`[WSS] Rebuilt fruit queue for session ${sessionId} with target ${targetFoodId}`);
 }
 
 function sendError(ws, { code = 'SERVER_ERROR', message, ...meta }) {

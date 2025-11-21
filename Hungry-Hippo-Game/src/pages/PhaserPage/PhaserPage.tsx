@@ -43,6 +43,11 @@ const PhaserPage: React.FC = () => {
     targetFoodData: AacFood;
     effect: AacVerb | null
   } | null>(null);
+  // Audio mute state (retrieve from localStorage or default to false)
+  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(() => {
+    const saved = localStorage.getItem('gameAudioMuted');
+    return saved === 'true';
+  });
 
   // Defensive: what if no state? Fallback to false.
   const isSpectator = location.state?.role === 'Spectator';
@@ -163,6 +168,13 @@ const PhaserPage: React.FC = () => {
       }
       if (targetFoodData) {
         setCurrentFood(targetFoodData);
+        // Play audio for the target food if not muted
+        if (!isAudioMuted && targetFoodData.audioPath) {
+          const audio = new Audio(targetFoodData.audioPath);
+          audio.play().catch((error) => {
+            console.error('[PhaserPage] Error playing target food audio:', error);
+          });
+        }
       }
       clearLastMessage?.();
     }
@@ -183,7 +195,7 @@ const PhaserPage: React.FC = () => {
       EventBus.emit('apply-player-effect', { targetUserId, effect });
       clearLastMessage?.();
     }
-  }, [lastMessage, clearLastMessage]);
+  }, [lastMessage, clearLastMessage, isAudioMuted]);
 
   // --- FRUIT EATEN LOCAL (EMITTED FROM PHASER) ---
   useEffect(() => {
@@ -312,6 +324,18 @@ const PhaserPage: React.FC = () => {
     }
   }
 
+  // Audio toggle handler
+  const toggleAudio = () => {
+    const newMutedState = !isAudioMuted;
+    setIsAudioMuted(newMutedState);
+    localStorage.setItem('gameAudioMuted', String(newMutedState));
+
+    // Notify the game scene about the audio state change
+    const scene = phaserRef.current?.scene as any;
+    if (scene && typeof scene.setAudioMuted === 'function') {
+      scene.setAudioMuted(newMutedState);
+    }
+  };
 
   // ---- RENDER ----
   return (
@@ -356,6 +380,14 @@ const PhaserPage: React.FC = () => {
             <h3 className={styles.timerTitle}>Time Left:</h3>
             <div className={styles.timerValue}>{secondsLeft} sec</div>
           </div>
+
+          <button
+            className={styles.audioToggleButton}
+            onClick={toggleAudio}
+            aria-label={isAudioMuted ? 'Unmute audio' : 'Mute audio'}
+          >
+            {isAudioMuted ? '🔇 Audio Off' : '🔊 Audio On'}
+          </button>
 
           <div className={styles.currentFood}>
             <h3>Current Food to Eat:</h3>

@@ -38,7 +38,8 @@
         "qrcode.react": "^4.2.0",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
-        "react-router-dom": "^7.6.2"
+        "react-router-dom": "^7.6.2",
+        "ws": "^8.18.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.22.0",

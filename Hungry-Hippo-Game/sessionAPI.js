@@ -86,6 +86,13 @@ if (allowedOrigins.length === 0) {
 }
 const ORIGINS = allowedOrigins.length ? allowedOrigins : DEFAULT_ALLOWED;
 
+server.on('request', (req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200);
+    res.end('OK');
+  }
+});
+
 server.on('upgrade', (request, socket, head) => {
   const originHeader = (request.headers.origin || '').toLowerCase().replace(/\/+$/, '');
   // Check if the origin is in the allowed list

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: hippio
+    runtime: node
+    region: oregon
+    plan: free
+    # IMPORTANT: Set branch to "fixSpawnLogic" when connecting the repo on Render
+    rootDir: Hungry-Hippo-Game
+    buildCommand: npm install
+    startCommand: node sessionAPI.js
+    autoDeploy: true

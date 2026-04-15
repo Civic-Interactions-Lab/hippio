@@ -69,6 +69,22 @@ const AacPage: React.FC = () => {
   }, []);
 
   /**
+   * Effect hook to listen for idle prompt from WebSocket.
+   * Plays audio when AAC user has been idle for 15 seconds.
+   */
+  useEffect(() => {
+    if (lastMessage?.type === 'AAC_IDLE_PROMPT') {
+      const audioPath = lastMessage.payload?.audioPath;
+      if (audioPath) {
+        const audio = new Audio(audioPath);
+        audio.play().catch((error) => {
+          console.error('[AacPage] Error playing idle audio:', error);
+        });
+      }
+    }
+  }, [lastMessage]);
+
+  /**
    * If GAME_OVER use the navigate function to navigate to different routes.
    */
   useEffect(() => {

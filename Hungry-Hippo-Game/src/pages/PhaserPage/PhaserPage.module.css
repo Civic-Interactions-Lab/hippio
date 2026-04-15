@@ -76,6 +76,37 @@
   font-weight: 700;
 }
 
+.audioToggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem auto;
+  padding: 0.7em 1.5em;
+  width: 100%;
+  max-width: 220px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #fffae3 0%, #b3e4ff 100%);
+  box-shadow: 0 4px 24px 0 rgba(0, 30, 100, 0.12), 0 2px 8px rgba(190, 230, 255, 0.09);
+  border: 2.5px solid #f8f8f7;
+  font-family: 'Baloo 2', 'Comic Sans MS', 'Arial Rounded MT Bold', Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #163153;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.audioToggleButton:hover {
+  box-shadow: 0 6px 28px 0 rgba(0, 30, 100, 0.18), 0 3px 10px rgba(190, 230, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.audioToggleButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 12px 0 rgba(0, 30, 100, 0.1);
+}
+
 .leftPanel {
   display: flex;
   flex-direction: column;
@@ -123,7 +154,8 @@
   .currentFood,
   .leaderboardBox,
   .timerBox,
-  .spectatorBanner {
+  .spectatorBanner,
+  .audioToggleButton {
     font-size: 0.8rem;
     padding: 0.5em 0.9em;
     max-width: 100%;
@@ -152,7 +184,8 @@
   .currentFood,
   .leaderboardBox,
   .timerBox,
-  .spectatorBanner {
+  .spectatorBanner,
+  .audioToggleButton {
     font-size: 0.95rem;
     padding: 0.55em 1em;
     max-width: 180px;
@@ -180,7 +213,8 @@
   .currentFood,
   .leaderboardBox,
   .timerBox,
-  .spectatorBanner {
+  .spectatorBanner,
+  .audioToggleButton {
     font-size: 1rem;
     padding: 0.6em 1em;
     max-width: 200px;
@@ -211,7 +245,8 @@
   .currentFood,
   .leaderboardBox,
   .timerBox,
-  .spectatorBanner {
+  .spectatorBanner,
+  .audioToggleButton {
     font-size: 0.75rem !important;
     padding: 0.4em 0.7em !important;
     max-width: 140px !important;

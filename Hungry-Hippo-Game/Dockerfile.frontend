@@ -1,6 +1,13 @@
 # Stage 1: Build the React/Vite app
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Declare build-time args so Vite can inline them via import.meta.env
+ARG VITE_WSS_URL
+ARG VITE_API_BASE
+ENV VITE_WSS_URL=$VITE_WSS_URL
+ENV VITE_API_BASE=$VITE_API_BASE
+
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
@@ -12,4 +19,5 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+
 

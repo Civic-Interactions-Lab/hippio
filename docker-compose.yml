@@ -30,10 +30,14 @@ services:
     build:
       context: ./Hungry-Hippo-Game
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_WSS_URL: ${VITE_WSS_URL}
+        VITE_API_BASE: ${VITE_API_BASE}
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
   postgres:
@@ -42,8 +46,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

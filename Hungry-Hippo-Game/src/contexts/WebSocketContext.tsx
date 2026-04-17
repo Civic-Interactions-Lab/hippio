@@ -23,6 +23,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [gameStarted, setGameStarted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [gameMode, setGameMode] = useState<'Easy' | 'Medium' | 'Hard' | null>(null);
+  const hasShownConnectionAlert = useRef(false);
 
   useEffect(() => {
     const WSS_URL = import.meta.env.VITE_WSS_URL || 'ws://localhost:4000';
@@ -30,9 +31,19 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const socket = new WebSocket(WSS_URL);
     ws.current = socket;
 
+    const notifyConnectionFailure = (details?: string) => {
+      // Avoid duplicate popups from onerror/onclose firing together.
+      if (hasShownConnectionAlert.current) return;
+      hasShownConnectionAlert.current = true;
+      window.alert(
+        `Unable to connect to game server.\n\nWebSocket URL: ${WSS_URL}${details ? `\nDetails: ${details}` : ''}`,
+      );
+    };
+
     socket.onopen = () => {
       //console.log('[WS_CONTEXT] Connection established.');
       setIsConnected(true);
+      hasShownConnectionAlert.current = false;
 
       // Attempt to restore session from localStorage
       try {
@@ -72,9 +83,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     };
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       //console.log('[WS_CONTEXT] Connection closed.');
       setIsConnected(false);
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        notifyConnectionFailure(`Close code ${event.code}${event.reason ? ` (${event.reason})` : ''}`);
+      }
     };
 
     socket.onmessage = (event) => {
@@ -106,7 +120,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (data.type === 'LAUNCH_FOOD') {
         const { foodKey, angle } = data.payload;
-        //console.log(`[WS_CONTEXT] Received LAUNCH_FOOD → ${foodKey}, angle ${angle}`);
+        //console.log(`[WS_CONTEXT] Received LAUNCH_FOOD -> ${foodKey}, angle ${angle}`);
         EventBus.emit('launch-food', { foodKey, angle });  // 👈 Send to Phaser
         return;
       }
@@ -171,6 +185,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     socket.onerror = (err) => {
       console.error('[WS_CONTEXT] WebSocket error:', err);
+      notifyConnectionFailure('Browser reported a socket error before connection was established.');
     };
 
     return () => {
@@ -233,4 +248,3 @@ export const useWebSocket = () => {
   }
   return context;
 };
-

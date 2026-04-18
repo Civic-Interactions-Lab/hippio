@@ -196,11 +196,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     return () => {
-      // Don't actually close the WebSocket connection in the effect cleanup
-      // This prevents React.StrictMode from constantly closing/reopening the connection
-      // The socket will be properly closed when the component unmounts permanently
-      // or when the user navigates away from the application
-      console.log('[WS_CONTEXT] Effect cleanup called, but keeping WebSocket open for React.StrictMode');
+    socket.close();
     };
   }, []);
 

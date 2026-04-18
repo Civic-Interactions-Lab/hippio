@@ -90,6 +90,10 @@ server.on('request', (req, res) => {
   if (req.url === '/health') {
     res.writeHead(200);
     res.end('OK');
+  } else {
+    // For any other request (including /api), respond with 400
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Bad Request - WebSocket connection required\n');
   }
 });
 

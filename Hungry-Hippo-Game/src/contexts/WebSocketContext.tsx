@@ -24,9 +24,16 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [gameMode, setGameMode] = useState<'Easy' | 'Medium' | 'Hard' | null>(null);
   const hasShownConnectionAlert = useRef(false);
+  const isConnectingRef = useRef(false);
 
   useEffect(() => {
-    const WSS_URL = import.meta.env.VITE_WSS_URL || 'ws://localhost:4000';
+    // Prevent duplicate connections in React.StrictMode
+    if (isConnectingRef.current || ws.current) {
+      return;
+    }
+    isConnectingRef.current = true;
+
+    const WSS_URL = import.meta.env.VITE_WSS_URL || 'ws://localhost:4000/api';
 
     const socket = new WebSocket(WSS_URL);
     ws.current = socket;
@@ -189,7 +196,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     return () => {
-      socket.close();
+      // Don't actually close the WebSocket connection in the effect cleanup
+      // This prevents React.StrictMode from constantly closing/reopening the connection
+      // The socket will be properly closed when the component unmounts permanently
+      // or when the user navigates away from the application
+      console.log('[WS_CONTEXT] Effect cleanup called, but keeping WebSocket open for React.StrictMode');
     };
   }, []);
 

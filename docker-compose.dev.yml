@@ -1,0 +1,105 @@
+name: hippio-dev
+
+services:
+  backend:
+    build:
+      context: ./Hungry-Hippo-Game
+      dockerfile: Dockerfile.dev.backend
+    environment:
+      NODE_ENV: development
+      PORT: ${BACKEND_PORT:-4000}
+      ALLOWED_ORIGINS: http://localhost,http://localhost:${FRONTEND_PORT:-3000},http://localhost:5173,http://frontend:${FRONTEND_PORT:-3000}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hippio}?sslmode=disable
+    ports:
+      - "${BACKEND_HOST_PORT:-4000}:${BACKEND_PORT:-4000}"
+    volumes:
+      - ./Hungry-Hippo-Game:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${BACKEND_PORT:-4000}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./Hungry-Hippo-Game
+      dockerfile: Dockerfile.dev.frontend
+    environment:
+      VITE_WSS_URL: ws://localhost:${BACKEND_HOST_PORT:-4000}/api
+      VITE_API_BASE: http://localhost:${BACKEND_HOST_PORT:-4000}/api
+    ports:
+      - "${FRONTEND_HOST_PORT:-3000}:${FRONTEND_PORT:-3000}"
+    volumes:
+      - ./Hungry-Hippo-Game:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hippio}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:${POSTGRES_PORT:-5432}"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "PGPASSWORD=\"${POSTGRES_PASSWORD:-postgres}\" psql -h 127.0.0.1 -U ${POSTGRES_USER:-postgres} -d postgres -c 'SELECT 1' >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "${ADMINER_HOST_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  test:
+    build:
+      context: ./Hungry-Hippo-Game
+      dockerfile: Dockerfile.dev.backend
+    environment:
+      NODE_ENV: test
+      PORT: ${BACKEND_PORT:-4000}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hippio}?sslmode=disable
+    volumes:
+      - ./Hungry-Hippo-Game:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - test
+
+volumes:
+  postgres_data_dev:
+
+
+
+
+
+
+

@@ -23,6 +23,11 @@ if [ ! -f docker-compose.yml ] && [ ! -f compose.yml ]; then
   exit 1
 fi
 
+# The repo is mounted from the host and may be owned by a different UID than
+# the container user. Tell Git this configured path is expected and trusted.
+echo "--- git config --global --add safe.directory $REPO ---"
+git config --global --add safe.directory "$REPO"
+
 echo "--- git fetch --all ---"
 git fetch --all
 

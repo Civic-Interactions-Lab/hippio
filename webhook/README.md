@@ -7,6 +7,7 @@ A lightweight, self-hosted webhook receiver that listens for GitHub `push` event
 1. GitHub sends a `push` event to `http://YOUR_SERVER:9000/github-webhook`
 2. The webhook server validates the `X-Hub-Signature-256` header
 3. If the repo and branch match, it runs `deploy.sh` which:
+   - marks the configured mounted repo as a Git `safe.directory`
    - fetches and checks out the configured branch in the mounted repo directory
    - pulls the latest code from GitHub
    - `docker compose up -d --build --remove-orphans` to rebuild & restart
@@ -74,6 +75,16 @@ volumes:
 Compose resolves that relative path against the project directory and sends the absolute source path to Docker. If the webhook runs Compose from `/workspace`, Docker receives `/workspace/frontend-nginx.conf`, but the host usually does not have `/workspace`. The deployment will fail with a "Mounts denied" error.
 
 To avoid that, this webhook mounts the app repo at the same absolute path inside the webhook container as it has on the host, such as `/opt/hippio:/opt/hippio`, and sets `APP_REPO_DIR` to that same path.
+
+## Git safe.directory
+
+Because the repo is bind-mounted from the host, Git inside the webhook container may see that the repository is owned by a different user. Recent Git versions protect against that and can fail with:
+
+```text
+fatal: detected dubious ownership in repository
+```
+
+The deploy script handles this by adding the configured `APP_REPO_DIR` to Git's global `safe.directory` list before running `git fetch`.
 
 ## Git access
 

@@ -10,7 +10,6 @@ import logging
 import os
 import subprocess
 import threading
-import time
 from datetime import datetime, timezone
 
 from flask import Flask, jsonify, request
@@ -18,10 +17,10 @@ from flask import Flask, jsonify, request
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"]
+WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
 REPO_FULL_NAME = os.environ.get("REPO_FULL_NAME", "owner/repo")
 REPO_BRANCH = os.environ.get("REPO_BRANCH", "main")
-APP_REPO_DIR = os.environ.get("APP_REPO_DIR", "/workspace")
+APP_REPO_DIR = os.environ.get("APP_REPO_DIR", "/opt/hippio")
 DEPLOY_SCRIPT = os.environ.get("DEPLOY_SCRIPT", "/app/deploy.sh")
 
 # ---------------------------------------------------------------------------
@@ -42,6 +41,7 @@ deploy_state = {
     "last_result": None,  # success | failure
     "last_timestamp": None,
     "last_commit": None,
+    "last_error": None,
 }
 
 # ---------------------------------------------------------------------------
@@ -52,7 +52,9 @@ app = Flask(__name__)
 
 def verify_signature(payload_body: bytes, signature_header: str | None) -> bool:
     """Validate X-Hub-Signature-256 using HMAC SHA-256."""
-    if not signature_header:
+    if not WEBHOOK_SECRET or not signature_header:
+        return False
+    if not signature_header.startswith("sha256="):
         return False
     expected = "sha256=" + hmac.new(
         WEBHOOK_SECRET.encode(), payload_body, hashlib.sha256
@@ -65,7 +67,8 @@ def run_deploy(commit_sha: str) -> None:
     try:
         deploy_state["status"] = "deploying"
         deploy_state["last_commit"] = commit_sha
-        log.info("Starting deployment for commit %s …", commit_sha[:8])
+        deploy_state["last_error"] = None
+        log.info("Starting deployment for commit %s.", commit_sha[:8])
 
         result = subprocess.run(
             ["/bin/bash", DEPLOY_SCRIPT],
@@ -85,13 +88,16 @@ def run_deploy(commit_sha: str) -> None:
             log.info("Deployment succeeded.")
         else:
             deploy_state["last_result"] = "failure"
+            deploy_state["last_error"] = f"deploy script exited {result.returncode}"
             log.error("Deployment failed (exit %d).", result.returncode)
 
     except subprocess.TimeoutExpired:
         deploy_state["last_result"] = "failure"
+        deploy_state["last_error"] = "deployment timed out"
         log.error("Deployment timed out.")
     except Exception:
         deploy_state["last_result"] = "failure"
+        deploy_state["last_error"] = "deployment error"
         log.exception("Deployment error.")
     finally:
         deploy_state["status"] = "idle"
@@ -101,7 +107,8 @@ def run_deploy(commit_sha: str) -> None:
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"ok": True, **deploy_state}), 200
+    configured = bool(WEBHOOK_SECRET)
+    return jsonify({"ok": configured, "configured": configured, **deploy_state}), 200
 
 
 @app.route("/github-webhook", methods=["POST"])
@@ -109,6 +116,9 @@ def github_webhook():
     # --- Signature verification -------------------------------------------
     payload = request.get_data()
     sig = request.headers.get("X-Hub-Signature-256")
+    if not WEBHOOK_SECRET:
+        log.error("WEBHOOK_SECRET is not configured.")
+        return jsonify({"error": "server misconfigured"}), 500
     if not verify_signature(payload, sig):
         log.warning("Invalid or missing signature.")
         return jsonify({"error": "invalid signature"}), 401
@@ -159,4 +169,3 @@ if __name__ == "__main__":
     log.info("Webhook server starting on port %d", port)
     # Use threaded=True so health checks work during deployment
     app.run(host="0.0.0.0", port=port)
-

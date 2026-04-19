@@ -18,6 +18,11 @@ fi
 
 cd "$REPO"
 
+if [ ! -f docker-compose.yml ] && [ ! -f compose.yml ]; then
+  echo "ERROR: $REPO does not contain docker-compose.yml or compose.yml." >&2
+  exit 1
+fi
+
 echo "--- git fetch --all ---"
 git fetch --all
 
@@ -34,4 +39,3 @@ echo "--- docker compose up -d --build --remove-orphans ---"
 docker compose up -d --build --remove-orphans
 
 echo "=== Deploy finished at $(date -u +%FT%TZ) ==="
-

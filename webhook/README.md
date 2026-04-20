@@ -46,7 +46,7 @@ docker compose up -d --build
 
 1. Go to **Settings → Webhooks → Add webhook** in your GitHub repo
 2. **Payload URL:** `http://YOUR_SERVER_IP:9000/github-webhook`
-3. **Content type:** `application/json`
+3. **Content type:** `application/json` recommended. `application/x-www-form-urlencoded` is also accepted.
 4. **Secret:** paste the same value as `WEBHOOK_SECRET` in your `.env`
 5. **Events:** select **Just the push event**
 6. Save

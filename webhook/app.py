@@ -10,6 +10,7 @@ import logging
 import os
 import subprocess
 import threading
+from urllib.parse import parse_qs
 from datetime import datetime, timezone
 
 from flask import Flask, jsonify, request
@@ -60,6 +61,20 @@ def verify_signature(payload_body: bytes, signature_header: str | None) -> bool:
         WEBHOOK_SECRET.encode(), payload_body, hashlib.sha256
     ).hexdigest()
     return hmac.compare_digest(expected, signature_header)
+
+
+def parse_github_payload(payload_body: bytes) -> dict:
+    """Parse GitHub JSON or application/x-www-form-urlencoded webhook bodies."""
+    content_type = request.headers.get("Content-Type", "")
+
+    if "application/x-www-form-urlencoded" in content_type:
+        form = parse_qs(payload_body.decode("utf-8"), keep_blank_values=True)
+        payload_values = form.get("payload")
+        if not payload_values:
+            raise ValueError("missing form payload")
+        return json.loads(payload_values[0])
+
+    return json.loads(payload_body)
 
 
 def run_deploy(commit_sha: str) -> None:
@@ -125,8 +140,8 @@ def github_webhook():
 
     # --- Parse payload ----------------------------------------------------
     try:
-        data = json.loads(payload)
-    except (json.JSONDecodeError, TypeError):
+        data = parse_github_payload(payload)
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError, TypeError):
         return jsonify({"error": "malformed JSON"}), 400
 
     # --- Check event type -------------------------------------------------

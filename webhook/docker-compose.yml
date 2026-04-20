@@ -1,0 +1,31 @@
+name: hippio-webhook
+
+services:
+  webhook:
+    build: .
+    restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    ports:
+      - "${PORT:-9000}:9000"
+    env_file: .env
+    environment:
+      # Keep the repo path inside this container identical to the host path.
+      # The Docker daemon resolves bind mounts from the host, not from /workspace.
+      APP_REPO_DIR: "${HOST_REPO_DIR:-/opt/hippio}"
+      # Allows first-time Git SSH host key acceptance for GitHub remotes.
+      # This is outbound Git access, not SSH-based deployment into the server.
+      GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=accept-new"
+    volumes:
+      # Let the container talk to the host Docker daemon
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the application repo at the same path it has on the host.
+      - ${HOST_REPO_DIR:-/opt/hippio}:${HOST_REPO_DIR:-/opt/hippio}
+      # Optional: let git pull use the host's SSH keys for private GitHub repos
+      - ${HOST_SSH_DIR:-~/.ssh}:/root/.ssh:ro
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -21,6 +21,7 @@ Because `docker compose up --build` only recreates containers whose images or co
 - Docker and Docker Compose must be installed on the host
 - The webhook container needs access to the Docker socket
 - The app repo is mounted at the same absolute path inside the webhook container as it has on the host
+- The webhook service sets explicit DNS resolvers so it can reach GitHub reliably from inside Docker
 
 ## Quick start
 
@@ -101,7 +102,7 @@ docker compose exec webhook getent hosts github.com
 docker compose exec webhook git ls-remote origin
 ```
 
-If DNS fails only inside containers, configure Docker's DNS on the host or add a `dns:` section to the webhook service, for example:
+If DNS fails only inside containers, this compose file already sets public DNS resolvers:
 
 ```yaml
 dns:
@@ -109,7 +110,7 @@ dns:
   - 8.8.8.8
 ```
 
-Also make sure the server allows outbound DNS and HTTPS traffic.
+If it still fails, make sure the server allows outbound DNS and HTTPS traffic. Some hosts block outbound UDP/TCP 53 or require using a provider-specific resolver.
 
 ## Git access
 

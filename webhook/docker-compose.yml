@@ -4,6 +4,9 @@ services:
   webhook:
     build: .
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     ports:
       - "${PORT:-9000}:9000"
     env_file: .env

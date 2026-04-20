@@ -28,6 +28,15 @@ fi
 echo "--- git config --global --add safe.directory $REPO ---"
 git config --global --add safe.directory "$REPO"
 
+if command -v getent >/dev/null 2>&1; then
+  echo "--- checking DNS for github.com ---"
+  if ! getent hosts github.com >/dev/null; then
+    echo "ERROR: cannot resolve github.com from inside the webhook container." >&2
+    echo "Check Docker DNS/networking and outbound HTTPS access from this host." >&2
+    exit 1
+  fi
+fi
+
 echo "--- git fetch --all ---"
 git fetch --all
 

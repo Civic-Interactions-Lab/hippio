@@ -86,6 +86,31 @@ fatal: detected dubious ownership in repository
 
 The deploy script handles this by adding the configured `APP_REPO_DIR` to Git's global `safe.directory` list before running `git fetch`.
 
+## Troubleshooting GitHub DNS
+
+If deployment fails with:
+
+```text
+Could not resolve host: github.com
+```
+
+the webhook is receiving requests correctly, but the container cannot resolve or reach GitHub for outbound Git operations. Check DNS from inside the webhook container:
+
+```bash
+docker compose exec webhook getent hosts github.com
+docker compose exec webhook git ls-remote origin
+```
+
+If DNS fails only inside containers, configure Docker's DNS on the host or add a `dns:` section to the webhook service, for example:
+
+```yaml
+dns:
+  - 1.1.1.1
+  - 8.8.8.8
+```
+
+Also make sure the server allows outbound DNS and HTTPS traffic.
+
 ## Git access
 
 The deployment is based on the checked-out repo, not registry images. The repo at `HOST_REPO_DIR` must already exist on the server and be a valid Git checkout. If the repository is private, configure the checkout so `git pull origin main` works inside the webhook container.

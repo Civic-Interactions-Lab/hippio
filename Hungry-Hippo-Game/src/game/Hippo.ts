@@ -83,7 +83,7 @@ export class Hippo extends Phaser.Physics.Arcade.Sprite {
         // Configure physics properties
         this.setCollideWorldBounds(true);
         // Play the 'walking' animation (assuming it's preloaded)
-       // this.play('walking');
+        // this.play('walking');
         // Assign the movement strategy
         this.moveStrategy = moveStrategy;
     }

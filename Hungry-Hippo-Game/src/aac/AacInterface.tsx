@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { AacFood, AAC_DATA, AacVerb, AAC_VERBS } from "../Foods";
-import { useWebSocket } from "../contexts/WebSocketContext";
+import { AAC_DATA, AAC_VERBS, AacFood, AacVerb } from "../Foods";
 import { updatePlayerInSessionStorage } from "../components/Storage/Storage";
+import { useWebSocket } from "../contexts/WebSocketContext";
 
 /**
  * Defines the props for the AacInterface component.
@@ -26,10 +26,10 @@ interface AacInterfaceProps {
 
   useEffect(() => {
     if (sessionId && userId && role && sendMessage) {
-      sendMessage({
-        type: 'PLAYER_JOIN',
-        payload: { sessionId, userId, role }
-      });
+    //   sendMessage({
+    //     type: 'PLAYER_JOIN',
+    //     payload: { sessionId, userId, role }
+    //   });
       updatePlayerInSessionStorage(sessionId, { userId, role });
     }
   }, [sessionId, userId, role, sendMessage]);

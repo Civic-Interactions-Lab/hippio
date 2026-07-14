@@ -9,10 +9,6 @@ const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods
 
 /**
  * sessionAPI.js 
- * - TODO Rewrite logging in development environment to a noSQL database rather then a SQL one.
- *  - DONE Log Reformatting from csv to json 
- *  - TODO Organize the logs to emulate a NoSQL schema more appropriately
- * - TODO Rewrite production logging to use (likely) Firebase
  */
 
 
@@ -383,37 +379,43 @@ setInterval(async () => {
         if (!sessionLogQueue[sessionId]) continue;
 
         let movementsSum = { x: 0, y: 0 };
-        let moveCount = 0;
+        let movementTicks = 0;
 
         const events = sessionLogQueue[sessionId].splice(0, sessionLogQueue[sessionId].length);
 
         events.forEach(event => {
             if (event.actionType === 'moved') {
-                movementsSum.x += event.x || 0;
-                movementsSum.y += event.y || 0;
-                moveCount++;
+                // The x and y values are now inside the details object
+                const details = event.details || {};
+                movementsSum.x += details.x || 0;
+                movementsSum.y += details.y || 0;
+                movementTicks++;
             }
         });
 
         let quadrants = {
-            target: { TL: 0, TR: 0, BL: 0, BR: 0 },
-            distractor: { TL: 0, TR: 0, BL: 0, BR: 0 }
+            target: {},
+            distractor: {}
         };
 
         const currentTargetId = sessions[sessionId].currentTargetFoodId;
 
         if (activeFoods[sessionId]) {
             activeFoods[sessionId].forEach(food => {
-                let q = '';
-                if (food.x < 512 && food.y < 512) q = 'TL';
-                else if (food.x >= 512 && food.y < 512) q = 'TR';
-                else if (food.x < 512 && food.y >= 512) q = 'BL';
-                else q = 'BR';
+                // Derive hippo player id from food instanceId
+                const parts = food.instanceId.split('-');
+                const userId = parts.length > 2 ? parts.slice(2).join('-') : 'unknown';
+
+                // UserID defines the quadrant 
+                if (quadrants.target[userId] === undefined) {
+                    quadrants.target[userId] = 0;
+                    quadrants.distractor[userId] = 0;
+                }
 
                 if (food.id === currentTargetId) {
-                    quadrants.target[q]++;
+                    quadrants.target[userId]++;
                 } else {
-                    quadrants.distractor[q]++;
+                    quadrants.distractor[userId]++;
                 }
             });
         }
@@ -428,7 +430,7 @@ setInterval(async () => {
             }
             sessionLogDocument[sessionId].heartbeats.push({
                 timestamp: new Date().toISOString(),
-                playerMovements: { totalX: movementsSum.x, totalY: movementsSum.y, count: moveCount },
+                playerMovements: { totalX: movementsSum.x, totalY: movementsSum.y, count: movementTicks },
                 fruitsInQuadrants: quadrants
             });
 
@@ -520,6 +522,7 @@ wss.on('connection', (ws) => {
                 const interval = setInterval(() => {
                     if (secondsLeft <= 0) {
                         //console.log(`[WSS] Timer ended for session ${sessionId}`);
+                        logPlayerAction(sessionId, "None", "Timer Ended / Game Over", { finalScores: scoresBySession[sessionId] });
                         broadcast(sessionId, { type: 'TIMER_UPDATE', secondsLeft: 0 });
                         broadcast(sessionId, { type: 'GAME_OVER' });
 
@@ -1135,6 +1138,7 @@ function startGame(sessionId, mode) {
 
         // If AAC user has been idle for 15 seconds, send audio prompt
         if (timeSinceLastActivity >= IDLE_THRESHOLD) {
+            logPlayerAction(sessionId, "None", "idle player detected", { thresholdMs: IDLE_THRESHOLD });
             broadcast(sessionId, {
                 type: 'AAC_IDLE_PROMPT',
                 payload: {

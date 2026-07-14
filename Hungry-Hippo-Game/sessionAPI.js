@@ -10,66 +10,56 @@ const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods
 /**
  * sessionAPI.js 
  * - TODO Rewrite logging in development environment to a noSQL database rather then a SQL one.
+ *  - DONE Log Reformatting from csv to json 
+ *  - TODO Organize the logs to emulate a NoSQL schema more appropriately
  * - TODO Rewrite production logging to use (likely) Firebase
  */
 
+
+
 // Helper function to append to CSV
 function logPlayerAction(sessionId, playerId, actionType, details) {
-    const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
+    // const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
     const timestamp = new Date().toISOString();
     // const row = `${timestamp},${playerId},${actionType},"${details.replace(/"/g, '""')}"\n`;
     // fs.appendFile(logFilePath, row, (err) => {
     //     if (err) console.error("Error writing to CSV log:", err);
     // });
 
-    // Get or create the session log file
-    if (!sessionEventLog[sessionId]) {
-        try {
-            const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
-
-            // Create directory if it doesn't exist
-            const logsDir = path.join(__dirname, "logs");
-            if (!fs.existsSync(logsDir)) {
-                fs.mkdirSync(logsDir);
-            }
-
-            // Initialize log file with empty actions array
-            if (!fs.existsSync(logFilePath)) {
-                fs.writeFileSync(logFilePath, JSON.stringify({ actions: [] }));
-            }
-
-            sessionEventLog[sessionId] = {
-                filePath: logFilePath,
-                actions: JSON.parse(fs.readFileSync(logFilePath, "utf-8")).actions,
-            };
-        } catch (err) {
-            console.error(`Error initializing session ${sessionId} log file:`, err);
-            return;
-        }
+    if (!sessionLogQueue[sessionId]) {
+        sessionLogQueue[sessionId] = [];
     }
 
     let actionData = {
         timestamp,
         playerId,
         actionType,
+        details
     };
-    if (details) {
-        if (typeof details === 'object' && details !== null) {
-            // Append detail field onto actionData alongside its other fields 
-            // using Object.assign() method to copy properties from details to actionData
-            Object.assign(actionData, details);
-        } else {
-            actionData.details = details;
+
+    // if (details) {
+    //     if (typeof details === 'object' && details !== null) {
+    //         // Append detail field onto actionData alongside its other fields 
+    //         // using Object.assign() method to copy properties from details to actionData
+    //         Object.assign(actionData, details);
+    //     } else {
+    //         actionData.details = details;
+    //     }
+    // }
+    if (actionType === 'moved') {
+        sessionLogQueue[sessionId].push(actionData);
+    } else {
+        if (sessionLogDocument[sessionId]) {
+            if (!sessionLogDocument[sessionId].actions) {
+                sessionLogDocument[sessionId].actions = [];
+            }
+            sessionLogDocument[sessionId].actions.push(actionData);
+            writeSessionLogDocument(sessionId);
         }
     }
 
-    sessionEventLog[sessionId].actions.push(actionData);
-
-    try {
-        fs.writeFileSync(sessionEventLog[sessionId].filePath, JSON.stringify({ actions: sessionEventLog[sessionId].actions }, null, 2));
-    } catch (err) {
-        console.error(`Error writing session ${sessionId} log file:`, err);
-    }
+    // Write Log Document To File 
+    // writeSessionLogDocument(sessionId);
 
 }
 
@@ -115,8 +105,52 @@ const idleCheckIntervals = {};
 
 const QUEUE_MAX = 10;
 
-// Queue for each session - stores game event logs
-const sessionEventLog = {};
+const sessionLogQueue = {};
+const sessionLogDocument = {};
+
+function writeSessionLogDocument(sessionId) {
+    // Get or create the session log file
+    if (!sessionLogDocument[sessionId]) {
+        try {
+            const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
+            sessions[sessionId].filePath = logFilePath;
+            // Create directory if it doesn't exist
+            const logsDir = path.join(__dirname, "logs");
+            if (!fs.existsSync(logsDir)) {
+                fs.mkdirSync(logsDir);
+            }
+
+            // Initialize log file with empty arrays
+            if (!fs.existsSync(logFilePath)) {
+                fs.writeFileSync(logFilePath, JSON.stringify({ actions: [], heartbeats: [] }));
+            }
+
+            const fileContent = JSON.parse(fs.readFileSync(logFilePath, "utf-8"));
+            sessionLogDocument[sessionId] = {
+                filePath: logFilePath,
+                actions: fileContent.actions || [],
+                heartbeats: fileContent.heartbeats || [],
+            };
+        } catch (err) {
+            console.error(`Error initializing session ${sessionId} log file:`, err);
+            return;
+        }
+    }
+
+    sessionLogDocument[sessionId].lastUpdated = new Date().toISOString();
+    sessionLogDocument[sessionId].totalActions++;
+    sessionLogDocument[sessionId].total_time_open_seconds = (new Date() - new Date(sessionLogDocument[sessionId].session_created)) / 1000;
+
+    if (sessionLogDocument[sessionId].game_started) {
+        sessionLogDocument[sessionId].total_time_playtime_seconds = (new Date() - new Date(sessionLogDocument[sessionId].game_started)) / 1000;
+    }
+
+    try {
+        fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify(sessionLogDocument[sessionId], null, 2));
+    } catch (err) {
+        console.error(`Error writing session ${sessionId} log file:`, err);
+    }
+}
 
 // Reject connections from unauthorized origins
 // ALLOWED_ORIGINS is a comma-separated list. Example:
@@ -275,6 +309,138 @@ function getWeightedRandomFood(allFoods, targetId) {
     return nonTargetFoods[Math.floor(Math.random() * nonTargetFoods.length)];
 }
 
+function handlePlayerJoin(ws, data) {
+    const { sessionId, userId, role, color } = data.payload;
+    ws.sessionId = sessionId;
+    ws.userId = userId;
+    ws.role = role;
+    ws.color = color;
+
+    if (!sessions[sessionId]) {
+        sendError(ws, {
+            code: 'SESSION_NOT_FOUND',
+            message: `Session ${sessionId} not found`,
+            sessionId,
+        });
+        return;
+    }
+
+    sessions[sessionId].add(ws);
+    console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
+
+    logPlayerAction(sessionId, userId, "joined session", { role, color });
+
+    if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
+    if (role === 'Hippo Player' && !scoresBySession[sessionId][userId]) {
+        scoresBySession[sessionId][userId] = 0;
+    }
+
+    if (IS_PROD) {
+        // If in production, insert the player into the database
+        //         try {
+        //             await pool.query(`
+        //   INSERT INTO players (session_id, user_id, role) VALUES ($1, $2, $3)
+        //   ON CONFLICT (session_id, user_id) DO UPDATE SET role = EXCLUDED.role`, [sessionId, userId, role]);
+        //         } catch (err) {
+        //             console.error('Error adding player to database:', err);
+        //         }
+    }
+    // Broadcast to all clients in that session that a new player has joined
+    broadcast(sessionId, {
+        type: 'PLAYER_JOINED_BROADCAST',
+        payload: {
+            userId, role, color
+        }
+    });
+    // Collect all users in the session
+    const usersInSession = Array.from(sessions[sessionId])
+        .filter(client => client.readyState === WebSocket.OPEN)
+        .map(client => ({
+            userId: client.userId,
+            role: client.role,
+            color: client.color
+        }));
+
+    // Send full user list
+    broadcast(sessionId, {
+        type: 'USERS_LIST_UPDATE',
+        payload: {
+            users: usersInSession
+        }
+    });
+    console.log(`[WSS] Broadcasting USERS_LIST_UPDATE to ${sessionId}:`, usersInSession);
+
+    // Broadcast initial leaderboard with everyone at score 0
+    broadcast(sessionId, {
+        type: 'SCORE_UPDATE_BROADCAST',
+        payload: { scores: scoresBySession[sessionId] }
+    });
+}
+
+// Heartbeat to log sessions to NoSQL every 5 seconds 
+setInterval(async () => {
+    for (const sessionId of Object.keys(sessions)) {
+        if (!sessionLogQueue[sessionId]) continue;
+
+        let movementsSum = { x: 0, y: 0 };
+        let moveCount = 0;
+
+        const events = sessionLogQueue[sessionId].splice(0, sessionLogQueue[sessionId].length);
+
+        events.forEach(event => {
+            if (event.actionType === 'moved') {
+                movementsSum.x += event.x || 0;
+                movementsSum.y += event.y || 0;
+                moveCount++;
+            }
+        });
+
+        let quadrants = {
+            target: { TL: 0, TR: 0, BL: 0, BR: 0 },
+            distractor: { TL: 0, TR: 0, BL: 0, BR: 0 }
+        };
+
+        const currentTargetId = sessions[sessionId].currentTargetFoodId;
+
+        if (activeFoods[sessionId]) {
+            activeFoods[sessionId].forEach(food => {
+                let q = '';
+                if (food.x < 512 && food.y < 512) q = 'TL';
+                else if (food.x >= 512 && food.y < 512) q = 'TR';
+                else if (food.x < 512 && food.y >= 512) q = 'BL';
+                else q = 'BR';
+
+                if (food.id === currentTargetId) {
+                    quadrants.target[q]++;
+                } else {
+                    quadrants.distractor[q]++;
+                }
+            });
+        }
+
+        if (!sessionLogDocument[sessionId]) {
+            writeSessionLogDocument(sessionId);
+        }
+
+        if (sessionLogDocument[sessionId]) {
+            if (!sessionLogDocument[sessionId].heartbeats) {
+                sessionLogDocument[sessionId].heartbeats = [];
+            }
+            sessionLogDocument[sessionId].heartbeats.push({
+                timestamp: new Date().toISOString(),
+                playerMovements: { totalX: movementsSum.x, totalY: movementsSum.y, count: moveCount },
+                fruitsInQuadrants: quadrants
+            });
+
+
+
+
+            writeSessionLogDocument(sessionId);
+        }
+    }
+}, 5000);
+
+
 // Websocket Server
 wss.on('connection', (ws) => {
     console.log('WSS Client connected');
@@ -288,28 +454,7 @@ wss.on('connection', (ws) => {
                 const { gameCode } = data.payload;
 
                 // If the session id exists in sessions.json, then the session is valid
-                let isValid = false;
-
-                let sessionsData = { sessions: {} };
-                if (!IS_PROD) {
-                    // If local development, read from the session file
-                    try {
-                        if (fs.existsSync(sessionFilePath)) {
-                            sessionsData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
-                        }
-                    } catch (e) {
-                        console.error('Error reading session file:', e);
-                    }
-                    isValid = Object.hasOwn(sessionsData.sessions, gameCode);
-                } else {
-                    // If in production, check the database
-                    // try {
-                    //     const result = await pool.query('SELECT EXISTS (SELECT 1 FROM sessions WHERE session_id = $1)', [gameCode]);
-                    //     isValid = result.rows[0].exists;
-                    // } catch (err) {
-                    //     console.error('Error validating session:', err);
-                    // }
-                }
+                let isValid = validateSession(gameCode);
 
                 ws.send(JSON.stringify({
                     type: 'SESSION_VALIDATED',
@@ -319,54 +464,19 @@ wss.on('connection', (ws) => {
 
             // Handle session creation request
             if (data.type === 'CREATE_SESSION') {
+
                 // If local development, skip database operations
-                let sessionId;
-                if (!IS_PROD) {
-                    let sessionsData = { sessions: {} };
+                let sessionId = createNewSession();
 
-                    try {
-                        if (fs.existsSync(sessionFilePath)) {
-                            sessionsData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
-                        }
-                    } catch (e) {
-                        console.error('Error reading session file:', e);
-                    }
-                    sessionId = generateUniqueSessionId(Object.keys(sessionsData.sessions));
-                    sessionsData.sessions[sessionId] = [];
-                    fs.writeFileSync(sessionFilePath, JSON.stringify(sessionsData, null, 2), 'utf-8');
-                } else {
-                    // If in production, insert into the database
-                    // while (true) {
-                    //     sessionId = generateSessionId();
-                    //     try {
-                    //         await pool.query('INSERT INTO sessions (session_id) VALUES ($1)', [sessionId]);
-                    //         await pool.query('UPDATE game_statistics SET total_sessions_played = total_sessions_played + 1, last_updated = NOW() WHERE id = 1');
-                    //         break;
-                    //     } catch (err) {
-                    //         console.error('Error creating session:', err);
-                    //     }
-                    // }
-                }
-                // Create JSON file for this session
-                const logsDir = path.join(__dirname, "logs");
-                if (!fs.existsSync(logsDir)) {
-                    fs.mkdirSync(logsDir);
-                }
-                const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
-                if (!fs.existsSync(logFilePath)) {
-                    fs.writeFileSync(logFilePath, JSON.stringify({ actions: [] }));
-
-                }
                 ws.send(JSON.stringify({
                     type: 'SESSION_CREATED',
                     payload: { sessionId }
                 }));
-                sessions[sessionId] = new Set();
-                sessions[sessionId].statsLogged = false;
             }
 
             if (data.type === 'PLAYER_MOVE') {
                 const { sessionId, userId, x, y } = data.payload;
+
                 broadcast(sessionId, {
                     type: 'PLAYER_MOVE_BROADCAST',
                     payload: {
@@ -376,77 +486,14 @@ wss.on('connection', (ws) => {
                     }
 
                 });
+
                 logPlayerAction(sessionId, userId, "moved", { x: x, y: y });
+
             }
 
             // When a player joins, store their WebSocket connection in the correct session room
             if (data.type === 'PLAYER_JOIN') {
-                const { sessionId, userId, role, color } = data.payload;
-                ws.sessionId = sessionId;
-                ws.userId = userId;
-                ws.role = role;
-                ws.color = color;
-
-                if (!sessions[sessionId]) {
-                    sendError(ws, {
-                        code: 'SESSION_NOT_FOUND',
-                        message: `Session ${sessionId} not found`,
-                        sessionId,
-                    });
-                    return;
-                }
-
-                sessions[sessionId].add(ws);
-                console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
-
-                logPlayerAction(sessionId, userId, "joined session", { role, color });
-
-                if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
-                if (role === 'Hippo Player' && !scoresBySession[sessionId][userId]) {
-                    scoresBySession[sessionId][userId] = 0;
-                }
-
-                if (IS_PROD) {
-                    // If in production, insert the player into the database
-                    //         try {
-                    //             await pool.query(`
-                    //   INSERT INTO players (session_id, user_id, role) VALUES ($1, $2, $3)
-                    //   ON CONFLICT (session_id, user_id) DO UPDATE SET role = EXCLUDED.role`, [sessionId, userId, role]);
-                    //         } catch (err) {
-                    //             console.error('Error adding player to database:', err);
-                    //         }
-                }
-                // Broadcast to all clients in that session that a new player has joined
-                broadcast(sessionId, {
-                    type: 'PLAYER_JOINED_BROADCAST',
-                    payload: {
-                        userId, role, color
-                    }
-                });
-                // Collect all users in the session
-                const usersInSession = Array.from(sessions[sessionId])
-                    .filter(client => client.readyState === WebSocket.OPEN)
-                    .map(client => ({
-                        userId: client.userId,
-                        role: client.role,
-                        color: client.color
-                    }));
-
-                // Send full user list
-                broadcast(sessionId, {
-                    type: 'USERS_LIST_UPDATE',
-                    payload: {
-                        users: usersInSession
-                    }
-                });
-                console.log(`[WSS] Broadcasting USERS_LIST_UPDATE to ${sessionId}:`, usersInSession);
-
-                // Broadcast initial leaderboard with everyone at score 0
-                broadcast(sessionId, {
-                    type: 'SCORE_UPDATE_BROADCAST',
-                    payload: { scores: scoresBySession[sessionId] }
-                });
-
+                handlePlayerJoin(ws, data);
             }
 
             // When the presenter clicks "Start Game", broadcast to all clients in the session
@@ -455,219 +502,7 @@ wss.on('connection', (ws) => {
                 const { sessionId, mode } = data.payload;
                 console.log(`[WSS] Start game received for session ${sessionId} with mode ${mode}`);
 
-                if (IS_PROD && sessions[sessionId]) {
-                    //         if (!sessions[sessionId].statsLogged) {
-                    //             try {
-                    //                 await pool.query(
-                    //                     "DELETE FROM players WHERE session_id = $1 AND role = 'Presenter'",
-                    //                     [sessionId]
-                    //                 );
-                    //                 await pool.query(
-                    //                     `UPDATE game_statistics SET mode_counts = jsonb_set(
-                    //     mode_counts,
-                    //     '{${mode}}',
-                    //     (COALESCE(mode_counts->>'${mode}', '0')::int + 1)::text::jsonb
-                    //   ) WHERE id = 1`
-                    //                 );
-                    //                 let hippoCount = 0;
-                    //                 let aacCount = 0;
-                    //                 for (const client of sessions[sessionId]) {
-                    //                     if (client.role === 'Hippo Player') {
-                    //                         hippoCount++;
-                    //                     } else if (client.role === 'AAC User') {
-                    //                         aacCount++;
-                    //                     }
-                    //                 }
-                    //                 if (hippoCount > 0 || aacCount > 0) {
-                    //                     await pool.query(
-                    //                         `UPDATE game_statistics SET 
-                    //         total_hippo_players = total_hippo_players + $1, 
-                    //         total_aac_users = total_aac_users + $2,
-                    //         last_updated = NOW()
-                    //       WHERE id = 1`,
-                    //                         [hippoCount, aacCount]
-                    //                     );
-                    //                 }
-                    //                 sessions[sessionId].statsLogged = true;
-                    //             } catch (err) {
-                    //                 console.error('[WSS] Error cleaning up presenter role:', err);
-                    //             }
-                    //         }
-                }
-
-                if (sessions[sessionId]) {
-                    sessions[sessionId].gameStarted = true;
-                }
-
-                logPlayerAction(sessionId, "None", "started game", { mode });
-
-                // Store mode and reset per-session state
-                sessionGameModes[sessionId] = mode;
-                activeFoods[sessionId] = [];
-
-                // Seed queue with objects
-                if (!fruitQueues[sessionId]) {
-                    // const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
-                    // fruitQueues[sessionId] = [];
-                    // for (let i = 0; i < 10; i++) {
-                    //   const food = allFoods[Math.floor(Math.random() * allFoods.length)];
-                    //   fruitQueues[sessionId].push(food);
-
-                    //   if (fruitQueues[sessionId].length > QUEUE_MAX) {
-                    //     fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
-                    //   }
-                    // }
-
-
-                    clearFruitQueue(sessionId);
-                    for (let i = 0; i < QUEUE_MAX; i++) {
-                        const food = allFoods[Math.floor(Math.random() * allFoods.length)];
-                        enqueueFruit(sessionId, food);
-                    }
-                }
-
-                // Target tracking
-                sessions[sessionId].initialTargetSent = false;
-                sessions[sessionId].currentTargetFoodId = null;
-                const SCREEN_WIDTH = 1024;
-                const SCREEN_HEIGHT = 1024;
-
-                // spawn mark (first spawn after 3s)
-                lastSpawnAt[sessionId] = Date.now();
-
-                // 50ms game loop; spawns happen every 3000ms
-                const TICK_INTERVAL = 50;
-                fruitIntervals[sessionId] = setInterval(() => {
-                    if (!sessions[sessionId]) {
-                        clearInterval(fruitIntervals[sessionId]);
-                        delete fruitIntervals[sessionId];
-                        return;
-                    }
-                    //const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
-                    const gameMode = sessionGameModes[sessionId] || 'Easy';
-                    const speed = MODE_CONFIG[gameMode].fruitSpeed;
-
-                    // spawn every 3s
-                    const now = Date.now();
-                    if (now - lastSpawnAt[sessionId] >= 3000) {
-                        lastSpawnAt[sessionId] = now;
-
-                        if (fruitQueues[sessionId] && fruitQueues[sessionId].length > 0) {
-                            const dequeued = fruitQueues[sessionId].shift();
-
-
-                            const nextFoodId = typeof dequeued === 'string' ? dequeued : dequeued.id;
-                            const targetFood = allFoods.find(f => f.id === nextFoodId);
-                            if (nextFoodId && targetFood) {
-                                if (!sessions[sessionId].initialTargetSent) {
-                                    sessions[sessionId].currentTargetFoodId = nextFoodId;
-                                    sessions[sessionId].initialTargetSent = true;
-                                    // Rebuild queue with weighted probability for the initial target
-                                    rebuildFruitQueue(sessionId, nextFoodId);
-                                    broadcast(sessionId, {
-                                        type: 'AAC_TARGET_FOOD',
-                                        payload: { targetFoodId: nextFoodId, targetFoodData: targetFood, effect: null },
-                                    });
-                                }
-
-                                const weightedFood = getWeightedRandomFood(allFoods, sessions[sessionId].currentTargetFoodId);
-                                // fruitQueues[sessionId].push(weightedFood); // keep objects
-
-                                // if (fruitQueues[sessionId].length > QUEUE_MAX) {
-                                //     fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
-                                //   }
-
-
-                                enqueueFruit(sessionId, weightedFood);
-
-                                foodInstanceCounter++;
-                                const instanceId = `food-${foodInstanceCounter}`;
-                                const hippoClients = [...sessions[sessionId]].filter(c => c.role === 'Hippo Player');
-
-                                hippoClients.forEach(client => {
-                                    // Assign a random angle based on the edge they selected
-                                    // Each hippo will spawn from their selected edge
-                                    const edge = client.edge || 'bottom';
-                                    const angleRange = getAngleRangeForEdge(edge);
-                                    const angle = Math.random() * (angleRange.max - angleRange.min) + angleRange.min;
-
-                                    const vx = (Math.cos(angle) * speed) / SCREEN_WIDTH;
-                                    const vy = (Math.sin(angle) * speed) / SCREEN_HEIGHT;
-
-                                    activeFoods[sessionId].push({
-                                        instanceId: `${instanceId}-${client.userId}`,
-                                        foodId: nextFoodId,
-                                        x: 0.5,
-                                        y: 0.5,
-                                        vx,
-                                        vy,
-                                        effect: (nextFoodId === sessions[sessionId].currentTargetFoodId) ? sessions[sessionId].currentTargetEffect : null,
-                                    });
-                                });
-
-                                // Broadcast the new food state to all clients in the session
-                                broadcast(sessionId, {
-                                    type: 'FOOD_STATE_UPDATE',
-                                    payload: { foods: activeFoods[sessionId] }
-                                });
-
-                                //console.log('[WSS] Spawned', nextFoodId, 'queueLen=', fruitQueues[sessionId].length);
-                            } else {
-                                console.warn('[WSS] Unknown food in queue, skipping spawn:', dequeued);
-                            }
-                        }
-                    }
-
-                    // physics tick @ 50ms
-                    const timeStep = TICK_INTERVAL / 1000; // convert to seconds
-                    activeFoods[sessionId].forEach(food => {
-                        food.x += food.vx * timeStep;
-                        food.y += food.vy * timeStep;
-                    });
-
-                    // broadcast motion
-                    broadcast(sessionId, {
-                        type: 'FOOD_STATE_UPDATE',
-                        payload: { foods: activeFoods[sessionId] }
-                    });
-
-                    // cull off-screen
-                    const BOUNDARY_BUFFER = 100;
-                    activeFoods[sessionId] = activeFoods[sessionId].filter(food =>
-                        food.x > -BOUNDARY_BUFFER &&
-                        food.x < 1024 + BOUNDARY_BUFFER &&
-                        food.y > -BOUNDARY_BUFFER &&
-                        food.y < 1024 + BOUNDARY_BUFFER
-                    );
-                }, TICK_INTERVAL);
-
-                // Start idle check timer for AAC users
-                aacLastActivityTime[sessionId] = Date.now();
-                const IDLE_CHECK_INTERVAL = 1000; // Check every second
-                const IDLE_THRESHOLD = 15000; // 15 seconds
-
-                idleCheckIntervals[sessionId] = setInterval(() => {
-                    if (!sessions[sessionId]) {
-                        clearInterval(idleCheckIntervals[sessionId]);
-                        delete idleCheckIntervals[sessionId];
-                        return;
-                    }
-
-                    const now = Date.now();
-                    const timeSinceLastActivity = now - (aacLastActivityTime[sessionId] || now);
-
-                    // If AAC user has been idle for 15 seconds, send audio prompt
-                    if (timeSinceLastActivity >= IDLE_THRESHOLD) {
-                        broadcast(sessionId, {
-                            type: 'AAC_IDLE_PROMPT',
-                            payload: {
-                                audioPath: '/audio/idleMessage.mp3'
-                            }
-                        });
-                        // Reset the timer to avoid spamming the prompt
-                        aacLastActivityTime[sessionId] = now;
-                    }
-                }, IDLE_CHECK_INTERVAL);
+                startGame(sessionId, mode);
 
                 broadcast(sessionId, {
                     type: 'START_GAME_BROADCAST',
@@ -679,7 +514,7 @@ wss.on('connection', (ws) => {
             if (data.type === 'START_TIMER') {
                 const { sessionId } = data.payload;
                 //console.log(`[WSS] Starting timer for session ${sessionId}`);
-                logPlayerAction(sessionId, "None", "started timer");
+                logPlayerAction(sessionId, "None", "Timer Start");
                 let secondsLeft = 180;
                 //console.log('[WSS] SECONDSLEFT INIT:', secondsLeft); 
                 const interval = setInterval(() => {
@@ -689,9 +524,7 @@ wss.on('connection', (ws) => {
                         broadcast(sessionId, { type: 'GAME_OVER' });
 
                         clearInterval(fruitIntervals[sessionId]);
-
                         cleanupSession(sessionId);
-
 
                         delete fruitIntervals[sessionId];
                         delete fruitQueues[sessionId];
@@ -724,55 +557,7 @@ wss.on('connection', (ws) => {
                 const { sessionId, food, effect } = data.payload;
 
                 // Reset idle timer when AAC user selects a food
-                aacLastActivityTime[sessionId] = Date.now();
-
-                // logPlayerAction(sessionId, "None", "aac food selected", `food name: ${food.name}, food color: ${food.color}, effect: ${effect}`);
-                logPlayerAction(sessionId, "None", "aac food selected", { foodName: food.name, foodColor: food.color, effect: effect });
-                //console.log(`WSS Food selected in session ${sessionId}:`, food, effect);
-
-                const gameMode = sessionGameModes[sessionId] || 'Easy';
-                const finalEffect = MODE_CONFIG[gameMode].allowEffect ? effect : null;
-
-                if (IS_PROD) {
-                    await pool.query(
-                        `UPDATE game_statistics SET aac_food_counts = jsonb_set(
-              aac_food_counts,
-              '{${food.id}}',
-              (COALESCE(aac_food_counts->>'${food.id}', '0')::int + 1)::text::jsonb
-            ) WHERE id = 1`
-                    );
-
-                    if (finalEffect) {
-                        await pool.query(
-                            `UPDATE game_statistics SET aac_verb_counts = jsonb_set(
-                aac_verb_counts,
-                '{${finalEffect.id}}',
-                (COALESCE(aac_verb_counts->>'${finalEffect.id}', '0')::int + 1)::text::jsonb
-              ) WHERE id = 1`
-                        );
-                    }
-                }
-
-                // Updates the session's current weighted target
-                sessions[sessionId].currentTargetFoodId = food.id;
-                sessions[sessionId].currentTargetEffect = finalEffect;
-
-                // Rebuild the entire queue with the new target food probability
-                // This ensures the 40% spawn rate kicks in immediately
-                if (fruitQueues[sessionId]) {
-                    rebuildFruitQueue(sessionId, food.id);
-                    enqueueFruit(sessionId, food, { front: true });
-                }
-
-                // Broadcasts the selected food as the official target
-                broadcast(sessionId, {
-                    type: 'AAC_TARGET_FOOD',
-                    payload: {
-                        targetFoodId: food.id,
-                        targetFoodData: food,
-                        effect: finalEffect
-                    }
-                });
+                await selectFood(sessionId, food, effect);
             }
 
             // When a player eats a target food with an effect, broadcast it to the session
@@ -784,16 +569,6 @@ wss.on('connection', (ws) => {
                 });
             }
 
-            // Defines angle ranges in radians
-            function getAngleRangeForEdge(edge) {
-                switch (edge) {
-                    case 'top': return { min: -Math.PI * 3 / 4, max: -Math.PI / 4 };     // Up: -135° to -45°
-                    case 'bottom': return { min: Math.PI / 4, max: Math.PI * 3 / 4 };    // Down: +45° to +135°
-                    case 'left': return { min: Math.PI * 7 / 8, max: Math.PI * 9 / 8 };    // Left: 157.5° to 202.5°
-                    case 'right': return { min: -Math.PI / 4, max: Math.PI / 4 };      // Right: -45° to +45°
-                    default: return { min: 0, max: 2 * Math.PI };
-                }
-            }
 
             // Notify all players in the session to remove the fruit
             if (data.type === 'FRUIT_EATEN') {
@@ -801,6 +576,7 @@ wss.on('connection', (ws) => {
                 if (activeFoods[sessionId]) {
                     activeFoods[sessionId] = activeFoods[sessionId].filter(f => f.instanceId !== instanceId);
                 }
+                logPlayerAction(sessionId, "presenter", `fruit eaten`, { instanceId });
                 broadcast(sessionId, {
                     type: 'REMOVE_FOOD',
                     payload: { instanceId }
@@ -1035,6 +811,342 @@ wss.on('connection', (ws) => {
     });
 });
 
+async function selectFood(sessionId, food, effect) {
+    aacLastActivityTime[sessionId] = Date.now();
+
+    // logPlayerAction(sessionId, "None", "aac food selected", `food name: ${food.name}, food color: ${food.color}, effect: ${effect}`);
+    logPlayerAction(sessionId, "None", "aac food selected", { foodName: food.name, foodColor: food.color, effect: effect });
+    //console.log(`WSS Food selected in session ${sessionId}:`, food, effect);
+    const gameMode = sessionGameModes[sessionId] || 'Easy';
+    const finalEffect = MODE_CONFIG[gameMode].allowEffect ? effect : null;
+
+    if (IS_PROD) {
+        await pool.query(
+            `UPDATE game_statistics SET aac_food_counts = jsonb_set(
+              aac_food_counts,
+              '{${food.id}}',
+              (COALESCE(aac_food_counts->>'${food.id}', '0')::int + 1)::text::jsonb
+            ) WHERE id = 1`
+        );
+
+        if (finalEffect) {
+            await pool.query(
+                `UPDATE game_statistics SET aac_verb_counts = jsonb_set(
+                aac_verb_counts,
+                '{${finalEffect.id}}',
+                (COALESCE(aac_verb_counts->>'${finalEffect.id}', '0')::int + 1)::text::jsonb
+              ) WHERE id = 1`
+            );
+        }
+    }
+
+    // Updates the session's current weighted target
+    sessions[sessionId].currentTargetFoodId = food.id;
+    sessions[sessionId].currentTargetEffect = finalEffect;
+
+    // Rebuild the entire queue with the new target food probability
+    // This ensures the 40% spawn rate kicks in immediately
+    if (fruitQueues[sessionId]) {
+        rebuildFruitQueue(sessionId, food.id);
+        enqueueFruit(sessionId, food, { front: true });
+    }
+
+    // Broadcasts the selected food as the official target
+    broadcast(sessionId, {
+        type: 'AAC_TARGET_FOOD',
+        payload: {
+            targetFoodId: food.id,
+            targetFoodData: food,
+            effect: finalEffect
+        }
+    });
+}
+
+function createNewSession() {
+    let sessionId;
+    if (!IS_PROD) {
+        let sessionsData = { sessions: {} };
+
+        try {
+            if (fs.existsSync(sessionFilePath)) {
+                sessionsData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
+            }
+        } catch (e) {
+            console.error('Error reading session file:', e);
+        }
+        sessionId = generateUniqueSessionId(Object.keys(sessionsData.sessions));
+        sessionsData.sessions[sessionId] = [];
+        fs.writeFileSync(sessionFilePath, JSON.stringify(sessionsData, null, 2), 'utf-8');
+    } else {
+        // If in production, insert into the database
+        // while (true) {
+        //     sessionId = generateSessionId();
+        //     try {
+        //         await pool.query('INSERT INTO sessions (session_id) VALUES ($1)', [sessionId]);
+        //         await pool.query('UPDATE game_statistics SET total_sessions_played = total_sessions_played + 1, last_updated = NOW() WHERE id = 1');
+        //         break;
+        //     } catch (err) {
+        //         console.error('Error creating session:', err);
+        //     }
+        // }
+    }
+    // Create JSON file for this session
+    const logsDir = path.join(__dirname, "logs");
+    if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir);
+    }
+    const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
+    if (!fs.existsSync(logFilePath)) {
+        fs.writeFileSync(logFilePath, JSON.stringify({ actions: [], heartbeats: [] }));
+
+    }
+
+    sessions[sessionId] = new Set();
+    sessions[sessionId].statsLogged = false;
+    sessions[sessionId].filePath = logFilePath;
+    sessionLogDocument[sessionId] = { actions: [], heartbeats: [] };
+    sessionLogDocument[sessionId].session_created = new Date().toISOString();
+    sessionLogDocument[sessionId].last_updated = new Date().toISOString();
+    sessionLogDocument[sessionId].total_actions = 0;
+    sessionLogDocument[sessionId].total_time = 0;
+    return sessionId;
+}
+
+function validateSession(gameCode) {
+    let isValid = false;
+
+    let sessionsData = { sessions: {} };
+    if (!IS_PROD) {
+        // If local development, read from the session file
+        try {
+            if (fs.existsSync(sessionFilePath)) {
+                sessionsData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
+            }
+        } catch (e) {
+            console.error('Error reading session file:', e);
+        }
+        isValid = Object.hasOwn(sessionsData.sessions, gameCode);
+    } else {
+        // If in production, check the database
+        // try {
+        //     const result = await pool.query('SELECT EXISTS (SELECT 1 FROM sessions WHERE session_id = $1)', [gameCode]);
+        //     isValid = result.rows[0].exists;
+        // } catch (err) {
+        //     console.error('Error validating session:', err);
+        // }
+    }
+    return isValid;
+}
+
+function startGame(sessionId, mode) {
+    if (IS_PROD && sessions[sessionId]) {
+        //         if (!sessions[sessionId].statsLogged) {
+        //             try {
+        //                 await pool.query(
+        //                     "DELETE FROM players WHERE session_id = $1 AND role = 'Presenter'",
+        //                     [sessionId]
+        //                 );
+        //                 await pool.query(
+        //                     `UPDATE game_statistics SET mode_counts = jsonb_set(
+        //     mode_counts,
+        //     '{${mode}}',
+        //     (COALESCE(mode_counts->>'${mode}', '0')::int + 1)::text::jsonb
+        //   ) WHERE id = 1`
+        //                 );
+        //                 let hippoCount = 0;
+        //                 let aacCount = 0;
+        //                 for (const client of sessions[sessionId]) {
+        //                     if (client.role === 'Hippo Player') {
+        //                         hippoCount++;
+        //                     } else if (client.role === 'AAC User') {
+        //                         aacCount++;
+        //                     }
+        //                 }
+        //                 if (hippoCount > 0 || aacCount > 0) {
+        //                     await pool.query(
+        //                         `UPDATE game_statistics SET 
+        //         total_hippo_players = total_hippo_players + $1, 
+        //         total_aac_users = total_aac_users + $2,
+        //         last_updated = NOW()
+        //       WHERE id = 1`,
+        //                         [hippoCount, aacCount]
+        //                     );
+        //                 }
+        //                 sessions[sessionId].statsLogged = true;
+        //             } catch (err) {
+        //                 console.error('[WSS] Error cleaning up presenter role:', err);
+        //             }
+        //         }
+    }
+
+    if (sessions[sessionId]) {
+        sessions[sessionId].gameStarted = true;
+    }
+
+    logPlayerAction(sessionId, "None", "GAME_START", { mode });
+
+    // Store mode and reset per-session state
+    sessionGameModes[sessionId] = mode;
+    activeFoods[sessionId] = [];
+
+    // Seed queue with objects
+    if (!fruitQueues[sessionId]) {
+        // const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
+        // fruitQueues[sessionId] = [];
+        // for (let i = 0; i < 10; i++) {
+        //   const food = allFoods[Math.floor(Math.random() * allFoods.length)];
+        //   fruitQueues[sessionId].push(food);
+        //   if (fruitQueues[sessionId].length > QUEUE_MAX) {
+        //     fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
+        //   }
+        // }
+        clearFruitQueue(sessionId);
+        for (let i = 0; i < QUEUE_MAX; i++) {
+            const food = allFoods[Math.floor(Math.random() * allFoods.length)];
+            enqueueFruit(sessionId, food);
+        }
+    }
+
+    // Target tracking
+    sessions[sessionId].initialTargetSent = false;
+    sessions[sessionId].currentTargetFoodId = null;
+    const SCREEN_WIDTH = 1024;
+    const SCREEN_HEIGHT = 1024;
+
+    // spawn mark (first spawn after 3s)
+    lastSpawnAt[sessionId] = Date.now();
+
+    // 50ms game loop; spawns happen every 3000ms
+    const TICK_INTERVAL = 50;
+    fruitIntervals[sessionId] = setInterval(() => {
+        if (!sessions[sessionId]) {
+            clearInterval(fruitIntervals[sessionId]);
+            delete fruitIntervals[sessionId];
+            return;
+        }
+        //const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
+        const gameMode = sessionGameModes[sessionId] || 'Easy';
+        const speed = MODE_CONFIG[gameMode].fruitSpeed;
+
+        // spawn every 3s
+        const now = Date.now();
+        if (now - lastSpawnAt[sessionId] >= 3000) {
+            lastSpawnAt[sessionId] = now;
+
+            if (fruitQueues[sessionId] && fruitQueues[sessionId].length > 0) {
+                const dequeued = fruitQueues[sessionId].shift();
+
+
+                const nextFoodId = typeof dequeued === 'string' ? dequeued : dequeued.id;
+                const targetFood = allFoods.find(f => f.id === nextFoodId);
+                if (nextFoodId && targetFood) {
+                    if (!sessions[sessionId].initialTargetSent) {
+                        sessions[sessionId].currentTargetFoodId = nextFoodId;
+                        sessions[sessionId].initialTargetSent = true;
+                        // Rebuild queue with weighted probability for the initial target
+                        rebuildFruitQueue(sessionId, nextFoodId);
+                        broadcast(sessionId, {
+                            type: 'AAC_TARGET_FOOD',
+                            payload: { targetFoodId: nextFoodId, targetFoodData: targetFood, effect: null },
+                        });
+                    }
+
+                    const weightedFood = getWeightedRandomFood(allFoods, sessions[sessionId].currentTargetFoodId);
+                    // fruitQueues[sessionId].push(weightedFood); // keep objects
+                    // if (fruitQueues[sessionId].length > QUEUE_MAX) {
+                    //     fruitQueues[sessionId] = fruitQueues[sessionId].slice(0, QUEUE_MAX);
+                    //   }
+                    enqueueFruit(sessionId, weightedFood);
+
+                    foodInstanceCounter++;
+                    const instanceId = `food-${foodInstanceCounter}`;
+                    const hippoClients = [...sessions[sessionId]].filter(c => c.role === 'Hippo Player');
+
+                    hippoClients.forEach(client => {
+                        // Assign a random angle based on the edge they selected
+                        // Each hippo will spawn from their selected edge
+                        const edge = client.edge || 'bottom';
+                        const angleRange = getAngleRangeForEdge(edge);
+                        const angle = Math.random() * (angleRange.max - angleRange.min) + angleRange.min;
+
+                        const vx = (Math.cos(angle) * speed) / SCREEN_WIDTH;
+                        const vy = (Math.sin(angle) * speed) / SCREEN_HEIGHT;
+
+                        activeFoods[sessionId].push({
+                            instanceId: `${instanceId}-${client.userId}`,
+                            foodId: nextFoodId,
+                            x: 0.5,
+                            y: 0.5,
+                            vx,
+                            vy,
+                            effect: (nextFoodId === sessions[sessionId].currentTargetFoodId) ? sessions[sessionId].currentTargetEffect : null,
+                        });
+                    });
+
+                    // Broadcast the new food state to all clients in the session
+                    broadcast(sessionId, {
+                        type: 'FOOD_STATE_UPDATE',
+                        payload: { foods: activeFoods[sessionId] }
+                    });
+
+                    //console.log('[WSS] Spawned', nextFoodId, 'queueLen=', fruitQueues[sessionId].length);
+                } else {
+                    console.warn('[WSS] Unknown food in queue, skipping spawn:', dequeued);
+                }
+            }
+        }
+
+        // physics tick @ 50ms
+        const timeStep = TICK_INTERVAL / 1000; // convert to seconds
+        activeFoods[sessionId].forEach(food => {
+            food.x += food.vx * timeStep;
+            food.y += food.vy * timeStep;
+        });
+
+        // broadcast motion
+        broadcast(sessionId, {
+            type: 'FOOD_STATE_UPDATE',
+            payload: { foods: activeFoods[sessionId] }
+        });
+
+        // cull off-screen
+        const BOUNDARY_BUFFER = 100;
+        activeFoods[sessionId] = activeFoods[sessionId].filter(food => food.x > -BOUNDARY_BUFFER &&
+            food.x < 1024 + BOUNDARY_BUFFER &&
+            food.y > -BOUNDARY_BUFFER &&
+            food.y < 1024 + BOUNDARY_BUFFER
+        );
+    }, TICK_INTERVAL);
+
+    // Start idle check timer for AAC users
+    aacLastActivityTime[sessionId] = Date.now();
+    const IDLE_CHECK_INTERVAL = 1000; // Check every second
+    const IDLE_THRESHOLD = 15000; // 15 seconds
+
+    idleCheckIntervals[sessionId] = setInterval(() => {
+        if (!sessions[sessionId]) {
+            clearInterval(idleCheckIntervals[sessionId]);
+            delete idleCheckIntervals[sessionId];
+            return;
+        }
+
+        const now = Date.now();
+        const timeSinceLastActivity = now - (aacLastActivityTime[sessionId] || now);
+
+        // If AAC user has been idle for 15 seconds, send audio prompt
+        if (timeSinceLastActivity >= IDLE_THRESHOLD) {
+            broadcast(sessionId, {
+                type: 'AAC_IDLE_PROMPT',
+                payload: {
+                    audioPath: '/audio/idleMessage.mp3'
+                }
+            });
+            // Reset the timer to avoid spamming the prompt
+            aacLastActivityTime[sessionId] = now;
+        }
+    }, IDLE_CHECK_INTERVAL);
+}
+
 /**
  * Helper function to broadcast a message to all clients in a specific session
  * @param {string} sessionId The ID of the session room
@@ -1164,4 +1276,14 @@ function sendError(ws, { code = 'SERVER_ERROR', message, ...meta }) {
             payload: { code, message, ...meta },
         }),
     );
+}
+// Defines angle ranges in radians
+function getAngleRangeForEdge(edge) {
+    switch (edge) {
+        case 'top': return { min: -Math.PI * 3 / 4, max: -Math.PI / 4 };     // Up: -135° to -45°
+        case 'bottom': return { min: Math.PI / 4, max: Math.PI * 3 / 4 };    // Down: +45° to +135°
+        case 'left': return { min: Math.PI * 7 / 8, max: Math.PI * 9 / 8 };    // Left: 157.5° to 202.5°
+        case 'right': return { min: -Math.PI / 4, max: Math.PI / 4 };      // Right: -45° to +45°
+        default: return { min: 0, max: 2 * Math.PI };
+    }
 }

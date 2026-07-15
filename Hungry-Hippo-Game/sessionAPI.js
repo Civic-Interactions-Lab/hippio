@@ -12,6 +12,14 @@ const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods
  */
 
 
+const firebaseConfig = {
+    apiKey: process.env.FIREBASEAPP_API_KEY,
+    authDomain: process.env.FIREBASEAPP_AUTH_DOMAIN,
+    projectId: process.env.FIREBASEAPP_PROJECT_ID,
+    storageBucket: process.env.FIREBASEAPP_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASEAPP_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASEAPP_APP_ID
+};
 
 // Helper function to append to CSV
 function logPlayerAction(sessionId, playerId, actionType, details) {
@@ -281,6 +289,7 @@ function getWeightedRandomFood(allFoods, targetId) {
         console.error('Food list is empty or undefined');
         return null;
     }
+
 
     // If no target is set, return random food
     if (!targetId) {
@@ -648,13 +657,13 @@ wss.on('connection', (ws) => {
                 }
                 // If in production, update the database with the color selection
                 if (IS_PROD && color) {
-                    await pool.query(
-                        `UPDATE game_statistics SET hippo_color_counts = jsonb_set(
-              hippo_color_counts,
-              '{${color}}',
-              (COALESCE(hippo_color_counts->>'${color}', '0')::int + 1)::text::jsonb
-            ) WHERE id = 1`
-                    );
+                    //         await pool.query(
+                    //             `UPDATE game_statistics SET hippo_color_counts = jsonb_set(
+                    //   hippo_color_counts,
+                    //   '{${color}}',
+                    //   (COALESCE(hippo_color_counts->>'${color}', '0')::int + 1)::text::jsonb
+                    // ) WHERE id = 1`
+                    //         );
                 }
             }
 
@@ -761,12 +770,12 @@ wss.on('connection', (ws) => {
                     delete sessions[sessionId];
 
                     if (IS_PROD) {
-                        try {
-                            await pool.query('DELETE FROM sessions WHERE session_id = $1', [sessionId]);
-                            console.log(`[WSS] Deleted timed-out session ${sessionId} from database.`);
-                        } catch (err) {
-                            console.error(`[WSS] Error deleting timed-out session ${sessionId} from DB:`, err);
-                        }
+                        // try {
+                        //     await pool.query('DELETE FROM sessions WHERE session_id = $1', [sessionId]);
+                        //     console.log(`[WSS] Deleted timed-out session ${sessionId} from database.`);
+                        // } catch (err) {
+                        //     console.error(`[WSS] Error deleting timed-out session ${sessionId} from DB:`, err);
+                        // }
                     }
                 } else {
                     console.log(`[WSS] Reconnect timer for ${sessionId} fired, but presenter has returned. Aborting closure.`);

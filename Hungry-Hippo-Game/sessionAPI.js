@@ -1,28 +1,51 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
 const { Pool } = require('pg');
 const assert = require('assert');
+// const { initializeApp } = require('firebase/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 const allFoods = require('./src/data/food.json').categories.flatMap(c => c.foods);
+
+const admin = require('firebase-admin');
+let serviceAccount;
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS.trim().startsWith('{')) {
+        serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    } else {
+        serviceAccount = require(path.resolve(__dirname, process.env.GOOGLE_APPLICATION_CREDENTIALS));
+    }
+    console.log("serviceAccount from ", process.env.GOOGLE_APPLICATION_CREDENTIALS, " is ", serviceAccount)
+} else {
+    console.error("GOOGLE_APPLICATION_CREDENTIALS not set")
+    process.exit(1)
+}
+
 
 /**
  * sessionAPI.js 
  */
 
 
-const firebaseConfig = {
-    apiKey: process.env.FIREBASEAPP_API_KEY,
-    authDomain: process.env.FIREBASEAPP_AUTH_DOMAIN,
-    projectId: process.env.FIREBASEAPP_PROJECT_ID,
-    storageBucket: process.env.FIREBASEAPP_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASEAPP_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASEAPP_APP_ID
-};
-
 // Helper function to append to CSV
 function logPlayerAction(sessionId, playerId, actionType, details) {
+    if (sessionId === undefined) sessionId = "undefined";
+    if (playerId === undefined) playerId = "undefined";
+    if (actionType === undefined) actionType = "undefined";
+
+    if (details !== undefined && details !== null && typeof details === 'object') {
+        for (let key in details) {
+            if (details[key] === undefined) {
+                details[key] = "undefined";
+            }
+        }
+    } else if (details === undefined) {
+        details = "undefined";
+    }
+
     // const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.csv");
     const timestamp = new Date().toISOString();
     // const row = `${timestamp},${playerId},${actionType},"${details.replace(/"/g, '""')}"\n`;
@@ -95,7 +118,8 @@ const sessionFilePath = path.resolve(__dirname, './src/data/sessionID.json');
 const scoresBySession = {};
 const fruitQueues = {};
 const fruitIntervals = {};
-
+let app = null;
+let db = null;
 // Target food will have 40% spawn chance, remaining 60% split among all other foods
 const TARGET_FOOD_PROBABILITY = 0.4; // 40% chance for target item
 
@@ -113,6 +137,7 @@ const sessionLogQueue = {};
 const sessionLogDocument = {};
 
 function writeSessionLogDocument(sessionId) {
+    console.assert(sessionId !== undefined, "[WSS] Session ID is undefined");
     // Get or create the session log file
     if (!sessionLogDocument[sessionId]) {
         try {
@@ -148,11 +173,20 @@ function writeSessionLogDocument(sessionId) {
     if (sessionLogDocument[sessionId].game_started) {
         sessionLogDocument[sessionId].total_time_playtime_seconds = (new Date() - new Date(sessionLogDocument[sessionId].game_started)) / 1000;
     }
+    if (IS_PROD) {
+        try {
+            const sessionRef = db.collection('sessions').doc(sessionId);
+            sessionRef.set(sessionLogDocument[sessionId], { merge: true });
+        } catch (err) {
+            console.error(`Error writing session ${sessionId} log file:`, err);
+        }
 
-    try {
-        fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify(sessionLogDocument[sessionId], null, 2));
-    } catch (err) {
-        console.error(`Error writing session ${sessionId} log file:`, err);
+    } else {
+        try {
+            fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify(sessionLogDocument[sessionId], null, 2));
+        } catch (err) {
+            console.error(`Error writing session ${sessionId} log file:`, err);
+        }
     }
 }
 
@@ -215,7 +249,7 @@ let pool;
 
 // Temporary Check before full migration 
 // error if not in production
-assert(!IS_PROD, "Error: Production environment transition to NoSQL not implemented yet... ");
+// assert(!IS_PROD, "Error: Production environment transition to NoSQL not implemented yet... ");
 
 if (IS_PROD) {
     pool = new Pool({
@@ -229,50 +263,6 @@ if (IS_PROD) {
 // Runs once to set up the database and tables
 const setupDatabase = async () => {
     if (!IS_PROD) return;
-    // const client = await pool.connect();
-    // try {
-    //     // Check if the tables exist, if not create them
-    //     await client.query(`
-    //   CREATE TABLE IF NOT EXISTS sessions (
-    //     session_id VARCHAR(5) PRIMARY KEY,
-    //     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    //   );
-    // `);
-    //     // Create a players table to store users in each session
-    //     await client.query(`
-    //   CREATE TABLE IF NOT EXISTS players (
-    //     id SERIAL PRIMARY KEY,
-    //     user_id VARCHAR(255) NOT NULL,
-    //     session_id VARCHAR(5) NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    //     role VARCHAR(25),
-    //     UNIQUE(session_id, user_id)
-    //   );
-    // `);
-    //     // Create a table to store session data
-    //     await client.query(`
-    //   CREATE TABLE IF NOT EXISTS game_statistics (
-    //     id INT PRIMARY KEY DEFAULT 1,
-    //     total_sessions_played INT DEFAULT 0,
-    //     total_hippo_players INT DEFAULT 0,
-    //     total_aac_users INT DEFAULT 0,
-    //     hippo_color_counts JSONB DEFAULT '{}'::jsonb,
-    //     mode_counts JSONB DEFAULT '{}'::jsonb,
-    //     total_correct_eats INT DEFAULT 0,
-    //     total_wrong_eats INT DEFAULT 0,
-    //     aac_food_counts JSONB DEFAULT '{}'::jsonb,
-    //     aac_verb_counts JSONB DEFAULT '{}'::jsonb,
-    //     last_updated TIMESTAMPTZ
-    //   );
-    // `);
-    //     await client.query(`
-    //   INSERT INTO game_statistics (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
-    // `);
-    //     console.log('Database setup complete');
-    // } catch (err) {
-    //     console.error('Error setting up database:', err);
-    // } finally {
-    //     client.release();
-    // }
 }
 
 // Function to get a weighted random food item from the list
@@ -320,7 +310,9 @@ function handlePlayerJoin(ws, data) {
     ws.userId = userId;
     ws.role = role;
     ws.color = color;
-
+    if (ws.color === undefined) {
+        ws.color = "no-color";
+    }
     if (!sessions[sessionId]) {
         sendError(ws, {
             code: 'SESSION_NOT_FOUND',
@@ -387,18 +379,21 @@ setInterval(async () => {
     for (const sessionId of Object.keys(sessions)) {
         if (!sessionLogQueue[sessionId]) continue;
 
-        let movementsSum = { x: 0, y: 0 };
-        let movementTicks = 0;
+        let playerMovements = {};
 
         const events = sessionLogQueue[sessionId].splice(0, sessionLogQueue[sessionId].length);
 
         events.forEach(event => {
             if (event.actionType === 'moved') {
+                const playerId = event.playerId || 'unknown';
+                if (!playerMovements[playerId]) {
+                    playerMovements[playerId] = { totalX: 0, totalY: 0, count: 0 };
+                }
                 // The x and y values are now inside the details object
                 const details = event.details || {};
-                movementsSum.x += details.x || 0;
-                movementsSum.y += details.y || 0;
-                movementTicks++;
+                playerMovements[playerId].totalX += details.x || 0;
+                playerMovements[playerId].totalY += details.y || 0;
+                playerMovements[playerId].count++;
             }
         });
 
@@ -439,7 +434,7 @@ setInterval(async () => {
             }
             sessionLogDocument[sessionId].heartbeats.push({
                 timestamp: new Date().toISOString(),
-                playerMovements: { totalX: movementsSum.x, totalY: movementsSum.y, count: movementTicks },
+                playerMovements: playerMovements,
                 fruitsInQuadrants: quadrants
             });
 
@@ -455,6 +450,22 @@ setInterval(async () => {
 // Websocket Server
 wss.on('connection', (ws) => {
     console.log('WSS Client connected');
+
+    if (!app && admin.getApps().length === 0) {
+        app = admin.initializeApp({
+            credential: admin.cert(serviceAccount)
+        });
+        db = getFirestore(app);
+        console.log("Firebase initialized with service account from ", process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    } else if (!db) {
+        app = admin.getApp();
+        db = getFirestore(app);
+    }
+
+    if (!db && IS_PROD) {
+        console.error("Firebase not initialized");
+        process.exit(1);
+    }
 
     ws.on('message', async (message) => {
         try {
@@ -477,7 +488,7 @@ wss.on('connection', (ws) => {
             if (data.type === 'CREATE_SESSION') {
 
                 // If local development, skip database operations
-                let sessionId = createNewSession();
+                let sessionId = await createNewSession();
 
                 ws.send(JSON.stringify({
                     type: 'SESSION_CREATED',
@@ -874,7 +885,7 @@ async function selectFood(sessionId, food, effect) {
     });
 }
 
-function createNewSession() {
+async function createNewSession() {
     let sessionId;
     if (!IS_PROD) {
         let sessionsData = { sessions: {} };
@@ -886,21 +897,21 @@ function createNewSession() {
         } catch (e) {
             console.error('Error reading session file:', e);
         }
-        sessionId = generateUniqueSessionId(Object.keys(sessionsData.sessions));
-        sessionsData.sessions[sessionId] = [];
+        sessionId = generateUniqueSessionId(Object.keys(sessions));
+        sessions[sessionId] = [];
         fs.writeFileSync(sessionFilePath, JSON.stringify(sessionsData, null, 2), 'utf-8');
     } else {
-        // If in production, insert into the database
-        // while (true) {
-        //     sessionId = generateSessionId();
-        //     try {
-        //         await pool.query('INSERT INTO sessions (session_id) VALUES ($1)', [sessionId]);
-        //         await pool.query('UPDATE game_statistics SET total_sessions_played = total_sessions_played + 1, last_updated = NOW() WHERE id = 1');
-        //         break;
-        //     } catch (err) {
-        //         console.error('Error creating session:', err);
-        //     }
-        // }
+        // In production, we generate a session ID (Postgres insertion was removed/commented)
+        // Read all sessionIDs from Firebase and create a string of keys
+        try {
+            const sessionsSnapshot = await db.collection('sessions').get();
+            const existingSessionIds = sessionsSnapshot.docs.map(doc => doc.id);
+            sessionId = generateUniqueSessionId(existingSessionIds);
+        } catch (err) {
+            console.error('Error fetching sessions from Firebase:', err);
+            // Fallback to purely local unique ID generation if Firebase fails
+            sessionId = generateUniqueSessionId(Object.keys(sessions));
+        }
     }
     // Create JSON file for this session
     const logsDir = path.join(__dirname, "logs");

@@ -27,7 +27,7 @@
         "testc": "vitest --coverage",
         "dev-nolog": "vite --config vite/config.dev.mjs",
         "build-nolog": "vite build --config vite/config.prod.mjs",
-        "api": "NODE_ENV=production node sessionAPI.js"
+        "api": "node sessionAPI.js"
     },
     "dependencies": {
         "cors": "^2.8.5",

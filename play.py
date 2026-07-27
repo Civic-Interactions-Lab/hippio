@@ -116,9 +116,9 @@ def main():
             print("Starting the game from the Host interface...")
             page_host.bring_to_front()
             # time.sleep(1) # Allow all players to appear in the lobby correctly before clicking start
-            # page_host.locator("button", has_text="Start Game").click()
+            page_host.locator("button", has_text="Start Game").click()
             
-            # print("Game started! Press Ctrl+C in this terminal to kill the servers and browsers.")
+            print("Game started! Press Ctrl+C in this terminal to kill the servers and browsers.")
             # # Block the script from exiting until killed
             while True:
                 time.sleep(1)

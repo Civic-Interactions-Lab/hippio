@@ -18,7 +18,7 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     } else {
         serviceAccount = require(path.resolve(__dirname, process.env.GOOGLE_APPLICATION_CREDENTIALS));
     }
-    console.log("serviceAccount from ", process.env.GOOGLE_APPLICATION_CREDENTIALS, " is ", serviceAccount)
+    // console.log("serviceAccount from ", process.env.GOOGLE_APPLICATION_CREDENTIALS, " is ", serviceAccount)
 } else {
     console.error("GOOGLE_APPLICATION_CREDENTIALS not set")
     process.exit(1)
@@ -29,8 +29,6 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
  * sessionAPI.js 
  */
 
-
-// Helper function to append to CSV
 function logPlayerAction(sessionId, playerId, actionType, details) {
     if (sessionId === undefined) sessionId = "undefined";
     if (playerId === undefined) playerId = "undefined";
@@ -138,11 +136,18 @@ const sessionLogDocument = {};
 
 function writeSessionLogDocument(sessionId) {
     console.assert(sessionId !== undefined, "[WSS] Session ID is undefined");
+
+    if (!sessionLogDocument[sessionId]) {
+        throw new Error("Session for " + sessionId + " not found in sessionLogDocument.");
+    }
+
+    let session = sessions[sessionId];
+    // console.log("Writing session log document: " + document_name);
     // Get or create the session log file
     if (!sessionLogDocument[sessionId]) {
         try {
-            const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
-            sessions[sessionId].filePath = logFilePath;
+            // const logFilePath = path.join(__dirname, "logs", session.document_name);
+            // sessions[sessionId].filePath = logFilePath;
             // Create directory if it doesn't exist
             const logsDir = path.join(__dirname, "logs");
             if (!fs.existsSync(logsDir)) {
@@ -150,18 +155,18 @@ function writeSessionLogDocument(sessionId) {
             }
 
             // Initialize log file with empty arrays
-            if (!fs.existsSync(logFilePath)) {
-                fs.writeFileSync(logFilePath, JSON.stringify({ actions: [], heartbeats: [] }));
+            if (!fs.existsSync(session.filePath)) {
+                fs.writeFileSync(session.filePath, JSON.stringify({ actions: [], heartbeats: [] }));
             }
 
-            const fileContent = JSON.parse(fs.readFileSync(logFilePath, "utf-8"));
+            const fileContent = JSON.parse(fs.readFileSync(session.document_name, "utf-8"));
             sessionLogDocument[sessionId] = {
                 filePath: logFilePath,
                 actions: fileContent.actions || [],
                 heartbeats: fileContent.heartbeats || [],
             };
         } catch (err) {
-            console.error(`Error initializing session ${sessionId} log file:`, err);
+            console.error(`Error initializing session ${session.document_name} log file:`, err);
             return;
         }
     }
@@ -175,17 +180,17 @@ function writeSessionLogDocument(sessionId) {
     }
     if (IS_PROD) {
         try {
-            const sessionRef = db.collection('sessions').doc(sessionId);
+            const sessionRef = db.collection('sessions').doc(document_name);
             sessionRef.set(sessionLogDocument[sessionId], { merge: true });
         } catch (err) {
-            console.error(`Error writing session ${sessionId} log file:`, err);
+            console.error(`Error writing session ${document_name} log file:`, err);
         }
 
     } else {
         try {
             fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify(sessionLogDocument[sessionId], null, 2));
         } catch (err) {
-            console.error(`Error writing session ${sessionId} log file:`, err);
+            console.error(`Error writing session ${document_name} log file:`, err);
         }
     }
 }
@@ -319,6 +324,8 @@ function handlePlayerJoin(ws, data) {
             message: `Session ${sessionId} not found`,
             sessionId,
         });
+        console.log(`[WSS] Error: Session ${sessionId} not found`);
+        // logSessionError(sessionId, data, { error: "Session not found" });
         return;
     }
 
@@ -374,30 +381,42 @@ function handlePlayerJoin(ws, data) {
     });
 }
 
+const HEARTBEAT_PERIOD = 5000; // 5 seconds
+
 // Heartbeat to log sessions to NoSQL every 5 seconds 
 setInterval(async () => {
     for (const sessionId of Object.keys(sessions)) {
         if (!sessionLogQueue[sessionId]) continue;
 
-        let playerMovements = {};
+        // let playerMovements = {};
 
-        const events = sessionLogQueue[sessionId].splice(0, sessionLogQueue[sessionId].length);
+        // const events = sessionLogQueue[sessionId].splice(0, sessionLogQueue[sessionId].length);
+        // let current_x = {};
+        // let current_y = {};
 
-        events.forEach(event => {
-            if (event.actionType === 'moved') {
-                const playerId = event.playerId || 'unknown';
-                if (!playerMovements[playerId]) {
-                    playerMovements[playerId] = { totalX: 0, totalY: 0, count: 0 };
-                }
-                // The x and y values are now inside the details object
-                const details = event.details || {};
-                playerMovements[playerId].totalX += details.x || 0;
-                playerMovements[playerId].totalY += details.y || 0;
-                playerMovements[playerId].count++;
-            }
-        });
+        // events.forEach(event => {
+        //     if (event.actionType === 'moved') {
+        //         const playerId = event.playerId || 'unknown';
+        //         if (!playerMovements[playerId]) {
+        //             playerMovements[playerId] = { totalX: 0, totalY: 0, count: 0 };
+        //         }
 
-        let quadrants = {
+        //         const details = event.details || {};
+
+        //         const newX = details.x || 0;
+        //         const newY = details.y || 0;
+        //         //If we have a current position, add the distance to the total distance
+        //         if (current_x[playerId] && current_y[playerId]) {
+        //             playerMovements[playerId].totalX += Math.abs(newX - current_x[playerId]);
+        //             playerMovements[playerId].totalY += Math.abs(newY - current_y[playerId]);
+        //         }
+        //         current_x[playerId] = newX;
+        //         current_y[playerId] = newY;
+        //         playerMovements[playerId].ticks++;
+        //     }
+        // });
+
+        let food_quadrants = {
             target: {},
             distractor: {}
         };
@@ -407,19 +426,21 @@ setInterval(async () => {
         if (activeFoods[sessionId]) {
             activeFoods[sessionId].forEach(food => {
                 // Derive hippo player id from food instanceId
+
                 const parts = food.instanceId.split('-');
                 const userId = parts.length > 2 ? parts.slice(2).join('-') : 'unknown';
 
                 // UserID defines the quadrant 
-                if (quadrants.target[userId] === undefined) {
-                    quadrants.target[userId] = 0;
-                    quadrants.distractor[userId] = 0;
+                if (food_quadrants.target[userId] === undefined) {
+                    food_quadrants.target[userId] = [];
+                    food_quadrants.distractor[userId] = [];
                 }
 
+                // add food object keys to the appropriate quadrant
                 if (food.id === currentTargetId) {
-                    quadrants.target[userId]++;
+                    food_quadrants.target[userId].push({ ...food });
                 } else {
-                    quadrants.distractor[userId]++;
+                    food_quadrants.distractor[userId].push({ ...food });
                 }
             });
         }
@@ -434,8 +455,8 @@ setInterval(async () => {
             }
             sessionLogDocument[sessionId].heartbeats.push({
                 timestamp: new Date().toISOString(),
-                playerMovements: playerMovements,
-                fruitsInQuadrants: quadrants
+                //playerMovements: playerMovements,
+                fruitsInQuadrants: food_quadrants
             });
 
 
@@ -444,7 +465,7 @@ setInterval(async () => {
             writeSessionLogDocument(sessionId);
         }
     }
-}, 5000);
+}, HEARTBEAT_PERIOD);
 
 
 // Websocket Server
@@ -456,7 +477,7 @@ wss.on('connection', (ws) => {
             credential: admin.cert(serviceAccount)
         });
         db = getFirestore(app);
-        console.log("Firebase initialized with service account from ", process.env.GOOGLE_APPLICATION_CREDENTIALS);
+        console.log("Firebase initialized with service account");
     } else if (!db) {
         app = admin.getApp();
         db = getFirestore(app);
@@ -535,10 +556,10 @@ wss.on('connection', (ws) => {
 
             if (data.type === 'START_TIMER') {
                 const { sessionId } = data.payload;
-                //console.log(`[WSS] Starting timer for session ${sessionId}`);
-                logPlayerAction(sessionId, "None", "Timer Start");
+                console.log(`[WSS] Starting timer for session ${sessionId}`);
+                // logPlayerAction(sessionId, "None", "Timer Start");
                 let secondsLeft = 180;
-                //console.log('[WSS] SECONDSLEFT INIT:', secondsLeft); 
+                console.log('[WSS] SECONDSLEFT INIT:', secondsLeft);
                 const interval = setInterval(() => {
                     if (secondsLeft <= 0) {
                         //console.log(`[WSS] Timer ended for session ${sessionId}`);
@@ -888,18 +909,20 @@ async function selectFood(sessionId, food, effect) {
 async function createNewSession() {
     let sessionId;
     if (!IS_PROD) {
-        let sessionsData = { sessions: {} };
+        // let sessionsData = { sessions: {} };
 
-        try {
-            if (fs.existsSync(sessionFilePath)) {
-                sessionsData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
-            }
-        } catch (e) {
-            console.error('Error reading session file:', e);
-        }
+        // try {
+        //     if (fs.existsSync(sessionFilePath)) {
+        //         sessionsData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
+        //     }
+        // } catch (e) {
+        //     console.error('Error reading session file:', e);
+        // }
         sessionId = generateUniqueSessionId(Object.keys(sessions));
-        sessions[sessionId] = [];
-        fs.writeFileSync(sessionFilePath, JSON.stringify(sessionsData, null, 2), 'utf-8');
+        if (!sessions[sessionId]) {
+            sessions[sessionId] = new Set();
+        }
+        // fs.writeFileSync(sessionFilePath, JSON.stringify(sessionsData, null, 2), 'utf-8');
     } else {
         // In production, we generate a session ID (Postgres insertion was removed/commented)
         // Read all sessionIDs from Firebase and create a string of keys
@@ -913,25 +936,30 @@ async function createNewSession() {
             sessionId = generateUniqueSessionId(Object.keys(sessions));
         }
     }
-    // Create JSON file for this session
-    const logsDir = path.join(__dirname, "logs");
-    if (!fs.existsSync(logsDir)) {
-        fs.mkdirSync(logsDir);
-    }
-    const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
-    if (!fs.existsSync(logFilePath)) {
-        fs.writeFileSync(logFilePath, JSON.stringify({ actions: [], heartbeats: [] }));
 
-    }
+    // const logFilePath = path.join(__dirname, "logs", sessionId + "_player_actions_log.json");
+    // if (!fs.existsSync(logFilePath)) {
+    //     fs.writeFileSync(logFilePath, JSON.stringify({ actions: [], heartbeats: [] }));
 
-    sessions[sessionId] = new Set();
+    // }
+
+
     sessions[sessionId].statsLogged = false;
-    sessions[sessionId].filePath = logFilePath;
+    sessions[sessionId].document_name = new Date().toISOString().split(`T`)[0] + "_" + sessionId;
+    sessions[sessionId].filePath = path.join(__dirname, "logs", sessions[sessionId].document_name + ".json");
     sessionLogDocument[sessionId] = { actions: [], heartbeats: [] };
     sessionLogDocument[sessionId].session_created = new Date().toISOString();
     sessionLogDocument[sessionId].last_updated = new Date().toISOString();
     sessionLogDocument[sessionId].total_actions = 0;
     sessionLogDocument[sessionId].total_time = 0;
+    // if (!IS_PROD) {
+    //     // Create JSON file for this session
+    //     const logsDir = path.join(__dirname, "logs");
+    //     if (!fs.existsSync(logsDir)) {
+    //         fs.mkdirSync(logsDir);
+    //     }
+    //     fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify({ actions: [], heartbeats: [] }));
+    // }
     return sessionId;
 }
 
@@ -1006,7 +1034,7 @@ function startGame(sessionId, mode) {
         sessions[sessionId].gameStarted = true;
     }
 
-    logPlayerAction(sessionId, "None", "GAME_START", { mode });
+    logPlayerAction(sessionId, "None", "game starting", { mode });
 
     // Store mode and reset per-session state
     sessionGameModes[sessionId] = mode;

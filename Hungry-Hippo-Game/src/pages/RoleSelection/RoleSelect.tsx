@@ -5,6 +5,7 @@ import { useWebSocket } from '../../contexts/WebSocketContext';
 import { HIPPO_COLORS } from '../../config/hippoColors';  
 import { EventBus } from '../../game/EventBus';
 import { updatePlayerInSessionStorage } from '../../components/Storage/Storage';
+import { getDeviceType } from '../../utils/deviceUtils';
 
 /**
  * RoleSelect - React component for selecting a player's role in the game.
@@ -166,6 +167,7 @@ function RoleSelect() {
           sessionId,
           userId: username,
           role: 'pending',
+          deviceType: getDeviceType(),
         },
       });
       updatePlayerInSessionStorage(sessionId, { userId: username, role: 'pending' });
@@ -215,6 +217,7 @@ function RoleSelect() {
           userId: username,
           role,
           color: selectedColor,
+          deviceType: getDeviceType(),
         },
     });
 
@@ -285,7 +288,8 @@ function RoleSelect() {
           sessionId,
           userId: username,
           role: 'pending',
-          color: null
+          color: null,
+          deviceType: getDeviceType()
         },
       });
 

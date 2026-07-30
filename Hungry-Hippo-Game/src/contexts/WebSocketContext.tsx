@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { movementStore } from '../game/scenes/MovementStore';
 import { EventBus } from '../game/EventBus';
+import { movementStore } from '../game/scenes/MovementStore';
+import { getDeviceType } from '../utils/deviceUtils';
 
 interface IWebSocketContext {
   isConnected: boolean;
@@ -25,7 +26,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [gameMode, setGameMode] = useState<'Easy' | 'Medium' | 'Hard' | null>(null);
 
   useEffect(() => {
-    const WSS_URL = import.meta.env.VITE_WSS_URL || 'ws://localhost:4000';
+    const WSS_URL = import.meta.env.VITE_WSS_URL || `ws://${window.location.hostname}:4000`;
 
     const socket = new WebSocket(WSS_URL);
     ws.current = socket;
@@ -46,21 +47,22 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           const playersInSession = allSessions[urlSessionId];
 
           if (playersInSession && playersInSession.length > 0) {
-            
+
             const playerToRejoin = playersInSession.find((p: { userId: string; role: string; color?: string }) => p.userId === urlUserId);
 
             if (playerToRejoin) {
               console.log(`[WS_CONTEXT] Found previous player data. Attempting to rejoin as ${playerToRejoin.userId}`);
-              
+
               socket.send(
                 JSON.stringify({
-                  type: 'PLAYER_JOIN', 
+                  type: 'PLAYER_JOIN',
                   payload: {
                     sessionId: urlSessionId,
                     userId: playerToRejoin.userId,
                     role: playerToRejoin.role,
                     color: playerToRejoin.color,
-                    isReconnecting: true
+                    isReconnecting: true,
+                    deviceType: getDeviceType()
                   },
                 })
               );
@@ -93,7 +95,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       if (data.type === 'TIMER_UPDATE') {
-       // console.log(`[WS_CONTEXT] Timer update: ${data.secondsLeft} seconds left`);
+        // console.log(`[WS_CONTEXT] Timer update: ${data.secondsLeft} seconds left`);
         EventBus.emit('TIMER_UPDATE', data.secondsLeft);
 
         setLastMessage({
@@ -110,15 +112,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         EventBus.emit('launch-food', { foodKey, angle });  // 👈 Send to Phaser
         return;
       }
-      
+
       //update playermovement on socket
-     if (data.type === 'PLAYER_MOVE_BROADCAST') {
-       movementStore.notifyMove(data.payload);
-       return;
+      if (data.type === 'PLAYER_MOVE_BROADCAST') {
+        movementStore.notifyMove(data.payload);
+        return;
       }
 
       if (data.type === 'START_GAME_BROADCAST') {
-      //  console.log('[WS_CONTEXT] Game started!');
+        //  console.log('[WS_CONTEXT] Game started!');
         setGameStarted(true);
         if (data.payload?.mode) {
           setGameMode(data.payload.mode);
@@ -133,7 +135,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSessionId(data.payload.gameCode);
       }
 
-      if(data.type === 'SESSION_CREATED') {
+      if (data.type === 'SESSION_CREATED') {
         setSessionId(data.payload.sessionId);
       }
 

@@ -9,6 +9,7 @@ import styles from './PhaserPage.module.css';
 import { GameMode, MODE_CONFIG } from '../../config/gameModes';
 import { useNavigate } from 'react-router-dom';
 import { updatePlayerInSessionStorage } from '../../components/Storage/Storage';
+import { getDeviceType } from '../../utils/deviceUtils';
 
 /**
  * PhaserPage component.
@@ -101,7 +102,7 @@ const PhaserPage: React.FC = () => {
       } else {
         sendMessage({
           type: 'PLAYER_JOIN',
-          payload: { sessionId, userId, role }
+          payload: { sessionId, userId, role, deviceType: getDeviceType() }
         });
 
         if (color) {

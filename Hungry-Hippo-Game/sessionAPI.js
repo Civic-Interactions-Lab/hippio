@@ -310,11 +310,12 @@ function getWeightedRandomFood(allFoods, targetId) {
 }
 
 function handlePlayerJoin(ws, data) {
-    const { sessionId, userId, role, color } = data.payload;
+    const { sessionId, userId, role, color, deviceType } = data.payload;
     ws.sessionId = sessionId;
     ws.userId = userId;
     ws.role = role;
     ws.color = color;
+    ws.deviceType = deviceType;
     if (ws.color === undefined) {
         ws.color = "no-color";
     }
@@ -331,8 +332,8 @@ function handlePlayerJoin(ws, data) {
 
     sessions[sessionId].add(ws);
     console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
-
-    logPlayerAction(sessionId, userId, "joined session", { role, color });
+    sessionLogDocument[sessionId].users[userId] = { role, color, deviceType };
+    logPlayerAction(sessionId, userId, "joined session", { role, color, deviceType });
 
     if (!scoresBySession[sessionId]) scoresBySession[sessionId] = {};
     if (role === 'Hippo Player' && !scoresBySession[sessionId][userId]) {
@@ -353,7 +354,7 @@ function handlePlayerJoin(ws, data) {
     broadcast(sessionId, {
         type: 'PLAYER_JOINED_BROADCAST',
         payload: {
-            userId, role, color
+            userId, role, color, deviceType
         }
     });
     // Collect all users in the session
@@ -362,7 +363,8 @@ function handlePlayerJoin(ws, data) {
         .map(client => ({
             userId: client.userId,
             role: client.role,
-            color: client.color
+            color: client.color,
+            deviceType: client.deviceType
         }));
 
     // Send full user list
@@ -667,16 +669,23 @@ wss.on('connection', (ws) => {
             // When a player selects a color, broadcast it to the session
             if (data.type === 'SELECT_COLOR') {
                 const { sessionId, userId, color } = data.payload;
-                logPlayerAction(sessionId, userId, "color selected", { color });
+
+                let role = "Unknown";
                 if (sessions[sessionId]) {
                     // Find the client who sent the message and assign them the color
                     for (const client of sessions[sessionId]) {
                         if (client.userId === userId) {
                             client.color = color;
+                            role = client.role || "Unknown";
                             break;
                         }
                     }
 
+                }
+
+                logPlayerAction(sessionId, userId, "color selected", { color, role });
+
+                if (sessions[sessionId]) {
                     // Collect all taken colors in the session
                     const takenColors = Array.from(sessions[sessionId])
                         .map(client => client.color)
@@ -947,7 +956,7 @@ async function createNewSession() {
     sessions[sessionId].statsLogged = false;
     sessions[sessionId].document_name = new Date().toISOString().split(`T`)[0] + "_" + sessionId;
     sessions[sessionId].filePath = path.join(__dirname, "logs", sessions[sessionId].document_name + ".json");
-    sessionLogDocument[sessionId] = { actions: [], heartbeats: [] };
+    sessionLogDocument[sessionId] = { actions: [], heartbeats: [], users: {} };
     sessionLogDocument[sessionId].session_created = new Date().toISOString();
     sessionLogDocument[sessionId].last_updated = new Date().toISOString();
     sessionLogDocument[sessionId].total_actions = 0;
@@ -958,7 +967,7 @@ async function createNewSession() {
     //     if (!fs.existsSync(logsDir)) {
     //         fs.mkdirSync(logsDir);
     //     }
-    //     fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify({ actions: [], heartbeats: [] }));
+    //     fs.writeFileSync(sessions[sessionId].filePath, JSON.stringify({ actions: [], heartbeats: [], users: {} }));
     // }
     return sessionId;
 }
@@ -1034,8 +1043,6 @@ function startGame(sessionId, mode) {
         sessions[sessionId].gameStarted = true;
     }
 
-    logPlayerAction(sessionId, "None", "game starting", { mode });
-
     // Store mode and reset per-session state
     sessionGameModes[sessionId] = mode;
     activeFoods[sessionId] = [];
@@ -1057,6 +1064,17 @@ function startGame(sessionId, mode) {
             enqueueFruit(sessionId, food);
         }
     }
+
+    let initialTargetId = null;
+    if (fruitQueues[sessionId] && fruitQueues[sessionId].length > 0) {
+        const firstFruit = fruitQueues[sessionId][0];
+        initialTargetId = typeof firstFruit === 'string' ? firstFruit : firstFruit.id;
+    }
+
+    logPlayerAction(sessionId, "None", "game starting", {
+        mode,
+        initialTarget: initialTargetId
+    });
 
     // Target tracking
     sessions[sessionId].initialTargetSent = false;

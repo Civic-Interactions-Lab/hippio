@@ -4,6 +4,7 @@ import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { HIPPO_COLORS } from '../../config/hippoColors';  
+import { getDeviceType } from '../../utils/deviceUtils';
 
 /**
  * Presenter - React component that displays the session ID to the host after creating a new game.
@@ -152,7 +153,7 @@ function Presenter() {
     if (sessionId && isConnected) {
       sendMessage({
         type: 'PLAYER_JOIN',
-        payload: { sessionId, userId: presenterId, role: 'Presenter' }
+        payload: { sessionId, userId: presenterId, role: 'Presenter', deviceType: getDeviceType() }
       });
     }
   }, [sessionId, isConnected, sendMessage]);

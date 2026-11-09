@@ -40,6 +40,8 @@ const wss = new WebSocket.Server({ noServer: true });
 
 const sessions = {};
 const reconnectionTimers = {};
+const emptySessionTimers = {};
+const EMPTY_SESSION_GRACE_MS = 30000; // keep an empty session briefly so players can rejoin after a refresh
 const sessionFilePath = path.resolve(__dirname, './src/data/sessionID.json');
 const scoresBySession = {};
 const fruitQueues = {};
@@ -327,6 +329,11 @@ wss.on('connection', (ws) => {
         }
 
         sessions[sessionId].add(ws);
+                // Someone rejoined, so cancel any pending empty-session cleanup
+                if (emptySessionTimers[sessionId]) {
+                  clearTimeout(emptySessionTimers[sessionId]);
+                  delete emptySessionTimers[sessionId];
+                }
         console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
 
         logPlayerAction(sessionId, userId, "joined session", `role: ${role}, color: ${color}`);
@@ -860,7 +867,10 @@ wss.on('connection', (ws) => {
     }
   });
 
-  ws.on('close', async () => {
+            ws.on('close', () => handleClientClose(ws));
+          });
+          
+          async function handleClientClose(ws) {
     const { sessionId, userId } = ws;
     if (!sessionId || !userId) {
       console.log('WSS Client disconnected without session or user ID');
@@ -886,12 +896,6 @@ wss.on('connection', (ws) => {
       } catch (err) {
         console.error('Error removing player from database:', err);
       }
-    }
-
-    // Remove the session from the sessions object if it is empty
-    if (sessions[sessionId] && sessions[sessionId].size === 0) {
-      cleanupSession(sessionId);
-      delete sessions[sessionId];
     }
 
     // If the role is Presenter and the game hasn't started, broadcast SESSION_CLOSED
@@ -954,14 +958,28 @@ wss.on('connection', (ws) => {
       });
       console.log(`WSS Player left, broadcasting updated USERS_LIST_UPDATE to ${sessionId}:`, usersInSession);
     }
+            // If the last player just left, clean up the session after a grace period
+            if (sessions[sessionId] && sessions[sessionId].size === 0) {
+              scheduleEmptySessionCleanup(sessionId);
+            }
+          }
 
-    // Remove the session from the sessions object if it is empty
-    // if (sessions[sessionId].size === 0) {
-    //   delete sessions[sessionId];
-    // }
-
-  });
-});
+          /**
+          * Removes an empty session and all of its timers after EMPTY_SESSION_GRACE_MS,
+          * unless a player rejoins first.
+          * @param {string} sessionId The ID of the empty session
+          */
+          function scheduleEmptySessionCleanup(sessionId) {
+            if (emptySessionTimers[sessionId]) return;
+            emptySessionTimers[sessionId] = setTimeout(() => {
+              delete emptySessionTimers[sessionId];
+              if (sessions[sessionId] && sessions[sessionId].size === 0) {
+                console.log(`[WSS] Session ${sessionId} is empty. Cleaning up.`);
+                cleanupSession(sessionId);
+                delete sessions[sessionId];
+              }
+            }, EMPTY_SESSION_GRACE_MS);
+          }
 
 /**
  * Helper function to broadcast a message to all clients in a specific session
@@ -1020,12 +1038,14 @@ function generateUniqueSessionId(existingSessions, length = 5) {
 }
 
 const PORT = process.env.PORT || 4000;
-// Start the Express server
+          // Only start the server when run directly (node sessionAPI.js), not when imported by tests
+          if (require.main === module) {
 setupDatabase().then(() => {
   server.listen(PORT, () => {
     console.log(`Server listening on ${PORT}`);
   });
 });
+          }
 
 function cleanupSession(sessionId) {
   // Clear fruit interval if present
@@ -1092,4 +1112,5 @@ function sendError(ws, { code = 'SERVER_ERROR', message, ...meta }) {
       payload: { code, message, ...meta },
     }),
   );
-}
+}          
+          module.exports = { handleClientClose, sessions, fruitIntervals, emptySessionTimers, EMPTY_SESSION_GRACE_MS };

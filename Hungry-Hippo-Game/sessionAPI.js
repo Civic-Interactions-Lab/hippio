@@ -38,6 +38,10 @@ const MODE_CONFIG = {
 const server = http.createServer();
 const wss = new WebSocket.Server({ noServer: true });
 
+// How often the server checks that each client is still there.
+// A client that misses one ping is disconnected on the next check.
+const HEARTBEAT_INTERVAL_MS = 30000;
+
 const sessions = {};
 const reconnectionTimers = {};
 const emptySessionTimers = {};
@@ -214,6 +218,7 @@ function getWeightedRandomFood(allFoods, targetId) {
 // Websocket Server
 wss.on('connection', (ws) => {
   console.log('WSS Client connected');
+  trackHeartbeat(ws);
 
   ws.on('message', async (message) => {
     try {
@@ -1038,14 +1043,45 @@ function generateUniqueSessionId(existingSessions, length = 5) {
 }
 
 const PORT = process.env.PORT || 4000;
-          // Only start the server when run directly (node sessionAPI.js), not when imported by tests
-          if (require.main === module) {
-setupDatabase().then(() => {
-  server.listen(PORT, () => {
-    console.log(`Server listening on ${PORT}`);
+// Only start the server when run directly (node sessionAPI.js), not when imported by tests
+if (require.main === module) {
+  setupDatabase().then(() => {
+    server.listen(PORT, () => {
+      console.log(`Server listening on ${PORT}`);
+    });
   });
-});
-          }
+  const heartbeatTimer = setInterval(() => checkHeartbeats(wss.clients), HEARTBEAT_INTERVAL_MS);
+  wss.on('close', () => clearInterval(heartbeatTimer));
+}
+
+/**
+ * Marks a new connection as alive and records each pong the browser sends back.
+ * Browsers answer pings automatically, so no client code is needed.
+ * @param {WebSocket} ws The new client connection
+ */
+function trackHeartbeat(ws) {
+  ws.isAlive = true;
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+}
+
+/**
+ * Disconnects clients that did not answer the last ping, then pings the rest.
+ * Disconnecting runs the normal close handler, which removes the player from their session.
+ * @param {Iterable<WebSocket>} clients The connected clients to check
+ */
+function checkHeartbeats(clients) {
+  for (const ws of clients) {
+    if (ws.isAlive === false) {
+      console.log(`[WSS] No heartbeat from ${ws.userId || 'unknown user'} in session ${ws.sessionId || 'none'}. Disconnecting.`);
+      ws.terminate();
+      continue;
+    }
+    ws.isAlive = false;
+    ws.ping();
+  }
+}
 
 function cleanupSession(sessionId) {
   // Clear fruit interval if present
@@ -1112,5 +1148,14 @@ function sendError(ws, { code = 'SERVER_ERROR', message, ...meta }) {
       payload: { code, message, ...meta },
     }),
   );
-}          
-          module.exports = { handleClientClose, sessions, fruitIntervals, emptySessionTimers, EMPTY_SESSION_GRACE_MS };
+}
+
+module.exports = {
+  handleClientClose,
+  sessions,
+  fruitIntervals,
+  emptySessionTimers,
+  EMPTY_SESSION_GRACE_MS,
+  trackHeartbeat,
+  checkHeartbeats,
+};

@@ -5,6 +5,58 @@ description: Frontend API
 
 # Frontend API
 
+## WebSocketContext.tsx
+
+Provides one shared WebSocket connection to every page through `useWebSocket()`, and delivers server messages to pages through `useMessage()`.
+
+### `useWebSocket()` Fields
+
+| Field            | Type                                                         | Description                                                                                                  |
+|------------------|--------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| `isConnected`    | `boolean`                                                    | `true` while the socket is open.                                                                             |
+| `isReconnecting` | `boolean`                                                    | `true` after the connection drops, until it reconnects.                                                      |
+| `sendMessage`    | `(message: object) => void`                                  | Sends a message. If the socket is not open, the message is queued and sent once it opens (`PLAYER_MOVE` is dropped instead). |
+| `subscribe`      | `(type: string, listener: (message) => void) => () => void` | Calls `listener` for every message of `type`. Returns a function that stops listening.                       |
+| `connectedUsers` | `{ userId, role, color? }[]`                                 | Players in the current session, from `USERS_LIST_UPDATE`.                                                    |
+| `gameStarted`    | `boolean`                                                    | `true` once `START_GAME_BROADCAST` is received.                                                              |
+| `gameMode`       | `'Easy' \| 'Medium' \| 'Hard' \| null`                       | Mode of the current game.                                                                                    |
+| `resetGameState` | `() => void`                                                 | Clears the stored game state.                                                                                |
+
+---
+
+#### `useMessage(type: string, handler: (message) => void): void`
+
+-   **Purpose**: Runs `handler` for every message of `type` while the component is mounted. This is how pages react to server messages.
+-   **Parameters**:
+    -   `type`: the message type, such as `'AAC_TARGET_FOOD'`.
+    -   `handler`: called with the full message (`{ type, payload }`). It always sees the component's latest props and state.
+-   **Pre-conditions**: Must be called inside `WebSocketProvider`.
+-   **Returns**: void
+-   **Exceptions**: An error thrown by one handler is logged and does not stop other handlers from running.
+-   **Example**:
+    ```tsx
+    useMessage('REMOVE_FOOD', (message) => {
+      scene.removeFoodByInstanceId(message.payload.instanceId);
+    });
+    ```
+
+---
+
+#### `getReconnectDelay(attempt: number): number`
+
+-   **Purpose**: Returns how long to wait before reconnect attempt `attempt` (0 is the first).
+-   **Returns**: `500 * 2^attempt` milliseconds, capped at 10,000 (0.5 s, 1 s, 2 s, 4 s, 8 s, then 10 s).
+
+---
+
+### Connection Behavior
+
+-   **Reconnect**: When the socket closes, a new connection is attempted after `getReconnectDelay(attempt)`. The attempt count resets once connected. Reconnecting stops when the provider unmounts.
+-   **Rejoin**: When the socket opens, the player's session is read from the URL and local storage and a `PLAYER_JOIN` is sent with `isReconnecting: true`.
+-   **Queue**: Messages queued while disconnected are sent in their original order right after the rejoin message.
+
+---
+
 ## AACInterface.tsx
 
 ### `AacInterfaceProps`
@@ -131,8 +183,13 @@ Renders the AAC (Augmentative and Alternative Communication) interface for selec
 
 The component uses `useWebSocket` to access:
 
-- `lastMessage`: Most recent WebSocket message.
 - `connectedUsers`: Array of currently connected users.
+
+It uses `useMessage` to handle:
+
+- `ERROR_MESSAGE` with code `SESSION_NOT_FOUND`: shows an alert and returns to the home page.
+- `AAC_IDLE_PROMPT`: plays the idle reminder audio.
+- `GAME_OVER`: navigates to the Victory screen with scores and player colors.
 
 ---
 
@@ -471,9 +528,9 @@ or to create a new game session by generating and saving a new session ID.
 | Field            | Type         | Description                                         |
 |------------------|--------------|-----------------------------------------------------|
 | `isConnected`    | `boolean`    | WebSocket connection status                         |
-| `lastMessage`    | `any`        | Most recent message received                        |
 | `sendMessage`    | `(msg) => void` | Sends message to WebSocket                         |
-| `clearLastMessage` | `() => void` | Clears the latest received message                 |
+
+Server responses are handled with `useMessage`: `SESSION_VALIDATED` (join with a code) and `SESSION_CREATED` (create a new game).
 
 ---
 
@@ -603,9 +660,7 @@ Renders the button with styles and binds the click event.
 | `isSpectator`      | `boolean`                                 | `true` if the current user is a spectator (from location state).                      |
 | `phaserRef`        | `React.RefObject<IRefPhaserGame \| null>` | Reference to Phaser game and scene (`{ game, scene }`). Passed into `<PhaserGame />`. |
 | `connectedUsers`   | `{ userId, role, color? }[]`              | List of all players in the current session.                                           |
-| `lastMessage`      | `any`                                     | Most recent message received over WebSocket.                                          |
 | `sendMessage`      | `(msg: any) => void`                      | Sends data to the backend WebSocket server.                                           |
-| `clearLastMessage` | `() => void`                              | Clears `lastMessage` to avoid duplicate handling.                                     |
 | `colors`           | `Record<string, string>`                  | Maps each user ID to their assigned hippo color, for leaderboard use.                 |
 
 * * * * *
@@ -623,22 +678,16 @@ Renders the button with styles and binds the click event.
 
 ### REMOTE PLAYER MOVEMENT SYNC
 
-#### `useEffect(() => {...}, [lastMessage, userId, clearLastMessage])`
--   **Purpose**: Updates remote player movement when a `PLAYER_MOVE_BROADCAST` is received.
--   **Parameters**:
-    -   `lastMessage`: contains the payload with `userId`, `x`, `y`.
--   **Pre-conditions**: Scene must exist and support `updateRemotePlayer()`.
--   **Returns**: void
--   **Exceptions**: None.
+Remote player movement (`PLAYER_MOVE_BROADCAST`) is handled by `movementStore` in `WebSocketContext`, which the Phaser scene subscribes to directly.
 
 * * * * *
 
 ### GAME MODE BROADCAST
 
-#### `useEffect(() => {...}, [lastMessage, clearLastMessage])`
+#### `useMessage('START_GAME_BROADCAST', ...)`
 -   **Purpose**: Applies game mode settings when `START_GAME_BROADCAST` is received.
 -   **Parameters**:
-    -   `lastMessage.payload.mode: GameMode`
+    -   `message.payload.mode: GameMode`
 -   **Pre-conditions**: Scene must support `applyModeSettings()`.
 -   **Returns**: void
 -   **Exceptions**: None.
@@ -647,13 +696,14 @@ Renders the button with styles and binds the click event.
 
 ### FOOD STATE SYNC
 
-#### `useEffect(() => {...}, [lastMessage, clearLastMessage])`
--   **Purpose**: Handles multiple WebSocket message types:
-    -   `FOOD_STATE_UPDATE`: syncs food state via `EventBus`.
-    -   `AAC_TARGET_FOOD`: sets the target food in the scene and sidebar.
+#### `useMessage(...)` for each food message
+-   **Purpose**: One `useMessage` handler per message type:
+    -   `FOOD_STATE_UPDATE`: syncs food state via `EventBus` (sent every 50 ms).
+    -   `AAC_TARGET_FOOD`: sets the target food in the scene and sidebar, and plays its audio unless muted.
     -   `REMOVE_FOOD`: deletes food object from scene.
     -   `PLAYER_EFFECT_BROADCAST`: applies effects via `EventBus`.
--   **Parameters**: `lastMessage` payload varies by type.
+-   **Parameters**: `message.payload` varies by type.
+-   **Note**: Because each message is delivered to its own handler, an `AAC_TARGET_FOOD` that arrives right before a `FOOD_STATE_UPDATE` is no longer missed.
 -   **Pre-conditions**: Scene must support relevant methods.
 -   **Returns**: void
 -   **Exceptions**: None.

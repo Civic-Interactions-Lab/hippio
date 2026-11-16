@@ -94,11 +94,12 @@ classDiagram
 
   class WebSocketContext {
     +isConnected: boolean
+    +isReconnecting: boolean
     +connectedUsers: User[]
-    +lastMessage: Message
     +sendMessage(message)
+    +subscribe(type, listener)
+    +useMessage(type, handler)
     +resetGameState()
-    +clearLastMessage()
   }
 
   class AacInterface {

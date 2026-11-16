@@ -298,3 +298,40 @@ else Host chooses "End Game"
     Game_UI->>All_Players: Redirect to game home screen
 end
 ```
+
+## Connection Recovery – Lost Connection and Reconnect
+*As a player, if my connection drops during a game, I want the game to reconnect on its own, so that my actions are not lost.*
+1. The connection drops (for example, Wi-Fi drops or the server restarts).
+2. The client tries to reconnect after 0.5 s, 1 s, 2 s, and so on, up to every 10 s.
+3. Actions taken while disconnected are queued.
+4. When it reconnects, the client rejoins its session and sends the queued actions in order.
+5. If the server no longer has the session, it ignores the queued actions, and the player is told and returns to the home page.
+```mermaid
+---
+title: Sequence Diagram – Lost Connection and Reconnect
+---
+
+sequenceDiagram
+participant Player as Player
+participant Client as Game UI (WebSocketContext)
+participant WS_Server as WebSocket Server (Backend)
+
+WS_Server--xClient: Connection lost
+Client->>Client: Schedule reconnect (0.5 s, 1 s, 2 s, ... up to 10 s)
+Player->>Client: Selects a food
+Client->>Client: Queue AAC_FOOD_SELECTED
+loop Until connected
+    Client->>WS_Server: Open WebSocket
+end
+WS_Server-->>Client: Connected
+Client->>WS_Server: PLAYER_JOIN (isReconnecting: true)
+Client->>WS_Server: Send queued AAC_FOOD_SELECTED
+alt Session still exists
+    WS_Server-->>Client: USERS_LIST_UPDATE
+    WS_Server-->>Client: AAC_TARGET_FOOD
+else Session was lost (server restarted)
+    WS_Server-->>Client: ERROR_MESSAGE (SESSION_NOT_FOUND)
+    Note over WS_Server: Queued message ignored (unknown session)
+    Client->>Player: Alert and return to home page
+end
+```

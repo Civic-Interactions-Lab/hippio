@@ -307,3 +307,145 @@ The setup is configured to automatically generate code coverage reports, providi
 - **Expected Result**
   - Server responds with `{ error: 'Failed to save session ID' }`
   - Status code is `500`
+
+---
+
+# Connection Reliability Tests
+
+Tests added while fixing backend connectivity. Server tests import `sessionAPI.js` without starting the server and use small stand-in sockets; client tests use a fake `WebSocket` the test can open and drop.
+
+## Server: `tests/sessionCleanup.test.ts`
+
+### Session removed after the last player leaves
+- **Input / User Action**
+  - The only player in a session disconnects and 30 s pass
+- **Expected Result**
+  - The session and its fruit timer are removed
+
+### Session kept during the grace period
+- **Input / User Action**
+  - The only player disconnects and just under 30 s pass
+- **Expected Result**
+  - The session still exists, so the player can rejoin
+
+### Session kept while others are connected
+- **Input / User Action**
+  - One of two players disconnects
+- **Expected Result**
+  - The session remains with one player
+
+## Server: `tests/heartbeat.test.ts`
+
+### Every client is pinged
+- **Expected Result**
+  - Each connected client receives a ping
+
+### A client that answers stays connected
+- **Input / User Action**
+  - The client answers a ping with a pong
+- **Expected Result**
+  - It is not disconnected on the next check
+
+### A client that does not answer is disconnected
+- **Input / User Action**
+  - The client does not answer a ping
+- **Expected Result**
+  - It is disconnected on the next check
+
+## Server: `tests/playerJoin.test.ts`
+
+### Hippo color kept on a second join
+- **Input / User Action**
+  - A player rejoins with a color, then the same connection joins again without one
+- **Expected Result**
+  - The player keeps their color in `USERS_LIST_UPDATE`
+
+## Server: `tests/staleSession.test.ts`
+
+### Messages for a deleted session are ignored
+- **Input / User Action**
+  - `AAC_FOOD_SELECTED` arrives for a session the server no longer has
+- **Expected Result**
+  - No reply and no error
+
+### Joining a deleted session still fails clearly
+- **Input / User Action**
+  - `PLAYER_JOIN` for a session that does not exist
+- **Expected Result**
+  - `ERROR_MESSAGE` with code `SESSION_NOT_FOUND`
+
+### Messages for live sessions still work
+- **Input / User Action**
+  - `REQUEST_COLOR_UPDATE` for an existing session
+- **Expected Result**
+  - `COLOR_UPDATE` is sent
+
+## Client: `src/contexts/WebSocketContext.test.tsx`
+
+### Messages queued before connecting are sent in order
+- **Input / User Action**
+  - Two messages are sent before the socket opens
+- **Expected Result**
+  - Both are sent, in order, once it opens
+
+### Movement updates are not queued
+- **Input / User Action**
+  - `PLAYER_MOVE` is sent while disconnected
+- **Expected Result**
+  - It is dropped, not sent later
+
+### Reconnects with growing delays
+- **Input / User Action**
+  - The connection drops twice, then succeeds
+- **Expected Result**
+  - New attempts after 500 ms and then 1000 ms; `isConnected` and `isReconnecting` update
+
+### Messages queued during a drop are sent after reconnecting
+- **Expected Result**
+  - A message sent while disconnected is delivered once reconnected
+
+### No reconnecting after unmount
+- **Expected Result**
+  - No new connection is attempted after the provider unmounts
+
+### Reconnect delay is capped
+- **Expected Result**
+  - `getReconnectDelay` returns 500, 1000, 8000, then 10000 ms at most
+
+### Every message reaches subscribers
+- **Input / User Action**
+  - Several messages arrive together
+- **Expected Result**
+  - Each subscriber receives every message of its type, in order
+
+### Subscribers only get their own types
+- **Expected Result**
+  - A `REMOVE_FOOD` subscriber is not called for `FOOD_STATE_UPDATE`
+
+### Unsubscribing stops delivery
+- **Expected Result**
+  - No messages after the unsubscribe function is called
+
+### One failing handler does not block others
+- **Expected Result**
+  - Other subscribers still receive the message
+
+## Client: `src/pages/PhaserPage/PhaserPage.test.tsx`
+
+### Target food shown when a food update follows it
+- **Input / User Action**
+  - `AAC_TARGET_FOOD` and `FOOD_STATE_UPDATE` arrive back to back
+- **Expected Result**
+  - The chosen food appears under "Current Food to Eat"
+
+## Client: `src/game/scenes/Game.test.ts`
+
+### Cleanup after Phaser destroyed the fruit group
+- **Input / User Action**
+  - The scene is destroyed after Phaser already destroyed its fruit group
+- **Expected Result**
+  - No error is thrown
+
+### Cleanup while the fruit group is alive
+- **Expected Result**
+  - The fruit group is cleared

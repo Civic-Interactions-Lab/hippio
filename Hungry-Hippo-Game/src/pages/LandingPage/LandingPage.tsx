@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './LandingPage.module.css';
 import { useRef, useState, useEffect } from 'react';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket, useMessage } from '../../contexts/WebSocketContext';
 
 /**
  * LandingPage - User interface for joining or creating a game session.
@@ -36,44 +36,37 @@ function LandingPage() {
   /** Boolean flag to indicate if entered code is valid or not */
   const [isValidCode, setIsValidCode] = useState(true);
 
-  const { isConnected, lastMessage, sendMessage, clearLastMessage, resetGameState } = useWebSocket();
+  const { isConnected, sendMessage, resetGameState } = useWebSocket();
 
   // Reset game state when component mounts
   useEffect(() => {
     resetGameState();
   }, [resetGameState]);
 
-  useEffect(() => {
-    if (lastMessage) {
-
-      // Handle the server's response after a session code is validated.
-      if (lastMessage.type === 'SESSION_VALIDATED') {
-        const { isValid, gameCode } = lastMessage.payload;
-        if (isValid) {
-          const generateUsername = () => {
-            const num = Math.floor(Math.random() * 1000);
-            return `User${String(num).padStart(3, '0')}`;
-          };
-          const userId = generateUsername();
-          // Navigate to role select, passing the username in the route state.
-          console.log(`Joining game with code: ${gameCode} as user: ${userId}`);
-          navigate(`/roleselect/${gameCode}`, { state: { userId: userId } });
-          if (clearLastMessage) clearLastMessage();
-        } else {
-          setIsValidCode(false);
-          setCode(['', '', '', '', '']);
-          inputsRef.current[0]?.focus();
-        }
-      }
-
-      // Handle the server's response after a session is created
-      if (lastMessage.type === 'SESSION_CREATED') {
-        const { sessionId } = lastMessage.payload;
-        navigate(`/presenter/${sessionId}`);
-        if (clearLastMessage) clearLastMessage();
-      }
+  // Handle the server's response after a session code is validated.
+  useMessage('SESSION_VALIDATED', (message) => {
+    const { isValid, gameCode } = message.payload;
+    if (isValid) {
+      const generateUsername = () => {
+        const num = Math.floor(Math.random() * 1000);
+        return `User${String(num).padStart(3, '0')}`;
+      };
+      const userId = generateUsername();
+      // Navigate to role select, passing the username in the route state.
+      console.log(`Joining game with code: ${gameCode} as user: ${userId}`);
+      navigate(`/roleselect/${gameCode}`, { state: { userId: userId } });
+    } else {
+      setIsValidCode(false);
+      setCode(['', '', '', '', '']);
+      inputsRef.current[0]?.focus();
     }
-  }, [lastMessage, navigate]); 
+  });
+
+  // Handle the server's response after a session is created
+  useMessage('SESSION_CREATED', (message) => {
+    const { sessionId } = message.payload;
+    navigate(`/presenter/${sessionId}`);
+  });
 
 
   /**

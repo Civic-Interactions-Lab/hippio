@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './Victory.module.css';
 import ButtonClick from '../../components/ButtonClick/ButtonClick';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket, useMessage } from '../../contexts/WebSocketContext';
 import { EventBus } from '../../game/EventBus';
 
 const Victory: React.FC = () => {
@@ -28,7 +28,7 @@ const Victory: React.FC = () => {
   const role = state?.role;
   const color = state?.color;
 
-  const { sendMessage, lastMessage, clearLastMessage } = useWebSocket();
+  const { sendMessage } = useWebSocket();
 
   /**
    * Handles the cancel button click event.
@@ -42,13 +42,12 @@ const Victory: React.FC = () => {
   const sortedPlayers = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
   // --- ERROR HANDLING ---
-  useEffect(() => {
-    if (lastMessage?.type === 'ERROR_MESSAGE' && lastMessage?.payload?.code === 'SESSION_NOT_FOUND') {
-      alert(`An error occurred: ${lastMessage.payload.message}`);
-      clearLastMessage?.();
+  useMessage('ERROR_MESSAGE', (message) => {
+    if (message.payload?.code === 'SESSION_NOT_FOUND') {
+      alert(`An error occurred: ${message.payload.message}`);
       navigate('/');
     }
-  }, [lastMessage, navigate, clearLastMessage]);
+  });
 
   useEffect(() => {
     const handleReset = () => {

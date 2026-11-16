@@ -838,7 +838,9 @@ destroy() {
   this.shutdown(); // Always clean up
   this.time?.removeAllEvents?.();
   this.tweens?.killAll?.();
-   if (this.foods) {
+  // Phaser may have already destroyed the fruit group while shutting the scene down
+  // (its children list is then gone), so only clear it if it is still alive.
+  if (this.foods?.children) {
     this.foods.clear(true, true); // <--- DESTROY ALL SPRITES!
   }
   this.input?.removeAllListeners?.();

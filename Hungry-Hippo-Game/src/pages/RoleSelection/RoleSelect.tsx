@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './RoleSelect.module.css';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket, useMessage } from '../../contexts/WebSocketContext';
 import { HIPPO_COLORS } from '../../config/hippoColors';  
 import { EventBus } from '../../game/EventBus';
 import { updatePlayerInSessionStorage } from '../../components/Storage/Storage';
@@ -74,7 +74,7 @@ function RoleSelect() {
   const [username] = useState(location.state?.userId || generateUsername());
   const [waiting, setWaiting] = useState(false);
   const [showClosedSession, setShowClosedSession] = useState(false);
-  const { connectedUsers, gameStarted, sendMessage, isConnected, lastMessage, clearLastMessage } = useWebSocket();
+  const { connectedUsers, gameStarted, sendMessage, isConnected } = useWebSocket();
 
   // State to track colors already taken by connected users
   const [takenColors, setTakenColors] = useState<string[]>([]);
@@ -88,10 +88,9 @@ function RoleSelect() {
   const isAacRoleFull = aacUsersCount >= AAC_USER_LIMIT;
 
   // --- ERROR HANDLING ---
-  useEffect(() => {
-    if (lastMessage?.type !== 'ERROR_MESSAGE') return;
-    const errorCode = lastMessage.payload.code;
-    const errorMessage = lastMessage.payload.message;
+  useMessage('ERROR_MESSAGE', (message) => {
+    const errorCode = message.payload.code;
+    const errorMessage = message.payload.message;
     // Handle specific error codes
     switch (errorCode) {
       case 'SESSION_NOT_FOUND':
@@ -103,16 +102,12 @@ function RoleSelect() {
         navigate('/');
         break;
     }
-    clearLastMessage?.();
-  }, [lastMessage, navigate, clearLastMessage]);
+  });
 
   // If presenter closes the session before game starts, go back to main page
-  useEffect(() => {
-    if (lastMessage?.type === 'SESSION_CLOSED') {
-        setShowClosedSession(true);
-        clearLastMessage?.();
-    }
-  }, [lastMessage, clearLastMessage]);
+  useMessage('SESSION_CLOSED', () => {
+    setShowClosedSession(true);
+  });
 
   // Play audio when the component mounts
   useEffect(() => {
@@ -173,13 +168,9 @@ function RoleSelect() {
   }, [sessionId, username, isConnected, sendMessage]);
 
   // Listen for updates on which colors are taken by other players
-  useEffect(() => {
-    if (lastMessage?.type === 'COLOR_UPDATE') {
-      const newTakenColors = lastMessage.payload.takenColors || [];
-      setTakenColors(newTakenColors);
-      clearLastMessage?.();
-    }
-  }, [lastMessage, clearLastMessage]);
+  useMessage('COLOR_UPDATE', (message) => {
+    setTakenColors(message.payload.takenColors || []);
+  });
 
 
   // Reset role if AAC User is selected and the role is full

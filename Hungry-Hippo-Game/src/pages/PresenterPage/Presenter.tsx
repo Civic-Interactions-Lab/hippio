@@ -1,6 +1,6 @@
 import styles from './Presenter.module.css';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket, useMessage } from '../../contexts/WebSocketContext';
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { HIPPO_COLORS } from '../../config/hippoColors';  
@@ -97,7 +97,7 @@ function Presenter() {
    * - `connectedUsers`: list of all users in the session.
    * - `isConnected`: whether WebSocket is open.
    */
-  const { sendMessage, connectedUsers, isConnected, lastMessage, clearLastMessage } = useWebSocket();
+  const { sendMessage, connectedUsers, isConnected } = useWebSocket();
 
   /**
    * List of available game modes in the order they should cycle through.
@@ -133,13 +133,12 @@ function Presenter() {
   };
 
   // --- ERROR HANDLING ---
-  useEffect(() => {
-    if (lastMessage?.type === 'ERROR_MESSAGE' && lastMessage?.payload?.code === 'SESSION_NOT_FOUND') {
-      alert(`An error occurred: ${lastMessage.payload.message}`);
-      clearLastMessage?.();
+  useMessage('ERROR_MESSAGE', (message) => {
+    if (message.payload?.code === 'SESSION_NOT_FOUND') {
+      alert(`An error occurred: ${message.payload.message}`);
       navigate('/');
     }
-  }, [lastMessage, navigate, clearLastMessage]);
+  });
 
   // Play audio for the initial mode when the component mounts
   useEffect(() => {

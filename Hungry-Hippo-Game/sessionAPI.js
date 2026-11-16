@@ -38,8 +38,14 @@ const MODE_CONFIG = {
 const server = http.createServer();
 const wss = new WebSocket.Server({ noServer: true });
 
+// How often the server checks that each client is still there.
+// A client that misses one ping is disconnected on the next check.
+const HEARTBEAT_INTERVAL_MS = 30000;
+
 const sessions = {};
 const reconnectionTimers = {};
+const emptySessionTimers = {};
+const EMPTY_SESSION_GRACE_MS = 30000; // keep an empty session briefly so players can rejoin after a refresh
 const sessionFilePath = path.resolve(__dirname, './src/data/sessionID.json');
 const scoresBySession = {};
 const fruitQueues = {};
@@ -212,11 +218,21 @@ function getWeightedRandomFood(allFoods, targetId) {
 // Websocket Server
 wss.on('connection', (ws) => {
   console.log('WSS Client connected');
+  trackHeartbeat(ws);
 
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
       // console.log('WSS Received:', data);
+
+      // Ignore gameplay messages for a session the server no longer has (for example,
+      // a message queued by a client before the server restarted). PLAYER_JOIN is still
+      // handled so the client is told the session was not found.
+      const targetSessionId = data.payload?.sessionId;
+      if (targetSessionId && !sessions[targetSessionId] && data.type !== 'PLAYER_JOIN') {
+        console.log(`[WSS] Ignoring ${data.type} for unknown session ${targetSessionId}`);
+        return;
+      }
       // Validate session request
       if (data.type === 'VALIDATE_SESSION') {
         const { gameCode } = data.payload;
@@ -315,7 +331,7 @@ wss.on('connection', (ws) => {
         ws.sessionId = sessionId;
         ws.userId = userId;
         ws.role = role;
-        ws.color = color;
+        ws.color = color ?? ws.color;
 
         if (!sessions[sessionId]) {
           sendError(ws, {
@@ -327,6 +343,11 @@ wss.on('connection', (ws) => {
         }
 
         sessions[sessionId].add(ws);
+                // Someone rejoined, so cancel any pending empty-session cleanup
+                if (emptySessionTimers[sessionId]) {
+                  clearTimeout(emptySessionTimers[sessionId]);
+                  delete emptySessionTimers[sessionId];
+                }
         console.log(`WSS User ${userId} joined session ${sessionId}. Total clients in session: ${sessions[sessionId].size}`);
 
         logPlayerAction(sessionId, userId, "joined session", `role: ${role}, color: ${color}`);
@@ -860,7 +881,10 @@ wss.on('connection', (ws) => {
     }
   });
 
-  ws.on('close', async () => {
+            ws.on('close', () => handleClientClose(ws));
+          });
+          
+          async function handleClientClose(ws) {
     const { sessionId, userId } = ws;
     if (!sessionId || !userId) {
       console.log('WSS Client disconnected without session or user ID');
@@ -886,12 +910,6 @@ wss.on('connection', (ws) => {
       } catch (err) {
         console.error('Error removing player from database:', err);
       }
-    }
-
-    // Remove the session from the sessions object if it is empty
-    if (sessions[sessionId] && sessions[sessionId].size === 0) {
-      cleanupSession(sessionId);
-      delete sessions[sessionId];
     }
 
     // If the role is Presenter and the game hasn't started, broadcast SESSION_CLOSED
@@ -954,14 +972,28 @@ wss.on('connection', (ws) => {
       });
       console.log(`WSS Player left, broadcasting updated USERS_LIST_UPDATE to ${sessionId}:`, usersInSession);
     }
+            // If the last player just left, clean up the session after a grace period
+            if (sessions[sessionId] && sessions[sessionId].size === 0) {
+              scheduleEmptySessionCleanup(sessionId);
+            }
+          }
 
-    // Remove the session from the sessions object if it is empty
-    // if (sessions[sessionId].size === 0) {
-    //   delete sessions[sessionId];
-    // }
-
-  });
-});
+          /**
+          * Removes an empty session and all of its timers after EMPTY_SESSION_GRACE_MS,
+          * unless a player rejoins first.
+          * @param {string} sessionId The ID of the empty session
+          */
+          function scheduleEmptySessionCleanup(sessionId) {
+            if (emptySessionTimers[sessionId]) return;
+            emptySessionTimers[sessionId] = setTimeout(() => {
+              delete emptySessionTimers[sessionId];
+              if (sessions[sessionId] && sessions[sessionId].size === 0) {
+                console.log(`[WSS] Session ${sessionId} is empty. Cleaning up.`);
+                cleanupSession(sessionId);
+                delete sessions[sessionId];
+              }
+            }, EMPTY_SESSION_GRACE_MS);
+          }
 
 /**
  * Helper function to broadcast a message to all clients in a specific session
@@ -1020,12 +1052,45 @@ function generateUniqueSessionId(existingSessions, length = 5) {
 }
 
 const PORT = process.env.PORT || 4000;
-// Start the Express server
-setupDatabase().then(() => {
-  server.listen(PORT, () => {
-    console.log(`Server listening on ${PORT}`);
+// Only start the server when run directly (node sessionAPI.js), not when imported by tests
+if (require.main === module) {
+  setupDatabase().then(() => {
+    server.listen(PORT, () => {
+      console.log(`Server listening on ${PORT}`);
+    });
   });
-});
+  const heartbeatTimer = setInterval(() => checkHeartbeats(wss.clients), HEARTBEAT_INTERVAL_MS);
+  wss.on('close', () => clearInterval(heartbeatTimer));
+}
+
+/**
+ * Marks a new connection as alive and records each pong the browser sends back.
+ * Browsers answer pings automatically, so no client code is needed.
+ * @param {WebSocket} ws The new client connection
+ */
+function trackHeartbeat(ws) {
+  ws.isAlive = true;
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+}
+
+/**
+ * Disconnects clients that did not answer the last ping, then pings the rest.
+ * Disconnecting runs the normal close handler, which removes the player from their session.
+ * @param {Iterable<WebSocket>} clients The connected clients to check
+ */
+function checkHeartbeats(clients) {
+  for (const ws of clients) {
+    if (ws.isAlive === false) {
+      console.log(`[WSS] No heartbeat from ${ws.userId || 'unknown user'} in session ${ws.sessionId || 'none'}. Disconnecting.`);
+      ws.terminate();
+      continue;
+    }
+    ws.isAlive = false;
+    ws.ping();
+  }
+}
 
 function cleanupSession(sessionId) {
   // Clear fruit interval if present
@@ -1093,3 +1158,14 @@ function sendError(ws, { code = 'SERVER_ERROR', message, ...meta }) {
     }),
   );
 }
+
+module.exports = {
+  wss,
+  handleClientClose,
+  sessions,
+  fruitIntervals,
+  emptySessionTimers,
+  EMPTY_SESSION_GRACE_MS,
+  trackHeartbeat,
+  checkHeartbeats,
+};

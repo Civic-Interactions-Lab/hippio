@@ -38,6 +38,9 @@ The server does **not** use REST endpoints. All communication is performed using
   - Broadcasts updated user list.
   - Updates database if in production.
 - **Returns**: Broadcasts `PLAYER_JOINED_BROADCAST` and `USERS_LIST_UPDATE`.
+- **Notes**:
+  - Joining again on the same connection without a `color` keeps the player's existing color (a refresh can send two joins).
+  - Rejoining cancels a pending empty-session cleanup (see Connection Reliability below).
 - **Example**:  
   ```js
   {
@@ -114,20 +117,40 @@ The server operates by receiving messages from clients and broadcasting **state 
 ### Edge-Case Handling
 
 - **Non-existent session**  
-  Every handler validates `sessionId`. If inactive, the server rejects the action and replies with `SESSION_NOT_FOUND`.
+  `PLAYER_JOIN` for a session that does not exist replies with `SESSION_NOT_FOUND`. Any other message whose `payload.sessionId` names a session the server does not have is ignored and logged (`[WSS] Ignoring <type> for unknown session <id>`). This happens when a client sends messages it queued before a server restart.
 
 - **Duplicate player join**  
   Re-sending `PLAYER_JOIN` for the same socket/user is harmless; the server ignores duplicates.
 
 - **Presenter disconnects before game start**  
-  - *Players still in lobby*: a 10s reconnect timer starts. If the presenter fails to return, the server broadcasts `SESSION_CLOSED` and all clients navigate home.  
-  - *Lobby empty*: the session is removed from memory and database immediately.
+  - *Players still in lobby*: a 5 s reconnect timer starts. If the presenter fails to return, the server broadcasts `SESSION_CLOSED` and all clients navigate home.  
+  - *Lobby empty*: the session is removed after the 30 s empty-session grace period (see below).
 
 - **AAC queue overflow**  
   When `fruitQueues[sessionId]` already holds `QUEUE_MAX` items, the oldest entry is dropped to make space. No error is sent.
 
 - **Game-timer expiry**  
   At 0s the server broadcasts `GAME_OVER`, wipes active game state, and leaves session/player rows intact so the lobby can start another round. The session is deleted from the DB only after the last player disconnects.
+
+---
+
+## Connection Reliability
+
+### Empty-session cleanup
+- **Purpose**: Removes a session and its timers once nobody is left in it.
+- **Behavior**: When the last client leaves, `scheduleEmptySessionCleanup(sessionId)` starts a 30 s timer (`EMPTY_SESSION_GRACE_MS`). If the session is still empty when it fires, `cleanupSession()` stops its fruit and idle timers and the session is deleted. A `PLAYER_JOIN` before then cancels the timer, so a player who refreshes keeps their game.
+
+### Heartbeat
+- **Purpose**: Detects clients whose connection died without closing (for example, a device that lost Wi-Fi).
+- **Behavior**: `trackHeartbeat(ws)` marks each new connection alive and records every `pong` the browser sends back (browsers answer pings automatically). Every 30 s (`HEARTBEAT_INTERVAL_MS`), `checkHeartbeats()` disconnects clients that did not answer the previous ping and pings the rest. Disconnecting runs the normal close handler, which removes the player from their session.
+- **Note**: The heartbeat timer only starts when the server is run directly (`node sessionAPI.js`), not when tests import the file.
+
+### `handleClientClose(ws)`
+- **Purpose**: Runs when a client disconnects.
+- **Behavior**: Removes the client from its session, broadcasts the updated `USERS_LIST_UPDATE` and `COLOR_UPDATE`, starts the presenter reconnect timer if needed, and schedules empty-session cleanup if the session is now empty.
+
+### Exports (for tests)
+`module.exports = { wss, handleClientClose, sessions, fruitIntervals, emptySessionTimers, EMPTY_SESSION_GRACE_MS, trackHeartbeat, checkHeartbeats }`
 
 ---
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AacInterface from '../../aac/AacInterface';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket, useMessage } from '../../contexts/WebSocketContext';
 import { EventBus } from '../../game/EventBus';
 
 /**
@@ -37,7 +37,7 @@ const AacPage: React.FC = () => {
   /**
    * Get last message and connectedUsers from WebSocket context.
    */
-  const { lastMessage, connectedUsers, clearLastMessage } = useWebSocket();
+  const { connectedUsers } = useWebSocket();
 
   /**
    * State to hold scores for the game.
@@ -45,13 +45,12 @@ const AacPage: React.FC = () => {
   const [scores, setScores] = useState<Record<string, number>>({});
 
   // --- ERROR HANDLING ---
-  useEffect(() => {
-    if (lastMessage?.type === 'ERROR_MESSAGE' && lastMessage?.payload?.code === 'SESSION_NOT_FOUND') {
-      alert(`An error occurred: ${lastMessage.payload.message}`);
-      clearLastMessage?.();
+  useMessage('ERROR_MESSAGE', (message) => {
+    if (message.payload?.code === 'SESSION_NOT_FOUND') {
+      alert(`An error occurred: ${message.payload.message}`);
       navigate('/');
     }
-  }, [lastMessage, navigate, clearLastMessage]);
+  });
 
   /**
    * Effect hook to listen for score updates from the EventBus.
@@ -72,34 +71,31 @@ const AacPage: React.FC = () => {
    * Effect hook to listen for idle prompt from WebSocket.
    * Plays audio when AAC user has been idle for 15 seconds.
    */
-  useEffect(() => {
-    if (lastMessage?.type === 'AAC_IDLE_PROMPT') {
-      const audioPath = lastMessage.payload?.audioPath;
-      if (audioPath) {
-        const audio = new Audio(audioPath);
-        audio.play().catch((error) => {
-          console.error('[AacPage] Error playing idle audio:', error);
-        });
-      }
+  useMessage('AAC_IDLE_PROMPT', (message) => {
+    const audioPath = message.payload?.audioPath;
+    if (audioPath) {
+      const audio = new Audio(audioPath);
+      audio.play().catch((error) => {
+        console.error('[AacPage] Error playing idle audio:', error);
+      });
     }
-  }, [lastMessage]);
+  });
 
   /**
    * If GAME_OVER use the navigate function to navigate to different routes.
    */
-  useEffect(() => {
-    if (lastMessage?.type === 'GAME_OVER' && sessionId) {
-      console.log('[AacPage] GAME_OVER received. Navigating to Victory screen.');
+  useMessage('GAME_OVER', () => {
+    if (!sessionId) return;
+    console.log('[AacPage] GAME_OVER received. Navigating to Victory screen.');
 
-      const colors = Object.fromEntries(
-        connectedUsers
-          .filter(user => user.color)
-          .map(user => [user.userId, user.color])
-      );
+    const colors = Object.fromEntries(
+      connectedUsers
+        .filter(user => user.color)
+        .map(user => [user.userId, user.color])
+    );
 
-      navigate(`/victory/${sessionId}`, { state: { scores, colors, sessionId, userId } });
-    }
-  }, [lastMessage, sessionId, navigate, scores, connectedUsers]);
+    navigate(`/victory/${sessionId}`, { state: { scores, colors, sessionId, userId } });
+  });
 
   /**
    * If sessionId is not present, display an error message.

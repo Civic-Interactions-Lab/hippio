@@ -1,7 +1,7 @@
 
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import PhaserPage from './PhaserPage';
 import { createMemoryHistory } from 'history';
 import { Router, Route, Routes } from 'react-router-dom';
@@ -9,7 +9,6 @@ import { Router, Route, Routes } from 'react-router-dom';
 // ---- MOCKS ----
 
 const mockSendMessage = vi.fn();
-const mockClearLastMessage = vi.fn();
 const updateRemotePlayer = vi.fn();
 const sceneMock = { updateRemotePlayer };
 
@@ -19,18 +18,21 @@ vi.stubGlobal('localStorage', {
   setItem: vi.fn(),
 });
 
-let lastMessage: any = null;
+// Handlers registered through useMessage, so tests can deliver server messages
+const messageHandlers = new Map<string, (message: any) => void>();
+const deliver = (message: { type: string; payload?: any }) => messageHandlers.get(message.type)?.(message);
 
 vi.mock('../../contexts/WebSocketContext', () => ({
+  useMessage: (type: string, handler: (message: any) => void) => {
+    messageHandlers.set(type, handler);
+  },
   useWebSocket: () => ({
     connectedUsers: [
       { userId: 'other-user', role: 'Hippo Player', color: 'green' },
       { userId: 'aac1', role: 'AAC User' },
     ],
     sendMessage: mockSendMessage,
-    clearLastMessage: mockClearLastMessage,
     isConnected: true,
-    lastMessage,
   }),
 }));
 
@@ -75,7 +77,7 @@ describe('PhaserPage', () => {
 
     beforeEach(() => {
     mockSendMessage.mockClear();
-    mockClearLastMessage.mockClear();
+    messageHandlers.clear();
   });
 
   it('renders game container and leaderboard', () => {
@@ -93,6 +95,30 @@ describe('PhaserPage', () => {
     expect(screen.getByText('Mock Game')).toBeInTheDocument();
     expect(screen.getByText('Leaderboard')).toBeInTheDocument();
     expect(screen.getByText(/Time Left:/i)).toBeInTheDocument();
+  });
+
+  it('shows the AAC target food even when a food update arrives right after it', () => {
+    const history = createMemoryHistory();
+    history.push('/hippo/ABC12/user1', { role: 'Hippo Player', color: 'blue' });
+
+    render(
+      <Router location={history.location} navigator={history}>
+        <Routes>
+          <Route path="/hippo/:sessionId/:userId" element={<PhaserPage />} />
+        </Routes>
+      </Router>
+    );
+
+    // The server sends these back to back: the AAC player's choice, then the next 50ms food tick
+    act(() => {
+      deliver({
+        type: 'AAC_TARGET_FOOD',
+        payload: { targetFoodId: 'apple', targetFoodData: { id: 'apple', name: 'Apple', imagePath: '/apple.png' } },
+      });
+      deliver({ type: 'FOOD_STATE_UPDATE', payload: { foods: [] } });
+    });
+
+    expect(screen.getByText('Apple')).toBeInTheDocument();
   });
 
   it('displays "No Food Selected" if currentFood is null', () => {

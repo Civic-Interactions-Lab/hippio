@@ -6,5 +6,8 @@ vi.mock('phaser', () => ({
   Events: { EventEmitter },
 }));
 
-window.HTMLMediaElement.prototype.play = () => Promise.resolve();
-window.HTMLMediaElement.prototype.pause = () => {};
+// Browser-only mocks; server tests run in Node, where window does not exist
+if (typeof window !== 'undefined') {
+  window.HTMLMediaElement.prototype.play = () => Promise.resolve();
+  window.HTMLMediaElement.prototype.pause = () => {};
+}

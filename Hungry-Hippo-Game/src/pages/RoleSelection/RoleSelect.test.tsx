@@ -6,7 +6,6 @@ import RoleSelect from './RoleSelect';
 // Mocks for dependencies
 const mockedNavigate = vi.fn();
 const mockSendMessage = vi.fn();
-const mockClearLastMessage = vi.fn();
 
 // Mock the useNavigate hook from react-router-dom
 vi.mock('react-router-dom', async () => {
@@ -21,13 +20,12 @@ vi.mock('react-router-dom', async () => {
 
 // Mock the WebSocket context to provide necessary functions and state
 vi.mock('../../contexts/WebSocketContext', () => ({
+  useMessage: vi.fn(),
   useWebSocket: () => ({
     connectedUsers: [],
     gameStarted: false,
     sendMessage: mockSendMessage,
     isConnected: true,
-    lastMessage: null,
-    clearLastMessage: mockClearLastMessage,
   }),
 }));
 

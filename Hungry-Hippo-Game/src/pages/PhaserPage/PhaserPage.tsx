@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { PhaserGame, IRefPhaserGame } from '../../PhaserGame';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket, useMessage } from '../../contexts/WebSocketContext';
 import { AacFood, AacVerb } from '../../Foods';
 import { EventBus } from '../../game/EventBus';
 import Leaderboard from '../../components/Leaderboard/Leaderboard';
@@ -52,7 +52,7 @@ const PhaserPage: React.FC = () => {
   // Defensive: what if no state? Fallback to false.
   const isSpectator = location.state?.role === 'Spectator';
 
-  const {connectedUsers, lastMessage, sendMessage, clearLastMessage } = useWebSocket();
+  const { connectedUsers, sendMessage } = useWebSocket();
 
   // Build color map from connected users
   const colors: Record<string, string> = Object.fromEntries(
@@ -62,13 +62,12 @@ const PhaserPage: React.FC = () => {
   );
 
   // --- ERROR HANDLING ---
-  useEffect(() => {
-    if (lastMessage?.type === 'ERROR_MESSAGE' && lastMessage?.payload?.code === 'SESSION_NOT_FOUND') {
-      alert(`An error occurred: ${lastMessage.payload.message}`);
-      clearLastMessage?.();
+  useMessage('ERROR_MESSAGE', (message) => {
+    if (message.payload?.code === 'SESSION_NOT_FOUND') {
+      alert(`An error occurred: ${message.payload.message}`);
       navigate('/');
     }
-  }, [lastMessage, navigate, clearLastMessage]);
+  });
 
   // --- INITIALIZE PLAYER IN SESSION STORAGE ---
   // This is to ensure the player is registered in session storage
@@ -114,88 +113,68 @@ const PhaserPage: React.FC = () => {
     }
   }, [sessionId, userId, location.state?.role, roleParam, sendMessage, connectedUsers]);
 
-  // --- REMOTE PLAYER MOVEMENT SYNC ---
-  useEffect(() => {
-    if (lastMessage?.type === 'PLAYER_MOVE_BROADCAST') {
-      const { userId: movingUserId, x, y } = lastMessage.payload;
-      if (movingUserId !== userId) {
-        const scene = phaserRef.current?.scene as any;
-        if (scene && typeof scene.updateRemotePlayer === 'function') {
-          scene.updateRemotePlayer(movingUserId, x, y);
-        }
-      }
-      if (clearLastMessage) clearLastMessage();
-    }
-  }, [lastMessage, userId, clearLastMessage]);
+  // Remote player movement is handled by movementStore in WebSocketContext.
 
   // --- GAME MODE BROADCAST ---
-  useEffect(() => {
-    if (lastMessage?.type === 'START_GAME_BROADCAST') {
-      const { mode } = lastMessage.payload as { mode: GameMode };
-      const settings = MODE_CONFIG[mode];
-      const scene = phaserRef.current?.scene as any;
-      setGameMode(mode); 
-      if (scene && typeof scene.applyModeSettings === 'function') {
-        scene.applyModeSettings(settings);
-      }
-      clearLastMessage?.();
+  useMessage('START_GAME_BROADCAST', (message) => {
+    const { mode } = message.payload as { mode: GameMode };
+    const settings = MODE_CONFIG[mode];
+    const scene = phaserRef.current?.scene as any;
+    setGameMode(mode);
+    if (scene && typeof scene.applyModeSettings === 'function') {
+      scene.applyModeSettings(settings);
     }
-  }, [lastMessage, clearLastMessage]);
+  });
 
   // --- FOOD STATE SYNC ---
-  useEffect(() => {
-    // Handle food state updates
-    if (lastMessage?.type === 'FOOD_STATE_UPDATE') {
-      const { foods } = lastMessage.payload as { foods: FoodState[] };
-      EventBus.emit('sync-food-state', foods);
-    }
+  // Food positions, sent by the server every 50ms
+  useMessage('FOOD_STATE_UPDATE', (message) => {
+    const { foods } = message.payload as { foods: FoodState[] };
+    EventBus.emit('sync-food-state', foods);
+  });
 
-    // When a new food is set as target
-    if (lastMessage?.type === 'AAC_TARGET_FOOD') {
-      const { targetFoodId, targetFoodData, effect } = lastMessage.payload;
-      const scene = phaserRef.current?.scene as any;
-      if (scene && typeof scene.setTargetFood === 'function') {
-        if (effect) {
-          scene.setTargetFood(targetFoodId, effect);
-        } else {
-          scene.setTargetFood(targetFoodId);
-        }
-        // Scene is ready, clear any pending target
-        setPendingTargetFood(null);
+  // When a new food is set as target
+  useMessage('AAC_TARGET_FOOD', (message) => {
+    const { targetFoodId, targetFoodData, effect } = message.payload;
+    const scene = phaserRef.current?.scene as any;
+    if (scene && typeof scene.setTargetFood === 'function') {
+      if (effect) {
+        scene.setTargetFood(targetFoodId, effect);
       } else {
-        // Scene not ready, store target for later
-        setPendingTargetFood({ targetFoodId, targetFoodData, effect });
+        scene.setTargetFood(targetFoodId);
       }
-      if (targetFoodData) {
-        setCurrentFood(targetFoodData);
-        // Play audio for the target food if not muted
-        if (!isAudioMuted && targetFoodData.audioPath) {
-          const audio = new Audio(targetFoodData.audioPath);
-          audio.play().catch((error) => {
-            console.error('[PhaserPage] Error playing target food audio:', error);
-          });
-        }
-      }
-      clearLastMessage?.();
+      // Scene is ready, clear any pending target
+      setPendingTargetFood(null);
+    } else {
+      // Scene not ready, store target for later
+      setPendingTargetFood({ targetFoodId, targetFoodData, effect });
     }
+    if (targetFoodData) {
+      setCurrentFood(targetFoodData);
+      // Play audio for the target food if not muted
+      if (!isAudioMuted && targetFoodData.audioPath) {
+        const audio = new Audio(targetFoodData.audioPath);
+        audio.play().catch((error) => {
+          console.error('[PhaserPage] Error playing target food audio:', error);
+        });
+      }
+    }
+  });
 
-    // When a food has been eaten, remove it from the scene
-    if (lastMessage?.type === 'REMOVE_FOOD') {
-      const { instanceId } = lastMessage.payload;
-      const scene = phaserRef.current?.scene as any;
-      if (scene && typeof scene.removeFoodByInstanceId === 'function') {
-        scene.removeFoodByInstanceId(instanceId);
-      }
-      clearLastMessage?.();
+  // When a food has been eaten, remove it from the scene
+  useMessage('REMOVE_FOOD', (message) => {
+    const { instanceId } = message.payload;
+    const scene = phaserRef.current?.scene as any;
+    if (scene && typeof scene.removeFoodByInstanceId === 'function') {
+      scene.removeFoodByInstanceId(instanceId);
     }
+  });
 
-    // When a player effect is broadcasted, apply it
-    if (lastMessage?.type === 'PLAYER_EFFECT_BROADCAST') {
-      const { targetUserId, effect } = lastMessage.payload as { targetUserId: string, effect: AacVerb };
-      EventBus.emit('apply-player-effect', { targetUserId, effect });
-      clearLastMessage?.();
-    }
-  }, [lastMessage, clearLastMessage, isAudioMuted]);
+  // When a player effect is broadcasted, apply it
+  useMessage('PLAYER_EFFECT_BROADCAST', (message) => {
+    const { targetUserId, effect } = message.payload as { targetUserId: string, effect: AacVerb };
+    EventBus.emit('apply-player-effect', { targetUserId, effect });
+  });
 
   // --- FRUIT EATEN LOCAL (EMITTED FROM PHASER) ---
   useEffect(() => {
